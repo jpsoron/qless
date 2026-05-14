@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    QLess — Isotipo Espresso (#2C1A0E)
+    Uso: sobre fondos claros/crema, versión formal
+    Copiá en: res/drawable/ic_qless_espresso.xml
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <path
+        android:pathData="M48,102 Q38,88 44,74"
+        android:strokeColor="#2C1A0E"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="@android:color/transparent"/>
+    <path
+        android:pathData="M60,100 Q54,90 58,80"
+        android:strokeColor="#2C1A0E"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="@android:color/transparent"/>
+    <path
+        android:pathData="M152,102 Q162,88 156,74"
+        android:strokeColor="#2C1A0E"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="@android:color/transparent"/>
+    <path
+        android:pathData="M140,100 Q146,90 142,80"
+        android:strokeColor="#2C1A0E"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="@android:color/transparent"/>
+    <path
+        android:pathData="M90,78 L110,78 Q111,78 111,79 L111,82 Q111,83 110,83 L90,83 Q89,83 89,82 L89,79 Q89,78 90,78 Z"
+        android:fillColor="#2C1A0E"/>
+    <path
+        android:pathData="M97,83 L103,83 L103,90 L97,90 Z"
+        android:fillColor="#2C1A0E"/>
+    <path
+        android:pathData="M62,118 Q62,88 100,88 Q138,88 138,118 Z"
+        android:fillColor="#2C1A0E"/>
+    <path
+        android:pathData="M60,120 L142,120 Q144,120 144,122 L144,126 Q144,128 142,128 L58,128 Q56,128 56,126 L56,122 Q56,120 58,120 Z"
+        android:fillColor="#2C1A0E"/>
+    <path
+        android:pathData="M59,130 L141,130 Q146,130 146,135 L146,140 Q146,145 141,145 L59,145 Q54,145 54,140 L54,135 Q54,130 59,130 Z"
+        android:strokeColor="#2C1A0E"
+        android:strokeWidth="4"
+        android:fillColor="@android:color/transparent"/>
+
+</vector>

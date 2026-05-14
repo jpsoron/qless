@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,35 +43,9 @@ fun ThemePreviewScreen() {
     QLessTheme(darkTheme = darkMode) {
         Scaffold(
             topBar = {
-                @OptIn(ExperimentalMaterial3Api::class)
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Theme Preview",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    actions = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(end = 12.dp)
-                        ) {
-                            Text(
-                                text = if (darkMode) "Dark" else "Light",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Switch(
-                                checked = darkMode,
-                                onCheckedChange = { darkMode = it }
-                            )
-                        }
-                    }
+                QLessTopBar(
+                    darkMode = darkMode,
+                    onDarkModeToggle = { darkMode = it }
                 )
             }
         ) { padding ->
@@ -215,6 +191,65 @@ fun ThemePreviewScreen() {
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
+        }
+    }
+}
+
+// ── Top bar de marca ─────────────────────────────────────────────────────────
+
+@Composable
+fun QLessTopBar(
+    darkMode: Boolean,
+    onDarkModeToggle: (Boolean) -> Unit,
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.primary,
+        shadowElevation = 4.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .height(64.dp)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Isotipo blanco
+            Image(
+                painter = painterResource(R.drawable.ic_qless_blanco),
+                contentDescription = null,
+                modifier = Modifier.size(36.dp),
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            // Nombre de la app en Lora
+            Text(
+                text = "QLess",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Toggle dark mode
+            Text(
+                text = if (darkMode) "Dark" else "Light",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Switch(
+                checked = darkMode,
+                onCheckedChange = onDarkModeToggle,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.onPrimary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.3f),
+                ),
+            )
         }
     }
 }
