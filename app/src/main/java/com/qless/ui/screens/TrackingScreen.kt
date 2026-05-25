@@ -35,6 +35,7 @@ private enum class StepStatus { DONE, ACTIVE, PENDING }
 @Composable
 fun TrackingScreen(
     onGoHome: () -> Unit,
+    onNavigateToOrderReady: () -> Unit,
 ) {
     val steps = listOf(
         TrackingStep("✅", "Pedido recibido", "Tu compra fue confirmada", StepStatus.DONE, "13:08"),
@@ -218,7 +219,7 @@ fun TrackingScreen(
             Spacer(Modifier.height(12.dp))
 
             OutlinedButton(
-                onClick = {},
+                onClick = onNavigateToOrderReady,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
@@ -226,7 +227,7 @@ fun TrackingScreen(
                 shape = RoundedCornerShape(12.dp),
                 border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
             ) {
-                Text("☑ Ver detalle del pedido", color = Espresso)
+                Text("🔔 Simular: Pedido Listo", color = Espresso)
             }
 
             Spacer(Modifier.height(16.dp))
@@ -282,5 +283,5 @@ private fun TrackingStepRow(step: TrackingStep) {
 @Preview(showBackground = true)
 @Composable
 private fun TrackingPreview() {
-    QLessTheme { TrackingScreen(onGoHome = {}) }
+    QLessTheme { TrackingScreen(onGoHome = {}, onNavigateToOrderReady = {}) }
 }
