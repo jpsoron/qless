@@ -13,8 +13,10 @@ import com.qless.ui.screens.MenuScreen
 import com.qless.ui.screens.MisLocalesScreen
 import com.qless.ui.screens.OnboardingScreen
 import com.qless.ui.screens.OrderConfirmedScreen
+import com.qless.ui.screens.OrderReadyScreen
 import com.qless.ui.screens.PaymentScreen
 import com.qless.ui.screens.QrNoReconocidoScreen
+import com.qless.ui.screens.PickupSuccessScreen
 import com.qless.ui.screens.RegisterScreen
 import com.qless.ui.screens.ScanearQrScreen
 import com.qless.ui.screens.SplashScreen
@@ -35,6 +37,8 @@ sealed class Screen(val route: String) {
     object Tracking : Screen("tracking")
     object ScanQr : Screen("scan_qr")
     object QrNoReconocido : Screen("qr_no_reconocido")
+    object OrderReady : Screen("order_ready")
+    object PickupSuccess : Screen("pickup_success")
 }
 
 @Composable
@@ -203,6 +207,33 @@ fun AppNavigation(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
+                },
+                onNavigateToOrderReady = {
+                    navController.navigate(Screen.OrderReady.route)
+                }
+            )
+        }
+
+        composable(Screen.OrderReady.route) {
+            OrderReadyScreen(
+                onConfirmPickup = {
+                    navController.navigate(Screen.PickupSuccess.route) {
+                        popUpTo(Screen.Tracking.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.PickupSuccess.route) {
+            PickupSuccessScreen(
+                onGoHome = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onViewSummary = {
+                    // Acción opcional, por ahora vuelve al inicio
+                    navController.navigate(Screen.Home.route)
                 }
             )
         }
