@@ -42,6 +42,7 @@ private val featured = listOf(
 fun HomeScreen(
     onNavigateToMisLocales: () -> Unit,
     onNavigateToTracking: () -> Unit,
+    onNavigateToScanQr: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -50,7 +51,11 @@ fun HomeScreen(
             QLessBottomNav(
                 selectedTab = selectedTab,
                 onTabSelected = { tab ->
-                    if (tab == 1) onNavigateToMisLocales() else selectedTab = tab
+                    when (tab) {
+                        1 -> onNavigateToMisLocales()
+                        4 -> onNavigateToScanQr()
+                        else -> selectedTab = tab
+                    }
                 }
             )
         },
@@ -289,5 +294,5 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun HomePreview() {
-    QLessTheme { HomeScreen(onNavigateToMisLocales = {}, onNavigateToTracking = {}) }
+    QLessTheme { HomeScreen(onNavigateToMisLocales = {}, onNavigateToTracking = {}, onNavigateToScanQr = {}) }
 }

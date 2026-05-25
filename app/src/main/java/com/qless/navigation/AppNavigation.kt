@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.qless.ui.screens.CartScreen
+import com.qless.ui.screens.GoogleLoginScreen
 import com.qless.ui.screens.HomeScreen
 import com.qless.ui.screens.LoginScreen
 import com.qless.ui.screens.MenuScreen
@@ -13,7 +14,9 @@ import com.qless.ui.screens.MisLocalesScreen
 import com.qless.ui.screens.OnboardingScreen
 import com.qless.ui.screens.OrderConfirmedScreen
 import com.qless.ui.screens.PaymentScreen
+import com.qless.ui.screens.QrNoReconocidoScreen
 import com.qless.ui.screens.RegisterScreen
+import com.qless.ui.screens.ScanearQrScreen
 import com.qless.ui.screens.SplashScreen
 import com.qless.ui.screens.TrackingScreen
 
@@ -21,6 +24,7 @@ sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Onboarding : Screen("onboarding")
     object Login : Screen("login")
+    object GoogleLogin : Screen("google_login")
     object Register : Screen("register")
     object Home : Screen("home")
     object MisLocales : Screen("mis_locales")
@@ -29,6 +33,8 @@ sealed class Screen(val route: String) {
     object Payment : Screen("payment")
     object OrderConfirmed : Screen("order_confirmed")
     object Tracking : Screen("tracking")
+    object ScanQr : Screen("scan_qr")
+    object QrNoReconocido : Screen("qr_no_reconocido")
 }
 
 @Composable
@@ -69,6 +75,26 @@ fun AppNavigation(
                 },
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
+                },
+                onNavigateToGoogleLogin = {
+                    navController.navigate(Screen.GoogleLogin.route)
+                }
+            )
+        }
+
+        composable(Screen.GoogleLogin.route) {
+            GoogleLoginScreen(
+                onBack = { navController.popBackStack() },
+                onContinueWithGoogle = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onUseEmail = { navController.popBackStack() },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.GoogleLogin.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -80,21 +106,54 @@ fun AppNavigation(
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
                 },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToGoogleLogin = {
+                    navController.navigate(Screen.GoogleLogin.route)
+                }
             )
         }
 
         composable(Screen.Home.route) {
             HomeScreen(
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
-                onNavigateToTracking = { navController.navigate(Screen.Tracking.route) }
+                onNavigateToTracking = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) }
             )
         }
 
         composable(Screen.MisLocales.route) {
             MisLocalesScreen(
                 onLocalSelected = { navController.navigate(Screen.Menu.route) },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) }
+            )
+        }
+
+        composable(Screen.ScanQr.route) {
+            ScanearQrScreen(
+                onBack = { navController.popBackStack() },
+                onQrDetected = { qrData ->
+                    if (qrData == "error") {
+                        navController.navigate(Screen.QrNoReconocido.route)
+                    } else {
+                        navController.navigate(Screen.Menu.route) {
+                            popUpTo(Screen.ScanQr.route) { inclusive = true }
+                        }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.QrNoReconocido.route) {
+            QrNoReconocidoScreen(
+                onRetry = {
+                    navController.navigate(Screen.ScanQr.route) {
+                        popUpTo(Screen.QrNoReconocido.route) { inclusive = true }
+                    }
+                },
+                onManualInput = {
+                    navController.popBackStack()
+                }
             )
         }
 

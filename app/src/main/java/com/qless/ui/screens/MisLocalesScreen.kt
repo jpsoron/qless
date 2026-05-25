@@ -42,10 +42,18 @@ private val locales = listOf(
 fun MisLocalesScreen(
     onLocalSelected: () -> Unit,
     onBack: () -> Unit,
+    onNavigateToScanQr: () -> Unit,
 ) {
+    var selectedTab by remember { mutableIntStateOf(1) }
+
     Scaffold(
         bottomBar = {
-            QLessBottomNav(selectedTab = 1, onTabSelected = {})
+            QLessBottomNav(
+                selectedTab = selectedTab,
+                onTabSelected = { tab ->
+                    if (tab == 4) onNavigateToScanQr() else selectedTab = tab
+                }
+            )
         },
         containerColor = CremaCálida
     ) { padding ->
@@ -167,7 +175,7 @@ fun MisLocalesScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {},
+                        .clickable { onNavigateToScanQr() },
                     shape = RoundedCornerShape(16.dp),
                     color = Espresso
                 ) {
@@ -270,5 +278,5 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun MisLocalesPreview() {
-    QLessTheme { MisLocalesScreen(onLocalSelected = {}, onBack = {}) }
+    QLessTheme { MisLocalesScreen(onLocalSelected = {}, onBack = {}, onNavigateToScanQr = {}) }
 }

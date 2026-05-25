@@ -25,6 +25,7 @@ import com.qless.ui.theme.*
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onBack: () -> Unit,
+    onNavigateToGoogleLogin: () -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -114,7 +115,7 @@ fun RegisterScreen(
         Spacer(Modifier.height(16.dp))
 
         OutlinedButton(
-            onClick = onRegisterSuccess,
+            onClick = onNavigateToGoogleLogin,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Mantequilla),
@@ -180,5 +181,5 @@ private fun QLessTextField(
 @Preview(showBackground = true)
 @Composable
 private fun RegisterPreview() {
-    QLessTheme { RegisterScreen(onRegisterSuccess = {}, onBack = {}) }
+    QLessTheme { RegisterScreen(onRegisterSuccess = {}, onBack = {}, onNavigateToGoogleLogin = {}) }
 }
