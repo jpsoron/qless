@@ -5,6 +5,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.qless.ui.screens.BackOfficeHistoryScreen
+import com.qless.ui.screens.BackOfficeScreen
+import com.qless.ui.screens.BackOfficeUpdateOrderScreen
 import com.qless.ui.screens.CartScreen
 import com.qless.ui.screens.GoogleLoginScreen
 import com.qless.ui.screens.HomeScreen
@@ -39,6 +42,9 @@ sealed class Screen(val route: String) {
     object QrNoReconocido : Screen("qr_no_reconocido")
     object OrderReady : Screen("order_ready")
     object PickupSuccess : Screen("pickup_success")
+    object BackOffice : Screen("back_office")
+    object BackOfficeHistory : Screen("back_office_history")
+    object BackOfficeUpdateOrder : Screen("back_office_update_order")
 }
 
 @Composable
@@ -77,11 +83,54 @@ fun AppNavigation(
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
+                onNavigateToBackOffice = {
+                    navController.navigate(Screen.BackOffice.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
                 },
                 onNavigateToGoogleLogin = {
                     navController.navigate(Screen.GoogleLogin.route)
+                }
+            )
+        }
+
+        composable(Screen.BackOffice.route) {
+            BackOfficeScreen(
+                onNavigateToHistory = {
+                    navController.navigate(Screen.BackOfficeHistory.route)
+                },
+                onUpdateOrder = {
+                    navController.navigate(Screen.BackOfficeUpdateOrder.route)
+                }
+            )
+        }
+
+        composable(Screen.BackOfficeUpdateOrder.route) {
+            BackOfficeUpdateOrderScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToOrders = {
+                    navController.navigate(Screen.BackOffice.route) {
+                        popUpTo(Screen.BackOffice.route) { inclusive = true }
+                    }
+                },
+                onNavigateToHistory = {
+                    navController.navigate(Screen.BackOfficeHistory.route) {
+                        popUpTo(Screen.BackOffice.route) { inclusive = false }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.BackOfficeHistory.route) {
+            BackOfficeHistoryScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToOrders = {
+                    navController.navigate(Screen.BackOffice.route) {
+                        popUpTo(Screen.BackOffice.route) { inclusive = true }
+                    }
                 }
             )
         }

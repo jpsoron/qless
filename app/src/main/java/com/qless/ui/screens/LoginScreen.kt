@@ -25,6 +25,7 @@ import com.qless.ui.theme.*
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    onNavigateToBackOffice: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToGoogleLogin: () -> Unit,
 ) {
@@ -172,7 +173,13 @@ fun LoginScreen(
 
         // Botón principal
         Button(
-            onClick = onLoginSuccess,
+            onClick = {
+                if (email.lowercase() == "backoffice" && password.lowercase() == "backoffice") {
+                    onNavigateToBackOffice()
+                } else {
+                    onLoginSuccess()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp),
@@ -258,5 +265,12 @@ fun LoginScreen(
 @Preview(showBackground = true)
 @Composable
 private fun LoginPreview() {
-    QLessTheme { LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {}, onNavigateToGoogleLogin = {}) }
+    QLessTheme { 
+        LoginScreen(
+            onLoginSuccess = {}, 
+            onNavigateToBackOffice = {},
+            onNavigateToRegister = {}, 
+            onNavigateToGoogleLogin = {}
+        ) 
+    }
 }
