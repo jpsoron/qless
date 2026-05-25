@@ -6,6 +6,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.qless.ui.screens.*
+import com.qless.ui.screens.BackOfficeHistoryScreen
+import com.qless.ui.screens.BackOfficeScreen
+import com.qless.ui.screens.BackOfficeUpdateOrderScreen
+import com.qless.ui.screens.CartScreen
+import com.qless.ui.screens.GoogleLoginScreen
+import com.qless.ui.screens.HomeScreen
+import com.qless.ui.screens.LoginScreen
+import com.qless.ui.screens.MenuScreen
+import com.qless.ui.screens.MisLocalesScreen
+import com.qless.ui.screens.OnboardingScreen
+import com.qless.ui.screens.OrderConfirmedScreen
+import com.qless.ui.screens.OrderReadyScreen
+import com.qless.ui.screens.PaymentScreen
+import com.qless.ui.screens.QrNoReconocidoScreen
+import com.qless.ui.screens.PickupSuccessScreen
+import com.qless.ui.screens.RegisterScreen
+import com.qless.ui.screens.ScanearQrScreen
+import com.qless.ui.screens.SplashScreen
+import com.qless.ui.screens.TrackingScreen
+
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -26,6 +46,9 @@ sealed class Screen(val route: String) {
     object PickupSuccess : Screen("pickup_success")
     object Ajustes : Screen("ajustes")
     object CerrarSesion : Screen("cerrar_sesion")
+    object BackOffice : Screen("back_office")
+    object BackOfficeHistory : Screen("back_office_history")
+    object BackOfficeUpdateOrder : Screen("back_office_update_order")
 }
 
 @Composable
@@ -64,11 +87,54 @@ fun AppNavigation(
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
+                onNavigateToBackOffice = {
+                    navController.navigate(Screen.BackOffice.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
                 },
                 onNavigateToGoogleLogin = {
                     navController.navigate(Screen.GoogleLogin.route)
+                }
+            )
+        }
+
+        composable(Screen.BackOffice.route) {
+            BackOfficeScreen(
+                onNavigateToHistory = {
+                    navController.navigate(Screen.BackOfficeHistory.route)
+                },
+                onUpdateOrder = {
+                    navController.navigate(Screen.BackOfficeUpdateOrder.route)
+                }
+            )
+        }
+
+        composable(Screen.BackOfficeUpdateOrder.route) {
+            BackOfficeUpdateOrderScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToOrders = {
+                    navController.navigate(Screen.BackOffice.route) {
+                        popUpTo(Screen.BackOffice.route) { inclusive = true }
+                    }
+                },
+                onNavigateToHistory = {
+                    navController.navigate(Screen.BackOfficeHistory.route) {
+                        popUpTo(Screen.BackOffice.route) { inclusive = false }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.BackOfficeHistory.route) {
+            BackOfficeHistoryScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToOrders = {
+                    navController.navigate(Screen.BackOffice.route) {
+                        popUpTo(Screen.BackOffice.route) { inclusive = true }
+                    }
                 }
             )
         }
