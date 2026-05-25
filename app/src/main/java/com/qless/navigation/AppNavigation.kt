@@ -5,22 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.qless.ui.screens.CartScreen
-import com.qless.ui.screens.GoogleLoginScreen
-import com.qless.ui.screens.HomeScreen
-import com.qless.ui.screens.LoginScreen
-import com.qless.ui.screens.MenuScreen
-import com.qless.ui.screens.MisLocalesScreen
-import com.qless.ui.screens.OnboardingScreen
-import com.qless.ui.screens.OrderConfirmedScreen
-import com.qless.ui.screens.OrderReadyScreen
-import com.qless.ui.screens.PaymentScreen
-import com.qless.ui.screens.QrNoReconocidoScreen
-import com.qless.ui.screens.PickupSuccessScreen
-import com.qless.ui.screens.RegisterScreen
-import com.qless.ui.screens.ScanearQrScreen
-import com.qless.ui.screens.SplashScreen
-import com.qless.ui.screens.TrackingScreen
+import com.qless.ui.screens.*
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -39,6 +24,8 @@ sealed class Screen(val route: String) {
     object QrNoReconocido : Screen("qr_no_reconocido")
     object OrderReady : Screen("order_ready")
     object PickupSuccess : Screen("pickup_success")
+    object Ajustes : Screen("ajustes")
+    object CerrarSesion : Screen("cerrar_sesion")
 }
 
 @Composable
@@ -121,7 +108,8 @@ fun AppNavigation(
             HomeScreen(
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToTracking = { navController.navigate(Screen.Tracking.route) },
-                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) }
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) }
             )
         }
 
@@ -129,7 +117,8 @@ fun AppNavigation(
             MisLocalesScreen(
                 onLocalSelected = { navController.navigate(Screen.Menu.route) },
                 onBack = { navController.popBackStack() },
-                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) }
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) }
             )
         }
 
@@ -158,6 +147,41 @@ fun AppNavigation(
                 onManualInput = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable(Screen.Ajustes.route) {
+            AjustesScreen(
+                onNavigateToInicio = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onLogout = {
+                    navController.navigate(Screen.CerrarSesion.route)
+                }
+            )
+        }
+
+        composable(Screen.CerrarSesion.route) {
+            CerrarSesionScreen(
+                onBack = { navController.popBackStack() },
+                onConfirmLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNavigateToInicio = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) }
             )
         }
 
@@ -214,6 +238,7 @@ fun AppNavigation(
             )
         }
 
+        @Suppress("DEPRECATION")
         composable(Screen.OrderReady.route) {
             OrderReadyScreen(
                 onConfirmPickup = {
@@ -232,7 +257,6 @@ fun AppNavigation(
                     }
                 },
                 onViewSummary = {
-                    // Acción opcional, por ahora vuelve al inicio
                     navController.navigate(Screen.Home.route)
                 }
             )

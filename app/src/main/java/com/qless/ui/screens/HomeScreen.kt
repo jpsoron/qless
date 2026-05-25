@@ -43,6 +43,7 @@ fun HomeScreen(
     onNavigateToMisLocales: () -> Unit,
     onNavigateToTracking: () -> Unit,
     onNavigateToScanQr: () -> Unit,
+    onNavigateToAjustes: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -53,6 +54,7 @@ fun HomeScreen(
                 onTabSelected = { tab ->
                     when (tab) {
                         1 -> onNavigateToMisLocales()
+                        3 -> onNavigateToAjustes()
                         4 -> onNavigateToScanQr()
                         else -> selectedTab = tab
                     }
@@ -294,5 +296,5 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun HomePreview() {
-    QLessTheme { HomeScreen(onNavigateToMisLocales = {}, onNavigateToTracking = {}, onNavigateToScanQr = {}) }
+    QLessTheme { HomeScreen(onNavigateToMisLocales = {}, onNavigateToTracking = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
 }

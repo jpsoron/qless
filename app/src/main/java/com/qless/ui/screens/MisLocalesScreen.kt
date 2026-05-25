@@ -43,6 +43,7 @@ fun MisLocalesScreen(
     onLocalSelected: () -> Unit,
     onBack: () -> Unit,
     onNavigateToScanQr: () -> Unit,
+    onNavigateToAjustes: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(1) }
 
@@ -51,7 +52,11 @@ fun MisLocalesScreen(
             QLessBottomNav(
                 selectedTab = selectedTab,
                 onTabSelected = { tab ->
-                    if (tab == 4) onNavigateToScanQr() else selectedTab = tab
+                    when (tab) {
+                        3 -> onNavigateToAjustes()
+                        4 -> onNavigateToScanQr()
+                        else -> selectedTab = tab
+                    }
                 }
             )
         },
@@ -278,5 +283,5 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun MisLocalesPreview() {
-    QLessTheme { MisLocalesScreen(onLocalSelected = {}, onBack = {}, onNavigateToScanQr = {}) }
+    QLessTheme { MisLocalesScreen(onLocalSelected = {}, onBack = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
 }
