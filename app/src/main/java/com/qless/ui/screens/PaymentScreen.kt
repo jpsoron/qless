@@ -30,6 +30,7 @@ private val methods = listOf(
 @Composable
 fun PaymentScreen(
     onPaymentSuccess: () -> Unit,
+    onNavigateToAgregarMetodo: () -> Unit,
     onBack: () -> Unit,
 ) {
     var selectedMethod by remember { mutableIntStateOf(0) }
@@ -174,7 +175,7 @@ fun PaymentScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            TextButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
+            TextButton(onClick = onNavigateToAgregarMetodo, modifier = Modifier.fillMaxWidth()) {
                 Text("💳 Otros métodos de pago", color = Madera)
                 Spacer(Modifier.weight(1f))
                 Text("Agregar", color = Pimentón, fontWeight = FontWeight.Bold)
@@ -223,5 +224,5 @@ private fun StepDot(label: String, isActive: Boolean, isDone: Boolean) {
 @Preview(showBackground = true)
 @Composable
 private fun PaymentPreview() {
-    QLessTheme { PaymentScreen(onPaymentSuccess = {}, onBack = {}) }
+    QLessTheme { PaymentScreen(onPaymentSuccess = {}, onNavigateToAgregarMetodo = {}, onBack = {}) }
 }

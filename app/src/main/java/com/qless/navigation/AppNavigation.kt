@@ -6,26 +6,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.qless.ui.screens.*
-import com.qless.ui.screens.BackOfficeHistoryScreen
-import com.qless.ui.screens.BackOfficeScreen
-import com.qless.ui.screens.BackOfficeUpdateOrderScreen
-import com.qless.ui.screens.CartScreen
-import com.qless.ui.screens.GoogleLoginScreen
-import com.qless.ui.screens.HomeScreen
-import com.qless.ui.screens.LoginScreen
-import com.qless.ui.screens.MenuScreen
-import com.qless.ui.screens.MisLocalesScreen
-import com.qless.ui.screens.OnboardingScreen
-import com.qless.ui.screens.OrderConfirmedScreen
-import com.qless.ui.screens.OrderReadyScreen
-import com.qless.ui.screens.PaymentScreen
-import com.qless.ui.screens.QrNoReconocidoScreen
-import com.qless.ui.screens.PickupSuccessScreen
-import com.qless.ui.screens.RegisterScreen
-import com.qless.ui.screens.ScanearQrScreen
-import com.qless.ui.screens.SplashScreen
-import com.qless.ui.screens.TrackingScreen
-
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -45,7 +25,11 @@ sealed class Screen(val route: String) {
     object OrderReady : Screen("order_ready")
     object PickupSuccess : Screen("pickup_success")
     object Ajustes : Screen("ajustes")
+    object MetodosDePago : Screen("metodos_de_pago")
+    object AgregarMetodoDePago : Screen("agregar_metodo_pago")
     object CerrarSesion : Screen("cerrar_sesion")
+    object Notificaciones : Screen("notificaciones")
+    object EliminarCuenta : Screen("eliminar_cuenta")
     object BackOffice : Screen("back_office")
     object BackOfficeHistory : Screen("back_office_history")
     object BackOfficeUpdateOrder : Screen("back_office_update_order")
@@ -226,8 +210,69 @@ fun AppNavigation(
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
                 onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToNotificaciones = { navController.navigate(Screen.Notificaciones.route) },
+                onNavigateToMetodosDePago = { navController.navigate(Screen.MetodosDePago.route) },
+                onNavigateToEliminarCuenta = { navController.navigate(Screen.EliminarCuenta.route) },
                 onLogout = {
                     navController.navigate(Screen.CerrarSesion.route)
+                }
+            )
+        }
+
+        composable(Screen.MetodosDePago.route) {
+            MetodosDePagoScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToAgregarMetodo = { navController.navigate(Screen.AgregarMetodoDePago.route) },
+                onNavigateToInicio = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToAjustes = {
+                    navController.navigate(Screen.Ajustes.route) {
+                        popUpTo(Screen.Ajustes.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.AgregarMetodoDePago.route) {
+            AgregarMetodoDePagoScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToInicio = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToAjustes = {
+                    navController.navigate(Screen.Ajustes.route) {
+                        popUpTo(Screen.Ajustes.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Notificaciones.route) {
+            NotificacionesScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToInicio = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToAjustes = {
+                    navController.navigate(Screen.Ajustes.route) {
+                        popUpTo(Screen.Ajustes.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -248,6 +293,30 @@ fun AppNavigation(
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
                 onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) }
+            )
+        }
+
+        composable(Screen.EliminarCuenta.route) {
+            EliminarCuentaScreen(
+                onBack = { navController.popBackStack() },
+                onConfirmDelete = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNavigateToInicio = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToAjustes = {
+                    navController.navigate(Screen.Ajustes.route) {
+                        popUpTo(Screen.Ajustes.route) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -272,6 +341,7 @@ fun AppNavigation(
                         popUpTo(Screen.Menu.route) { inclusive = false }
                     }
                 },
+                onNavigateToAgregarMetodo = { navController.navigate(Screen.AgregarMetodoDePago.route) },
                 onBack = { navController.popBackStack() }
             )
         }

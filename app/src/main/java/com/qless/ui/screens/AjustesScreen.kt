@@ -31,6 +31,9 @@ fun AjustesScreen(
     onNavigateToMisLocales: () -> Unit,
     onNavigateToScanQr: () -> Unit,
     onNavigateToMisPedidos: () -> Unit,
+    onNavigateToNotificaciones: () -> Unit,
+    onNavigateToMetodosDePago: () -> Unit,
+    onNavigateToEliminarCuenta: () -> Unit,
     onLogout: () -> Unit,
 ) {
     Scaffold(
@@ -115,18 +118,34 @@ fun AjustesScreen(
 
             SettingsSection("CUENTA") {
                 SettingsItem("👤", "Mi perfil", "Datos personales y cuenta")
-                SettingsItem("💳", "Métodos de pago", "Tarjetas y billeteras") {
+                SettingsItem(
+                    icon = "💳",
+                    title = "Métodos de pago",
+                    description = "Tarjetas y billeteras",
+                    onClick = onNavigateToMetodosDePago
+                ) {
                     Text(
                         "VISA •••• 4242", color = Color(0xFF4285F4), fontWeight = FontWeight.Bold, fontSize = 11.sp,
                         modifier = Modifier.background(Color(0xFF4285F4).copy(alpha = 0.1f), RoundedCornerShape(99.dp)).padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
+                SettingsItem(
+                    icon = "🗑️",
+                    title = "Eliminar cuenta",
+                    description = "Borrar tus datos permanentemente",
+                    onClick = onNavigateToEliminarCuenta
+                )
             }
 
             Spacer(Modifier.height(20.dp))
 
             SettingsSection("PREFERENCIAS") {
-                SettingsItem("🔔", "Notificaciones", "Pedidos, promos y novedades") {
+                SettingsItem(
+                    icon = "🔔",
+                    title = "Notificaciones",
+                    description = "Pedidos, promos y novedades",
+                    onClick = onNavigateToNotificaciones
+                ) {
                     Text(
                         "3 activas", color = Color(0xFF1A7A4A), fontWeight = FontWeight.Bold, fontSize = 11.sp,
                         modifier = Modifier.background(Color(0xFF1A7A4A).copy(alpha = 0.1f), RoundedCornerShape(99.dp)).padding(horizontal = 10.dp, vertical = 4.dp)
@@ -193,9 +212,15 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
 }
 
 @Composable
-private fun SettingsItem(icon: String, title: String, description: String, badge: @Composable (() -> Unit)? = null) {
+private fun SettingsItem(
+    icon: String,
+    title: String,
+    description: String,
+    onClick: () -> Unit = {},
+    badge: @Composable (() -> Unit)? = null
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable { }.padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Surface(modifier = Modifier.size(44.dp), shape = RoundedCornerShape(12.dp), color = Color.White) {
@@ -234,6 +259,6 @@ private fun SettingsToggleItem(icon: String, title: String, description: String,
 @Composable
 private fun AjustesPreview() {
     QLessTheme {
-        AjustesScreen({}, {}, {}, {}, {})
+        AjustesScreen({}, {}, {}, {}, {}, {}, {}, {})
     }
 }
