@@ -42,7 +42,10 @@ private val locales = listOf(
 fun MisLocalesScreen(
     onLocalSelected: () -> Unit,
     onBack: () -> Unit,
+    onNavigateToInicio: () -> Unit,
+    onNavigateToLocationDetected: () -> Unit,
     onNavigateToScanQr: () -> Unit,
+    onNavigateToMisPedidos: () -> Unit,
     onNavigateToAjustes: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(1) }
@@ -53,6 +56,8 @@ fun MisLocalesScreen(
                 selectedTab = selectedTab,
                 onTabSelected = { tab ->
                     when (tab) {
+                        0 -> onNavigateToInicio()
+                        2 -> onNavigateToMisPedidos()
                         3 -> onNavigateToAjustes()
                         4 -> onNavigateToScanQr()
                         else -> selectedTab = tab
@@ -121,7 +126,7 @@ fun MisLocalesScreen(
                         }
                         Spacer(Modifier.width(8.dp))
                         Button(
-                            onClick = onLocalSelected,
+                            onClick = onNavigateToLocationDetected,
                             colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             modifier = Modifier.height(32.dp)
@@ -283,5 +288,5 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun MisLocalesPreview() {
-    QLessTheme { MisLocalesScreen(onLocalSelected = {}, onBack = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
+    QLessTheme { MisLocalesScreen(onLocalSelected = {}, onBack = {}, onNavigateToInicio = {}, onNavigateToLocationDetected = {}, onNavigateToScanQr = {}, onNavigateToMisPedidos = {}, onNavigateToAjustes = {}) }
 }

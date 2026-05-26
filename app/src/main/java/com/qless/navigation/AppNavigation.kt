@@ -15,11 +15,14 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object Home : Screen("home")
     object MisLocales : Screen("mis_locales")
+    object LocationDetected : Screen("location_detected")
     object Menu : Screen("menu")
     object Cart : Screen("cart")
     object Payment : Screen("payment")
     object OrderConfirmed : Screen("order_confirmed")
     object Tracking : Screen("tracking")
+    object MisPedidos : Screen("mis_pedidos")
+    object OrderSummary : Screen("order_summary")
     object ScanQr : Screen("scan_qr")
     object QrNoReconocido : Screen("qr_no_reconocido")
     object OrderReady : Screen("order_ready")
@@ -158,6 +161,7 @@ fun AppNavigation(
             HomeScreen(
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToTracking = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
                 onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) }
             )
@@ -167,8 +171,31 @@ fun AppNavigation(
             MisLocalesScreen(
                 onLocalSelected = { navController.navigate(Screen.Menu.route) },
                 onBack = { navController.popBackStack() },
+                onNavigateToInicio = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLocationDetected = { navController.navigate(Screen.LocationDetected.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) }
+            )
+        }
+
+        composable(Screen.LocationDetected.route) {
+            LocationDetectedScreen(
+                onConfirmLocation = {
+                    navController.navigate(Screen.Menu.route) {
+                        popUpTo(Screen.LocationDetected.route) { inclusive = true }
+                    }
+                },
+                onRejectLocation = { navController.popBackStack() },
+                onSearchAnother = {
+                    navController.navigate(Screen.MisLocales.route) {
+                        popUpTo(Screen.LocationDetected.route) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -209,7 +236,7 @@ fun AppNavigation(
                 },
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
-                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToNotificaciones = { navController.navigate(Screen.Notificaciones.route) },
                 onNavigateToMetodosDePago = { navController.navigate(Screen.MetodosDePago.route) },
                 onNavigateToEliminarCuenta = { navController.navigate(Screen.EliminarCuenta.route) },
@@ -230,7 +257,7 @@ fun AppNavigation(
                 },
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
-                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToAjustes = {
                     navController.navigate(Screen.Ajustes.route) {
                         popUpTo(Screen.Ajustes.route) { inclusive = true }
@@ -249,7 +276,7 @@ fun AppNavigation(
                 },
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
-                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToAjustes = {
                     navController.navigate(Screen.Ajustes.route) {
                         popUpTo(Screen.Ajustes.route) { inclusive = true }
@@ -268,7 +295,7 @@ fun AppNavigation(
                 },
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
-                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToAjustes = {
                     navController.navigate(Screen.Ajustes.route) {
                         popUpTo(Screen.Ajustes.route) { inclusive = true }
@@ -292,7 +319,7 @@ fun AppNavigation(
                 },
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
-                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) }
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) }
             )
         }
 
@@ -311,7 +338,7 @@ fun AppNavigation(
                 },
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
-                onNavigateToMisPedidos = { navController.navigate(Screen.Tracking.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToAjustes = {
                     navController.navigate(Screen.Ajustes.route) {
                         popUpTo(Screen.Ajustes.route) { inclusive = true }
@@ -393,7 +420,32 @@ fun AppNavigation(
                     }
                 },
                 onViewSummary = {
-                    navController.navigate(Screen.Home.route)
+                    navController.navigate(Screen.OrderSummary.route)
+                }
+            )
+        }
+
+        composable(Screen.MisPedidos.route) {
+            MisPedidosScreen(
+                onNavigateToInicio = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                },
+                onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) },
+                onViewActiveOrder = { navController.navigate(Screen.OrderReady.route) },
+                onViewOrderSummary = { navController.navigate(Screen.OrderSummary.route) }
+            )
+        }
+
+        composable(Screen.OrderSummary.route) {
+            OrderSummaryScreen(
+                onBack = {
+                    if (!navController.popBackStack(Screen.MisPedidos.route, inclusive = false)) {
+                        navController.navigate(Screen.MisPedidos.route)
+                    }
                 }
             )
         }
