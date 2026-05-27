@@ -58,7 +58,7 @@ fun SplashScreen(onSplashComplete: () -> Unit) {
             Text(
                 text = "QLess",
                 fontSize = 40.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = Color.White,
                 style = MaterialTheme.typography.headlineLarge
             )

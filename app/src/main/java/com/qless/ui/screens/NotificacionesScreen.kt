@@ -76,7 +76,7 @@ fun NotificacionesScreen(
                 Text(
                     "Notificaciones",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso
                 )
             }
@@ -159,7 +159,7 @@ private fun NotificationToggleItem(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso
                 )
                 Text(

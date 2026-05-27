@@ -61,7 +61,7 @@ fun CartScreen(
                     Text(
                         "Mi carrito",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Espresso
                     )
                 }
@@ -85,7 +85,7 @@ fun CartScreen(
                 ) {
                     Text(
                         "Confirmar pedido — $${"%,d".format(total)}",
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
                     )
                 }
@@ -120,14 +120,14 @@ fun CartScreen(
                         Text("Big Pons – San Isidro", fontWeight = FontWeight.SemiBold, color = Espresso)
                     }
                     TextButton(onClick = {}, contentPadding = PaddingValues(0.dp)) {
-                        Text("Cambiar", color = Pimentón, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("Cambiar", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
                 }
             }
 
             Spacer(Modifier.height(20.dp))
 
-            Text("Tu pedido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Espresso)
+            Text("Tu pedido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = Espresso)
             Spacer(Modifier.height(8.dp))
 
             items.forEachIndexed { index, item ->
@@ -143,13 +143,13 @@ fun CartScreen(
             }
 
             TextButton(onClick = onBack, contentPadding = PaddingValues(vertical = 4.dp)) {
-                Text("+ Agregar más productos", color = Pimentón, fontWeight = FontWeight.Bold)
+                Text("+ Agregar más productos", color = Pimentón, fontWeight = FontWeight.SemiBold)
             }
 
             HorizontalDivider(color = Melocotón, modifier = Modifier.padding(vertical = 16.dp))
 
             // Resumen
-            Text("Resumen del pedido", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Espresso)
+            Text("Resumen del pedido", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Espresso)
             Spacer(Modifier.height(10.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -163,8 +163,8 @@ fun CartScreen(
             }
             HorizontalDivider(color = Melocotón, modifier = Modifier.padding(vertical = 10.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Total", fontWeight = FontWeight.Bold, color = Espresso, style = MaterialTheme.typography.titleMedium)
-                Text("$${"%,d".format(total)}", fontWeight = FontWeight.Bold, color = Pimentón, style = MaterialTheme.typography.titleMedium)
+                Text("Total", fontWeight = FontWeight.SemiBold, color = Espresso, style = MaterialTheme.typography.titleMedium)
+                Text("$${"%,d".format(total)}", fontWeight = FontWeight.SemiBold, color = Pimentón, style = MaterialTheme.typography.titleMedium)
             }
 
             Spacer(Modifier.height(20.dp))
@@ -210,7 +210,7 @@ private fun CartItemRow(item: CartItem, onAdd: () -> Unit, onRemove: () -> Unit)
                     "x${item.quantity}",
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
             }
@@ -221,13 +221,13 @@ private fun CartItemRow(item: CartItem, onAdd: () -> Unit, onRemove: () -> Unit)
             }
             Text(
                 "$${"%,d".format(item.unitPrice * item.quantity)}",
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = Espresso
             )
             Spacer(Modifier.width(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("−", color = Pimentón, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.clickable { onRemove() })
-                Text("+", color = Pimentón, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.clickable { onAdd() })
+                Text("−", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, modifier = Modifier.clickable { onRemove() })
+                Text("+", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, modifier = Modifier.clickable { onAdd() })
             }
         }
     }

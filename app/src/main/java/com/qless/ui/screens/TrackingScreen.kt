@@ -7,6 +7,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -23,7 +29,7 @@ import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
 private data class TrackingStep(
-    val icon: String,
+    val icon: ImageVector,
     val title: String,
     val description: String,
     val status: StepStatus,
@@ -38,9 +44,9 @@ fun TrackingScreen(
     onNavigateToOrderReady: () -> Unit,
 ) {
     val steps = listOf(
-        TrackingStep("✅", "Pedido recibido", "Tu compra fue confirmada", StepStatus.DONE, "13:08"),
-        TrackingStep("⏱", "En preparación", "La cocina está armando tu pedido", StepStatus.ACTIVE, "13:11"),
-        TrackingStep("🔔", "Listo para retirar", "Te avisamos cuando esté listo", StepStatus.PENDING),
+        TrackingStep(Icons.Default.CheckCircle, "Pedido recibido", "Tu compra fue confirmada", StepStatus.DONE, "13:08"),
+        TrackingStep(Icons.Default.Schedule, "En preparación", "La cocina está armando tu pedido", StepStatus.ACTIVE, "13:11"),
+        TrackingStep(Icons.Default.Notifications, "Listo para retirar", "Te avisamos cuando esté listo", StepStatus.PENDING),
     )
 
     // Animación del indicador circular
@@ -81,7 +87,7 @@ fun TrackingScreen(
                     Text(
                         "Seguimiento",
                         style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Espresso
                     )
                     Text("Pedido #4521 · Big Pons", color = Madera, style = MaterialTheme.typography.bodySmall)
@@ -113,7 +119,10 @@ fun TrackingScreen(
                     .padding(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                Text("⏱ ~15 min estimados", style = MaterialTheme.typography.bodySmall, color = Madera)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Icon(Icons.Default.Schedule, contentDescription = null, tint = Madera, modifier = Modifier.size(14.dp))
+                    Text("~15 min estimados", style = MaterialTheme.typography.bodySmall, color = Madera)
+                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -134,11 +143,16 @@ fun TrackingScreen(
                     strokeCap = StrokeCap.Round
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("🔔", fontSize = 28.sp)
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = null,
+                        tint = Azafrán,
+                        modifier = Modifier.size(32.dp)
+                    )
                     Text(
                         "12",
                         fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Espresso,
                         lineHeight = 52.sp
                     )
@@ -195,10 +209,13 @@ fun TrackingScreen(
                         Text(
                             "#4521",
                             style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Pimentón
                         )
-                        Text("📍 Retiro en Caja 1", style = MaterialTheme.typography.bodySmall, color = Madera)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = Madera, modifier = Modifier.size(14.dp))
+                            Text("Retiro en Caja 1", style = MaterialTheme.typography.bodySmall, color = Madera)
+                        }
                     }
                     Surface(
                         shape = RoundedCornerShape(8.dp),
@@ -227,7 +244,10 @@ fun TrackingScreen(
                 shape = RoundedCornerShape(12.dp),
                 border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
             ) {
-                Text("🔔 Simular: Pedido Listo", color = Espresso)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Icon(Icons.Default.Notifications, contentDescription = null, tint = Espresso, modifier = Modifier.size(18.dp))
+                    Text("Simular: Pedido Listo", color = Espresso)
+                }
             }
 
             Spacer(Modifier.height(16.dp))
@@ -254,16 +274,18 @@ private fun TrackingStepRow(step: TrackingStep) {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                step.icon,
-                fontSize = if (step.status == StepStatus.PENDING) 14.sp else 16.sp
+            Icon(
+                imageVector = step.icon,
+                contentDescription = null,
+                tint = if (step.status == StepStatus.PENDING) Madera else Color.White,
+                modifier = Modifier.size(20.dp)
             )
         }
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f).padding(top = 4.dp)) {
             Text(
                 step.title,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = if (step.status == StepStatus.PENDING) Madera else Espresso,
                 style = MaterialTheme.typography.bodyLarge
             )

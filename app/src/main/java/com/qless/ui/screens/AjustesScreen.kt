@@ -64,7 +64,7 @@ fun AjustesScreen(
             Text(
                 "Ajustes",
                 style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = Espresso
             )
 
@@ -87,11 +87,11 @@ fun AjustesScreen(
                             .background(Pimentón),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("M", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                        Text("M", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 24.sp)
                     }
                     Spacer(Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("María González", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("María González", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                         Text("maria@email.com", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
                         Spacer(Modifier.height(8.dp))
                         Row(
@@ -125,7 +125,7 @@ fun AjustesScreen(
                     onClick = onNavigateToMetodosDePago
                 ) {
                     Text(
-                        "VISA •••• 4242", color = Color(0xFF4285F4), fontWeight = FontWeight.Bold, fontSize = 11.sp,
+                        "VISA •••• 4242", color = Color(0xFF4285F4), fontWeight = FontWeight.SemiBold, fontSize = 11.sp,
                         modifier = Modifier.background(Color(0xFF4285F4).copy(alpha = 0.1f), RoundedCornerShape(99.dp)).padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
@@ -147,7 +147,7 @@ fun AjustesScreen(
                     onClick = onNavigateToNotificaciones
                 ) {
                     Text(
-                        "3 activas", color = Color(0xFF1A7A4A), fontWeight = FontWeight.Bold, fontSize = 11.sp,
+                        "3 activas", color = Color(0xFF1A7A4A), fontWeight = FontWeight.SemiBold, fontSize = 11.sp,
                         modifier = Modifier.background(Color(0xFF1A7A4A).copy(alpha = 0.1f), RoundedCornerShape(99.dp)).padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
@@ -187,7 +187,7 @@ fun AjustesScreen(
                     Text(
                         "Cerrar sesión",
                         color = Borgoña,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
                     )
                 }
@@ -201,7 +201,7 @@ fun AjustesScreen(
 @Composable
 private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column {
-        Text(title, style = MaterialTheme.typography.labelMedium, color = Madera.copy(alpha = 0.6f), letterSpacing = 1.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp, bottom = 12.dp))
+        Text(title, style = MaterialTheme.typography.labelMedium, color = Madera.copy(alpha = 0.6f), letterSpacing = 1.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp, bottom = 12.dp))
         Surface(
             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Mantequilla,
             border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
@@ -228,7 +228,7 @@ private fun SettingsItem(
         }
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontWeight = FontWeight.Bold, color = Espresso, fontSize = 16.sp)
+            Text(title, fontWeight = FontWeight.SemiBold, color = Espresso, fontSize = 16.sp)
             Text(description, color = Madera, fontSize = 13.sp)
         }
         if (badge != null) { badge(); Spacer(Modifier.width(12.dp)) }
@@ -248,7 +248,7 @@ private fun SettingsToggleItem(icon: String, title: String, description: String,
         }
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontWeight = FontWeight.Bold, color = Espresso, fontSize = 16.sp)
+            Text(title, fontWeight = FontWeight.SemiBold, color = Espresso, fontSize = 16.sp)
             Text(description, color = Madera, fontSize = 13.sp)
         }
         Switch(checked = isChecked, onCheckedChange = { isChecked = it }, colors = SwitchDefaults.colors(checkedTrackColor = Pimentón))

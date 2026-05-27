@@ -8,6 +8,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -73,7 +75,7 @@ fun MisPedidosScreen(
                 "Mis Pedidos",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Espresso,
-                fontWeight = FontWeight.ExtraBold
+                fontWeight = FontWeight.SemiBold
             )
             Text(
                 "Seguí tus pedidos y revisá el historial",
@@ -95,7 +97,7 @@ fun MisPedidosScreen(
                 "RECIENTES",
                 style = MaterialTheme.typography.labelMedium,
                 color = Madera.copy(alpha = 0.62f),
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.SemiBold,
                 letterSpacing = 1.2.sp
             )
 
@@ -131,7 +133,7 @@ private fun FilterChip(text: String, selected: Boolean) {
             text,
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 11.dp),
             color = if (selected) Color.White else Madera,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp
         )
     }
@@ -172,7 +174,7 @@ private fun ActiveOrderCard(onClick: () -> Unit) {
                         .background(Color.White.copy(alpha = 0.14f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("🔔", fontSize = 25.sp)
+                    Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -180,11 +182,11 @@ private fun ActiveOrderCard(onClick: () -> Unit) {
                         "¡TU PEDIDO ESTÁ LISTO!",
                         color = Color.White.copy(alpha = 0.58f),
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.SemiBold,
                         letterSpacing = 1.1.sp
                     )
-                    Text("Sushi Nori ·", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
-                    Text("#4498", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("Sushi Nori ·", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
+                    Text("#4498", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(4.dp))
                     Text("Acercate al mostrador a\nretirar", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.bodyMedium)
                 }
@@ -193,7 +195,7 @@ private fun ActiveOrderCard(onClick: () -> Unit) {
                         "Ver →",
                         modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
                         color = Albahaca,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
                     )
                 }
@@ -228,7 +230,7 @@ private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Pedido ${order.number}", color = Espresso, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                    Text("Pedido ${order.number}", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                     Spacer(Modifier.weight(1f))
                     DeliveredBadge()
                 }
@@ -239,9 +241,9 @@ private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
                         Spacer(Modifier.height(8.dp))
                         Text(order.date, color = Madera.copy(alpha = 0.65f), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
-                        Text("Ver resumen →", color = Pimentón, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
+                        Text("Ver resumen →", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
-                    Text(order.amount, color = Espresso, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+                    Text(order.amount, color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
             }
         }
@@ -255,7 +257,7 @@ private fun DeliveredBadge() {
             "Entregado",
             modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
             color = Albahaca,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 11.sp
         )
     }

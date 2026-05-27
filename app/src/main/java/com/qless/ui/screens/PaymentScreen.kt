@@ -8,7 +8,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,12 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.theme.*
 
-private data class PaymentMethod(val emoji: String, val label: String, val sublabel: String)
+private data class PaymentMethod(val icon: ImageVector, val label: String, val sublabel: String)
 
 private val methods = listOf(
-    PaymentMethod("💳", "Visa ····4521", "Vence 09/27"),
-    PaymentMethod("💙", "MercadoPago", "Saldo disponible · $12.400"),
-    PaymentMethod("💵", "Efectivo en local", "Pagás al retirar tu pedido"),
+    PaymentMethod(Icons.Default.CreditCard, "Visa ····4521", "Vence 09/27"),
+    PaymentMethod(Icons.Default.AccountBalanceWallet, "MercadoPago", "Saldo disponible · $12.400"),
+    PaymentMethod(Icons.Default.Payments, "Efectivo en local", "Pagás al retirar tu pedido"),
 )
 
 @Composable
@@ -56,7 +61,7 @@ fun PaymentScreen(
                     Text(
                         "Confirmar pago",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Espresso
                     )
                 }
@@ -91,7 +96,7 @@ fun PaymentScreen(
                     shape = RoundedCornerShape(999.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
                 ) {
-                    Text("Pagar $5.760", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Pagar $5.760", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
@@ -126,8 +131,11 @@ fun PaymentScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("🍔 Big Pons · 3 ítems", color = Espresso, fontWeight = FontWeight.SemiBold)
-                    Text("$5.760", color = Pimentón, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(Icons.Default.Restaurant, contentDescription = null, tint = Madera, modifier = Modifier.size(16.dp))
+                        Text("Big Pons · 3 ítems", color = Espresso, fontWeight = FontWeight.SemiBold)
+                    }
+                    Text("$5.760", color = Pimentón, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                 }
             }
 
@@ -136,7 +144,7 @@ fun PaymentScreen(
             Text(
                 "¿Cómo querés pagar?",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = Espresso
             )
             Spacer(Modifier.height(12.dp))
@@ -158,7 +166,7 @@ fun PaymentScreen(
                         modifier = Modifier.padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(method.emoji, fontSize = 24.sp)
+                        Icon(method.icon, contentDescription = null, tint = Madera, modifier = Modifier.size(24.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(method.label, fontWeight = FontWeight.SemiBold, color = Espresso)
@@ -176,9 +184,12 @@ fun PaymentScreen(
             Spacer(Modifier.height(8.dp))
 
             TextButton(onClick = onNavigateToAgregarMetodo, modifier = Modifier.fillMaxWidth()) {
-                Text("💳 Otros métodos de pago", color = Madera)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Icon(Icons.Default.CreditCard, contentDescription = null, tint = Madera, modifier = Modifier.size(18.dp))
+                    Text("Otros métodos de pago", color = Madera)
+                }
                 Spacer(Modifier.weight(1f))
-                Text("Agregar", color = Pimentón, fontWeight = FontWeight.Bold)
+                Text("Agregar", color = Pimentón, fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.height(16.dp))
@@ -189,7 +200,7 @@ fun PaymentScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Total a pagar", color = Madera, style = MaterialTheme.typography.titleSmall)
-                Text("$5.760", fontWeight = FontWeight.Bold, color = Espresso, style = MaterialTheme.typography.titleLarge)
+                Text("$5.760", fontWeight = FontWeight.SemiBold, color = Espresso, style = MaterialTheme.typography.titleLarge)
             }
 
             Spacer(Modifier.height(16.dp))
@@ -216,7 +227,7 @@ private fun StepDot(label: String, isActive: Boolean, isDone: Boolean) {
             label,
             style = MaterialTheme.typography.labelSmall,
             color = if (isActive) Pimentón else Madera.copy(alpha = 0.5f),
-            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }

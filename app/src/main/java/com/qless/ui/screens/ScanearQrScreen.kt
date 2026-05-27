@@ -35,7 +35,7 @@ fun ScanearQrScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Escanear QR", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = { Text("Escanear QR", color = Color.White, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -90,7 +90,7 @@ fun ScanearQrScreen(
                     "TOCÁ AQUÍ PARA SIMULAR",
                     color = Color.White.copy(alpha = 0.6f),
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)
                 )
             }
@@ -112,7 +112,7 @@ fun ScanearQrScreen(
             ) {
                 Text(
                     "SIMULAR LECTURA EXITOSA", 
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp
                 )
             }

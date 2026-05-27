@@ -58,7 +58,7 @@ fun RegisterScreen(
         Text(
             "Crear cuenta",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = Espresso
         )
         Text(
@@ -101,7 +101,7 @@ fun RegisterScreen(
             shape = RoundedCornerShape(999.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
         ) {
-            Text("Crear cuenta", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Crear cuenta", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         }
 
         Spacer(Modifier.height(20.dp))
@@ -121,7 +121,7 @@ fun RegisterScreen(
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Mantequilla),
             border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
         ) {
-            Text("G", fontWeight = FontWeight.Bold, color = Color(0xFF4285F4), fontSize = 18.sp)
+            Text("G", fontWeight = FontWeight.SemiBold, color = Color(0xFF4285F4), fontSize = 18.sp)
             Spacer(Modifier.width(10.dp))
             Text("Registrarme con Google", color = Espresso, fontWeight = FontWeight.SemiBold)
         }
@@ -131,7 +131,7 @@ fun RegisterScreen(
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
             Text("¿Ya tenés cuenta? ", color = Madera, style = MaterialTheme.typography.bodyMedium)
             TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) {
-                Text("Iniciar sesión", color = Pimentón, fontWeight = FontWeight.Bold)
+                Text("Iniciar sesión", color = Pimentón, fontWeight = FontWeight.SemiBold)
             }
         }
 

@@ -57,7 +57,7 @@ fun PickupSuccessScreen(
                         color = Pimentón
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("M", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                            Text("M", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                     Spacer(Modifier.height(16.dp))
@@ -70,7 +70,7 @@ fun PickupSuccessScreen(
                     Text(
                         "¡Buen provecho,\nMaría! 🥳",
                         style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Color.White,
                         textAlign = TextAlign.Center,
                         lineHeight = 32.sp
@@ -109,10 +109,10 @@ fun PickupSuccessScreen(
                             }
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Big Pons · San Isidro", fontWeight = FontWeight.Bold, color = Espresso)
+                                Text("Big Pons · San Isidro", fontWeight = FontWeight.SemiBold, color = Espresso)
                                 Text("Pedido #4521 · Retiro en mostrador", style = MaterialTheme.typography.bodySmall, color = Madera)
                             }
-                            Text("$9.000", fontWeight = FontWeight.ExtraBold, color = Espresso, fontSize = 18.sp)
+                            Text("$9.000", fontWeight = FontWeight.SemiBold, color = Espresso, fontSize = 18.sp)
                         }
                         
                         HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Melocotón)
@@ -140,7 +140,7 @@ fun PickupSuccessScreen(
                                 ) {
                                     Icon(Icons.Default.Check, contentDescription = null, tint = Albahaca, modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(4.dp))
-                                    Text("Retirado", style = MaterialTheme.typography.labelSmall, color = Albahaca, fontWeight = FontWeight.Bold)
+                                    Text("Retirado", style = MaterialTheme.typography.labelSmall, color = Albahaca, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }
@@ -160,7 +160,7 @@ fun PickupSuccessScreen(
                         modifier = Modifier.padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("¿Cómo estuvo Big Pons?", fontWeight = FontWeight.Bold, color = Espresso)
+                        Text("¿Cómo estuvo Big Pons?", fontWeight = FontWeight.SemiBold, color = Espresso)
                         Text("Tu opinión ayuda a otros usuarios", style = MaterialTheme.typography.bodySmall, color = Madera)
                         
                         Spacer(Modifier.height(16.dp))
@@ -184,7 +184,7 @@ fun PickupSuccessScreen(
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
                 ) {
-                    Text("Volver al inicio", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Volver al inicio", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
                 
                 Spacer(Modifier.height(12.dp))
@@ -193,7 +193,7 @@ fun PickupSuccessScreen(
                     onClick = onViewSummary,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Ver resumen del pedido", color = Espresso, fontWeight = FontWeight.Bold)
+                    Text("Ver resumen del pedido", color = Espresso, fontWeight = FontWeight.SemiBold)
                 }
                 
                 Spacer(Modifier.height(40.dp))

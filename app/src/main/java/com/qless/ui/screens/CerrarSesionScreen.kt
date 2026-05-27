@@ -78,7 +78,7 @@ fun CerrarSesionScreen(
                 Text(
                     "Cerrar sesión",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso
                 )
             }
@@ -111,14 +111,14 @@ fun CerrarSesionScreen(
                             .background(Borgoña.copy(alpha = 0.1f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("!", color = Borgoña, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text("!", color = Borgoña, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
                         Text(
                             "Se va a cerrar tu sesión actual",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Espresso
                         )
                         Spacer(Modifier.height(4.dp))
@@ -152,14 +152,14 @@ fun CerrarSesionScreen(
                             .background(Melocotón),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("M", color = Pimentón, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("M", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
                         Text(
                             "María González",
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Espresso
                         )
                         Text(
@@ -182,7 +182,7 @@ fun CerrarSesionScreen(
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
             ) {
-                Text("Cerrar sesión", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Cerrar sesión", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -196,7 +196,7 @@ fun CerrarSesionScreen(
                 border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Pimentón)
             ) {
-                Text("Cancelar", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Cancelar", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
         }
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -61,7 +62,7 @@ fun OrderReadyScreen(
                         "¡Listo para retirar!",
                         style = MaterialTheme.typography.labelMedium,
                         color = Albahaca,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
@@ -89,12 +90,12 @@ fun OrderReadyScreen(
                         letterSpacing = 1.sp
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text("🔔", fontSize = 32.sp)
+                    Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = Color.White, modifier = Modifier.size(36.dp))
                     Spacer(Modifier.height(4.dp))
                     Text(
                         "Tu pedido\nestá listo",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Color.White,
                         textAlign = TextAlign.Center,
                         lineHeight = 28.sp
@@ -118,13 +119,13 @@ fun OrderReadyScreen(
                         Text(
                             "Mostrá este código",
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Color.White.copy(alpha = 0.9f)
                         )
                         Text(
                             "#4521",
                             style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.ExtraBold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Color.White
                         )
                         
@@ -197,7 +198,7 @@ fun OrderReadyScreen(
                     Text(
                         "Confirmar retiro",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
@@ -278,7 +279,7 @@ private fun ReadyStepRow(
             Text(
                 title,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = Color.White
             )
             Text(

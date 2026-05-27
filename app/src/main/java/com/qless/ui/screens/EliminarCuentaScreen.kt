@@ -75,7 +75,7 @@ fun EliminarCuentaScreen(
                 Text(
                     "Eliminar cuenta",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso
                 )
             }
@@ -97,7 +97,7 @@ fun EliminarCuentaScreen(
                     Text(
                         "M",
                         color = Pimentón,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 24.sp
                     )
                 }
@@ -106,7 +106,7 @@ fun EliminarCuentaScreen(
                     Text(
                         "María González",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Espresso
                     )
                     Text(
@@ -139,7 +139,7 @@ fun EliminarCuentaScreen(
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Borgoña)
             ) {
-                Text("Eliminar cuenta definitivamente", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Eliminar cuenta definitivamente", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -153,7 +153,7 @@ fun EliminarCuentaScreen(
                 border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Madera)
             ) {
-                Text("Cancelar", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Cancelar", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
 
             Spacer(Modifier.height(40.dp))
