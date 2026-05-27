@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,18 +34,30 @@ fun QLessBottomNav(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
 ) {
-    Surface(
-        color = Color.White,
-        shadowElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .zIndex(100f),
+        contentAlignment = Alignment.BottomCenter
     ) {
+        // Capa 1: El fondo blanco con sombra
+        Surface(
+            color = Color.White,
+            shadowElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp) // Altura fija de la barra
+        ) {}
+
+        // Capa 2: Los items, permitiendo que sobresalgan
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(vertical = 8.dp),
+                .padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Bottom
         ) {
             // Ítems normales (antes del QR)
             navItems.take(2).forEachIndexed { index, item ->
@@ -54,22 +68,22 @@ fun QLessBottomNav(
                 )
             }
 
-            // Botón QR central
+            // Botón QR central que sobresale
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .clickable { onTabSelected(4) }
-                    .offset(y = (-12).dp)
+                    .padding(bottom = 4.dp) // Ajuste para que no toque el borde inferior
             ) {
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(CircleShape)
-                        .background(Pimentón),
+                        .size(56.dp) // Un poco más grande para que se vea bien el círculo
+                        .background(Pimentón, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("▦", fontSize = 22.sp, color = Color.White)
+                    Text("▦", fontSize = 24.sp, color = Color.White)
                 }
+                Spacer(Modifier.height(2.dp))
                 Text(
                     "Escanear",
                     fontSize = 10.sp,

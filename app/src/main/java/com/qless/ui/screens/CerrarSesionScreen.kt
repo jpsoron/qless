@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,17 +33,19 @@ fun CerrarSesionScreen(
 ) {
     Scaffold(
         bottomBar = {
-            QLessBottomNav(
-                selectedTab = 3,
-                onTabSelected = { tab ->
-                    when (tab) {
-                        0 -> onNavigateToInicio()
-                        1 -> onNavigateToMisLocales()
-                        2 -> onNavigateToMisPedidos()
-                        4 -> onNavigateToScanQr()
+            Box(modifier = Modifier.zIndex(100f).graphicsLayer(clip = false)) {
+                QLessBottomNav(
+                    selectedTab = 3,
+                    onTabSelected = { tab ->
+                        when (tab) {
+                            0 -> onNavigateToInicio()
+                            1 -> onNavigateToMisLocales()
+                            2 -> onNavigateToMisPedidos()
+                            4 -> onNavigateToScanQr()
+                        }
                     }
-                }
-            )
+                )
+            }
         },
         containerColor = CremaCálida
     ) { padding ->
