@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(sort -t: -k1,1)",
-      "Bash(awk -F\"Icons.Default.\" '{print $2}')"
-    ]
-  }
-}
