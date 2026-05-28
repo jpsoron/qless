@@ -58,7 +58,7 @@ fun GoogleLoginScreen(
             "Conectar con Google",
             style = MaterialTheme.typography.headlineMedium,
             color = Espresso,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 32.sp
         )
         Spacer(Modifier.height(12.dp))
@@ -91,7 +91,7 @@ fun GoogleLoginScreen(
                         "G",
                         color = Color(0xFF4285F4),
                         fontSize = 72.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
@@ -116,7 +116,7 @@ fun GoogleLoginScreen(
         Text(
             "Al conectar con Google podés:",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = Espresso,
             fontSize = 18.sp
         )
@@ -163,7 +163,7 @@ fun GoogleLoginScreen(
                     Text(
                         "G",
                         color = Color(0xFF4285F4),
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
                     )
                 }
@@ -172,7 +172,7 @@ fun GoogleLoginScreen(
             Text(
                 "Continuar con Google",
                 color = Espresso,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 17.sp
             )
         }
@@ -212,7 +212,7 @@ fun GoogleLoginScreen(
                 Text(
                     "Iniciar sesión",
                     color = Pimentón,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp
                 )
             }

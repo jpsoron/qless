@@ -80,7 +80,7 @@ fun MetodosDePagoScreen(
                 Text(
                     "Métodos de pago",
                     style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso
                 )
             }
@@ -106,7 +106,7 @@ fun MetodosDePagoScreen(
                     shape = RoundedCornerShape(99.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Text("Agregar método", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Agregar método", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -192,7 +192,7 @@ fun PaymentMethodCard(
                 Text(
                     text = icon,
                     color = iconTextColor,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 12.sp
                 )
             }
@@ -203,7 +203,7 @@ fun PaymentMethodCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso,
                     fontSize = 16.sp
                 )

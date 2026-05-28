@@ -55,7 +55,7 @@ fun LoginScreen(
         Text(
             "QLess",
             fontSize = 40.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = Pimentón,
             style = MaterialTheme.typography.headlineLarge
         )
@@ -71,7 +71,7 @@ fun LoginScreen(
         Text(
             "Bienvenido de nuevo",
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 26.sp,
             color = Espresso,
             modifier = Modifier.fillMaxWidth()
@@ -186,7 +186,7 @@ fun LoginScreen(
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
         ) {
-            Text("Iniciar sesión", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Iniciar sesión", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
         }
 
         Spacer(Modifier.height(24.dp))
@@ -224,13 +224,13 @@ fun LoginScreen(
                     Text(
                         "G",
                         color = Color(0xFF4285F4),
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 18.sp
                     )
                 }
             }
             Spacer(Modifier.width(12.dp))
-            Text("Continuar con Google", color = Espresso, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Continuar con Google", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         }
 
         Spacer(Modifier.height(40.dp))
@@ -252,7 +252,7 @@ fun LoginScreen(
                 Text(
                     "Crear cuenta",
                     color = Pimentón,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }

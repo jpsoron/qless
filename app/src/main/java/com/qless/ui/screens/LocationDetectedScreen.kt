@@ -6,6 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -96,7 +99,7 @@ fun LocationDetectedScreen(
                 "UBICACIÓN DETECTADA",
                 style = MaterialTheme.typography.labelMedium,
                 color = Pimentón,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.SemiBold,
                 letterSpacing = 1.6.sp
             )
             Spacer(Modifier.height(6.dp))
@@ -104,7 +107,7 @@ fun LocationDetectedScreen(
                 "¿Estás acá?",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Espresso,
-                fontWeight = FontWeight.ExtraBold
+                fontWeight = FontWeight.SemiBold
             )
 
             Spacer(Modifier.height(26.dp))
@@ -142,7 +145,7 @@ fun LocationDetectedScreen(
                         color = Espresso,
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.ExtraBold,
+                        fontWeight = FontWeight.SemiBold,
                         lineHeight = 18.sp
                     )
                 }
@@ -156,7 +159,9 @@ fun LocationDetectedScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp)
                 ) {
-                    Text("🛒  ¡Sí, pedir!", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+                    Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("¡Sí, pedir!", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
                 }
             }
 
@@ -172,7 +177,7 @@ fun LocationDetectedScreen(
                     "Buscar otro",
                     color = Pimentón,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.ExtraBold
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -240,7 +245,7 @@ private fun GpsStatusPill(modifier: Modifier = Modifier) {
                     .background(Albahaca.copy(alpha = 0.65f))
             )
             Spacer(Modifier.width(10.dp))
-            Text("GPS activo · precisión alta", color = Espresso, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
+            Text("GPS activo · precisión alta", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
         }
     }
 }
@@ -277,7 +282,7 @@ private fun DetectedRestaurantCard() {
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Big Pons", color = Espresso, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
+                    Text("Big Pons", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
                     Spacer(Modifier.weight(1f))
                     DistancePill()
                 }
@@ -286,8 +291,11 @@ private fun DetectedRestaurantCard() {
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
                     SmallStatusPill("Abierto", Albahaca, AlbahacaClaro)
-                    Text("⭐ 4.8", color = Madera, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-                    SmallStatusPill("⏱ 15–25 min", Azafrán, AzafránClaro)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = Azafrán, modifier = Modifier.size(12.dp))
+                        Text("4.8", color = Madera, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                    }
+                    SmallStatusPill("15–25 min", Azafrán, AzafránClaro)
                 }
                 Spacer(Modifier.height(7.dp))
                 SmallStatusPill("10% OFF 1.er pedido", Pimentón, Melocotón)
@@ -303,7 +311,7 @@ private fun DistancePill() {
             "~30 m",
             modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),
             color = Color.White,
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 12.sp
         )
     }
@@ -316,7 +324,7 @@ private fun SmallStatusPill(text: String, color: Color, container: Color) {
             text,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
             color = color,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 11.sp
         )
     }

@@ -51,7 +51,7 @@ fun OrderSummaryScreen(
                     "Resumen del pedido",
                     style = MaterialTheme.typography.headlineSmall,
                     color = Espresso,
-                    fontWeight = FontWeight.ExtraBold
+                    fontWeight = FontWeight.SemiBold
                 )
             }
 
@@ -67,7 +67,7 @@ fun OrderSummaryScreen(
                         "Retirado",
                         modifier = Modifier.padding(horizontal = 22.dp, vertical = 8.dp),
                         color = Albahaca,
-                        fontWeight = FontWeight.ExtraBold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
                 Spacer(Modifier.weight(1f))
@@ -92,7 +92,7 @@ fun OrderSummaryScreen(
                 onClick = onBack,
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Text("← Volver al historial", color = Pimentón, fontWeight = FontWeight.Bold)
+                Text("← Volver al historial", color = Pimentón, fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.height(48.dp))
@@ -113,7 +113,7 @@ private fun SummaryHeaderCard() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Big Pons · San Isidro", color = Espresso, fontWeight = FontWeight.ExtraBold, fontSize = 17.sp)
+                Text("Big Pons · San Isidro", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
                 Text("Retiro en mostrador", color = Madera, style = MaterialTheme.typography.bodySmall)
                 Text("Tarjeta terminada en 4242", color = Madera.copy(alpha = 0.62f), style = MaterialTheme.typography.bodySmall)
             }
@@ -122,7 +122,7 @@ private fun SummaryHeaderCard() {
                     "$18.900",
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 9.dp),
                     color = Pimentón,
-                    fontWeight = FontWeight.ExtraBold
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -139,11 +139,11 @@ private fun ItemsCard() {
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Items", color = Espresso, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
+                Text("Items", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
                 Spacer(Modifier.height(8.dp))
-                Text("2x Burger clásica", color = Espresso, fontWeight = FontWeight.Bold)
-                Text("1x Papas medianas", color = Espresso, fontWeight = FontWeight.Bold)
-                Text("1x Gaseosa lata", color = Espresso, fontWeight = FontWeight.Bold)
+                Text("2x Burger clásica", color = Espresso, fontWeight = FontWeight.SemiBold)
+                Text("1x Papas medianas", color = Espresso, fontWeight = FontWeight.SemiBold)
+                Text("1x Gaseosa lata", color = Espresso, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(6.dp))
                 Text("Sin cebolla · cheddar extra", color = Madera, style = MaterialTheme.typography.bodySmall)
             }
@@ -155,7 +155,7 @@ private fun ItemsCard() {
             )
             Spacer(Modifier.width(18.dp))
             Column(modifier = Modifier.width(92.dp)) {
-                Text("Totales", color = Madera, fontWeight = FontWeight.ExtraBold)
+                Text("Totales", color = Madera, fontWeight = FontWeight.SemiBold)
                 Text("Subtotal\n$17.000", color = Madera.copy(alpha = 0.72f), style = MaterialTheme.typography.bodySmall, lineHeight = 16.sp)
                 Spacer(Modifier.height(8.dp))
                 Text("Tasa\n$1.900", color = Madera.copy(alpha = 0.72f), style = MaterialTheme.typography.bodySmall, lineHeight = 16.sp)
@@ -173,7 +173,7 @@ private fun SummaryTrackingCard() {
         border = BorderStroke(1.dp, Color(0xFFE4CDBB))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Seguimiento", color = Espresso, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
+            Text("Seguimiento", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
             Spacer(Modifier.height(18.dp))
             SummaryStep("Pedido recibido", "Confirmado a las 11:41", showLine = true)
             SummaryStep("En preparación", "Cocina inició a las 11:46", showLine = true)
@@ -206,7 +206,7 @@ private fun SummaryStep(title: String, detail: String, showLine: Boolean) {
         }
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.padding(bottom = if (showLine) 8.dp else 0.dp)) {
-            Text(title, color = Espresso, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+            Text(title, color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             Text(detail, color = Madera, style = MaterialTheme.typography.bodySmall)
         }
     }

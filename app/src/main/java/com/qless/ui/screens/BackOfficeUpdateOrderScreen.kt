@@ -63,7 +63,7 @@ fun BackOfficeUpdateOrderScreen(
                 Text(
                     "Actualizar pedido",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso
                 )
             }
@@ -91,7 +91,7 @@ fun BackOfficeUpdateOrderScreen(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = Azafrán,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
                 Text(
@@ -120,12 +120,12 @@ fun BackOfficeUpdateOrderScreen(
                         color = Melocotón
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("CR", color = Pimentón, fontWeight = FontWeight.Bold)
+                            Text("CR", color = Pimentón, fontWeight = FontWeight.SemiBold)
                         }
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Camila Ruiz", fontWeight = FontWeight.Bold, color = Espresso)
+                        Text("Camila Ruiz", fontWeight = FontWeight.SemiBold, color = Espresso)
                         Text("3 items · pago aprobado", style = MaterialTheme.typography.bodySmall, color = Madera)
                     }
                     VerticalDivider(modifier = Modifier.height(40.dp).padding(horizontal = 8.dp), color = Melocotón)
@@ -139,7 +139,7 @@ fun BackOfficeUpdateOrderScreen(
                                 "Caja 1",
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 color = Pimentón,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 12.sp
                             )
                         }
@@ -150,7 +150,7 @@ fun BackOfficeUpdateOrderScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            Text("Items del pedido", fontWeight = FontWeight.Bold, color = Espresso)
+            Text("Items del pedido", fontWeight = FontWeight.SemiBold, color = Espresso)
             Spacer(Modifier.height(8.dp))
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -174,7 +174,7 @@ fun BackOfficeUpdateOrderScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            Text("Estado del pedido", fontWeight = FontWeight.Bold, color = Espresso)
+            Text("Estado del pedido", fontWeight = FontWeight.SemiBold, color = Espresso)
             Spacer(Modifier.height(12.dp))
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -215,7 +215,7 @@ fun BackOfficeUpdateOrderScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
             ) {
-                Text("Marcar listo para retirar", fontWeight = FontWeight.Bold)
+                Text("Marcar listo para retirar", fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -226,7 +226,7 @@ fun BackOfficeUpdateOrderScreen(
                 shape = RoundedCornerShape(12.dp),
                 border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
             ) {
-                Text("Marcar como retirado", color = Pimentón, fontWeight = FontWeight.Bold)
+                Text("Marcar como retirado", color = Pimentón, fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.height(32.dp))
@@ -277,7 +277,7 @@ private fun StatusStep(
         }
         Spacer(Modifier.width(16.dp))
         Column {
-            Text(title, fontWeight = FontWeight.Bold, color = Espresso)
+            Text(title, fontWeight = FontWeight.SemiBold, color = Espresso)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Madera.copy(alpha = 0.6f))
             Spacer(Modifier.height(20.dp))
         }
@@ -333,7 +333,7 @@ private fun NavItem(
             label,
             fontSize = 10.sp,
             color = if (isSelected) Pimentón else Madera.copy(alpha = 0.5f),
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }

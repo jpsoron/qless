@@ -98,7 +98,7 @@ fun QrNoReconocidoScreen(
             text = "QR no reconocido",
             style = MaterialTheme.typography.headlineLarge,
             color = Color.White,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center
         )
         
@@ -135,7 +135,7 @@ fun QrNoReconocidoScreen(
         ) {
             Icon(Icons.Default.Refresh, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("Escanear de nuevo", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("Escanear de nuevo", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         }
 
         Spacer(Modifier.height(12.dp))

@@ -59,7 +59,7 @@ fun BackOfficeHistoryScreen(
                 Text(
                     "Historial de pedidos",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso
                 )
             }
@@ -195,7 +195,7 @@ fun BackOfficeHistoryScreen(
 @Composable
 private fun StatItem(value: String, label: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = color)
+        Text(value, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = color)
         Text(label, style = MaterialTheme.typography.labelSmall, color = Madera)
     }
 }
@@ -228,7 +228,7 @@ private fun HistoryOrderCard(
                 color = Melocotón
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(initials, color = Pimentón, fontWeight = FontWeight.Bold)
+                    Text(initials, color = Pimentón, fontWeight = FontWeight.SemiBold)
                 }
             }
             
@@ -244,7 +244,7 @@ private fun HistoryOrderCard(
                         Text(
                             "Pedido $orderNum",
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Espresso
                         )
                         Text(customer, style = MaterialTheme.typography.bodyMedium, color = Madera)
@@ -258,7 +258,7 @@ private fun HistoryOrderCard(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = statusColor,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
@@ -276,7 +276,7 @@ private fun HistoryOrderCard(
                             "Ver resumen",
                             style = MaterialTheme.typography.labelSmall,
                             color = Pimentón,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.SemiBold
                         )
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -303,7 +303,7 @@ private fun FilterChip(selected: Boolean, text: String) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = if (selected) Color.White else Espresso,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }
@@ -357,7 +357,7 @@ private fun NavItem(
             label,
             fontSize = 10.sp,
             color = if (isSelected) Pimentón else Madera.copy(alpha = 0.5f),
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }

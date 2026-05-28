@@ -1,5 +1,6 @@
 package com.qless.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,19 +9,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.R
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
@@ -49,6 +54,17 @@ fun HomeScreen(
     onNavigateToAjustes: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+
+    val pulseTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseScale by pulseTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.18f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(850),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseScale"
+    )
 
     Scaffold(
         bottomBar = {
@@ -79,23 +95,43 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .background(Pimentón)
                     .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("🔔", fontSize = 22.sp)
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "QLess",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Spacer(Modifier.weight(1f))
                 Icon(
-                    Icons.Default.Notifications,
+                    painter = painterResource(R.drawable.ic_qless_blanco),
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.8f)
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(76.dp)
                 )
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text(
+                        "QLess",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White
+                    )
+                    Text(
+                        "Tu comida, sin filas.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.65f)
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Notifications,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
             }
 
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -110,7 +146,7 @@ fun HomeScreen(
                             .background(Pimentón),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("M", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 18.sp)
+                        Text("M", fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = 18.sp)
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
@@ -118,7 +154,7 @@ fun HomeScreen(
                         Text(
                             "María González",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Espresso
                         )
                     }
@@ -137,7 +173,12 @@ fun HomeScreen(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("🔍", fontSize = 16.sp)
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            tint = Madera.copy(alpha = 0.6f),
+                            modifier = Modifier.size(18.dp)
+                        )
                         Spacer(Modifier.width(10.dp))
                         Text("Buscar locales o productos...", color = Madera.copy(alpha = 0.6f))
                     }
@@ -161,24 +202,30 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier
                                 .size(44.dp)
+                                .scale(pulseScale)
                                 .clip(CircleShape)
                                 .background(Albahaca),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("🔔", fontSize = 20.sp)
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 "PEDIDO EN CURSO",
                                 fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = Albahaca,
                                 letterSpacing = 0.8.sp
                             )
                             Text(
                                 "Big Pons · #4521",
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = Espresso
                             )
                             Text(
@@ -187,7 +234,7 @@ fun HomeScreen(
                                 color = Madera
                             )
                         }
-                        Text("Ver →", color = Pimentón, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("Ver →", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
                 }
 
@@ -202,11 +249,11 @@ fun HomeScreen(
                     Text(
                         "Tus favoritos",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Espresso
                     )
                     TextButton(onClick = onNavigateToMisLocales, contentPadding = PaddingValues(0.dp)) {
-                        Text("Ver todos", color = Pimentón, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("Ver todos", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
                 }
 
@@ -255,7 +302,7 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
                 ) {
                     Text(
                         resto.name,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Espresso,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -275,8 +322,14 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
                 Text(resto.category, style = MaterialTheme.typography.bodySmall, color = Madera)
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("⭐ ${resto.rating}", style = MaterialTheme.typography.bodySmall, color = Madera, fontWeight = FontWeight.SemiBold)
-                    Text("📍 ${resto.location}", style = MaterialTheme.typography.bodySmall, color = Madera)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = Azafrán, modifier = Modifier.size(12.dp))
+                        Text(resto.rating, style = MaterialTheme.typography.bodySmall, color = Madera, fontWeight = FontWeight.SemiBold)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = Madera, modifier = Modifier.size(12.dp))
+                        Text(resto.location, style = MaterialTheme.typography.bodySmall, color = Madera)
+                    }
                     if (resto.hasPromo) {
                         Surface(
                             shape = RoundedCornerShape(999.dp),
@@ -286,7 +339,7 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
                                 "10% OFF",
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = Pimentón
                             )
                         }

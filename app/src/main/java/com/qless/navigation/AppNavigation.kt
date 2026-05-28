@@ -70,7 +70,7 @@ fun AppNavigation(
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginSuccess = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate(Screen.LocationDetected.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -130,7 +130,7 @@ fun AppNavigation(
             GoogleLoginScreen(
                 onBack = { navController.popBackStack() },
                 onContinueWithGoogle = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate(Screen.LocationDetected.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -146,7 +146,7 @@ fun AppNavigation(
         composable(Screen.Register.route) {
             RegisterScreen(
                 onRegisterSuccess = {
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate(Screen.LocationDetected.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
                 },
@@ -190,7 +190,12 @@ fun AppNavigation(
                         popUpTo(Screen.LocationDetected.route) { inclusive = true }
                     }
                 },
-                onRejectLocation = { navController.popBackStack() },
+                onRejectLocation = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
                 onSearchAnother = {
                     navController.navigate(Screen.MisLocales.route) {
                         popUpTo(Screen.LocationDetected.route) { inclusive = true }
@@ -350,7 +355,14 @@ fun AppNavigation(
         composable(Screen.Menu.route) {
             MenuScreen(
                 onViewCart = { navController.navigate(Screen.Cart.route) },
-                onBack = { navController.popBackStack() }
+                onBack = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
             )
         }
 

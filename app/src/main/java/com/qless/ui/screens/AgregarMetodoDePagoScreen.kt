@@ -80,7 +80,7 @@ fun AgregarMetodoDePagoScreen(
                 Text(
                     "Agregar método",
                     style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso
                 )
             }
@@ -151,7 +151,7 @@ fun AgregarMetodoDePagoScreen(
                     )
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Guardar como método principal", fontWeight = FontWeight.Bold, color = Espresso, fontSize = 15.sp)
+                        Text("Guardar como método principal", fontWeight = FontWeight.SemiBold, color = Espresso, fontSize = 15.sp)
                         Text("Se sugiere primero en el checkout", color = Madera, fontSize = 12.sp)
                     }
                 }
@@ -166,7 +166,7 @@ fun AgregarMetodoDePagoScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Guardar método", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("Guardar método", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -178,7 +178,7 @@ fun AgregarMetodoDePagoScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Pimentón)
             ) {
-                Text("Cancelar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Borgoña)
+                Text("Cancelar", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Borgoña)
             }
 
             Spacer(Modifier.height(24.dp))
@@ -187,7 +187,7 @@ fun AgregarMetodoDePagoScreen(
             Text(
                 "← Volver a pagos",
                 color = Pimentón,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 15.sp,
                 modifier = Modifier.clickable { onBack() }
             )

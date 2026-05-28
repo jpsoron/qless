@@ -6,6 +6,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,11 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.R
 import com.qless.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -128,7 +132,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 Text(
                     text = if (currentPage < pages.size - 1) "→" else "✓",
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -181,7 +185,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                             Text(
                                 "10% OFF",
                                 fontSize = 48.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = Color.White
                             )
                             Spacer(Modifier.height(8.dp))
@@ -198,7 +202,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                                 Text(
                                     "PRIMER10",
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.SemiBold,
                                     color = Color.White,
                                     letterSpacing = 1.sp
                                 )
@@ -218,8 +222,8 @@ private fun OnboardingPage(page: OnboardingPage) {
                             strokeWidth = 8.dp
                         )
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("🔔", fontSize = 28.sp)
-                            Text("12", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            Icon(Icons.Default.Notifications, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
+                            Text("12", fontSize = 36.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                             Text("min", fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f))
                         }
                     }
@@ -228,13 +232,14 @@ private fun OnboardingPage(page: OnboardingPage) {
                         shape = RoundedCornerShape(999.dp),
                         color = Azafrán.copy(alpha = 0.25f)
                     ) {
-                        Text(
-                            "🔔 ¡Tu pedido está listo para retirar!",
+                        Row(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp
-                        )
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Default.Notifications, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Text("¡Tu pedido está listo para retirar!", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        }
                     }
                 }
             } else {
@@ -247,11 +252,16 @@ private fun OnboardingPage(page: OnboardingPage) {
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🔔", fontSize = 18.sp)
+                            Icon(
+                                painter = painterResource(R.drawable.ic_qless_espresso),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(20.dp)
+                            )
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 "QLess",
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = Espresso,
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -282,7 +292,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                                         "+",
                                         modifier = Modifier.padding(6.dp),
                                         color = Color.White,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
@@ -309,7 +319,7 @@ private fun OnboardingPage(page: OnboardingPage) {
             Text(
                 text = page.eyebrow,
                 fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = Pimentón,
                 letterSpacing = 1.sp
             )
@@ -317,7 +327,7 @@ private fun OnboardingPage(page: OnboardingPage) {
             Text(
                 text = page.title + page.titleHighlight,
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 color = textColor,
                 lineHeight = 34.sp
             )

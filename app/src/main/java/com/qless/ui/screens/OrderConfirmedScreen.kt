@@ -7,6 +7,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -59,7 +61,7 @@ fun OrderConfirmedScreen(
                     .background(Albahaca),
                 contentAlignment = Alignment.Center
             ) {
-                Text("✓", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Bold)
+                Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(40.dp))
             }
         }
 
@@ -68,7 +70,7 @@ fun OrderConfirmedScreen(
         Text(
             "¡Pedido confirmado!",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             color = Espresso,
             textAlign = TextAlign.Center
         )
@@ -93,7 +95,7 @@ fun OrderConfirmedScreen(
             border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Pedido #4521", fontWeight = FontWeight.Bold, color = Espresso, style = MaterialTheme.typography.titleMedium)
+                Text("Pedido #4521", fontWeight = FontWeight.SemiBold, color = Espresso, style = MaterialTheme.typography.titleMedium)
                 Text("Big Pons – San Isidro", color = Madera, style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(4.dp))
                 Text("Retiro estimado: 15 min", color = Pimentón, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
@@ -113,7 +115,7 @@ fun OrderConfirmedScreen(
                 shape = RoundedCornerShape(999.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
             ) {
-                Text("Ver seguimiento", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text("Ver seguimiento", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
 
             OutlinedButton(
@@ -123,7 +125,7 @@ fun OrderConfirmedScreen(
                 colors = ButtonDefaults.outlinedButtonColors(containerColor = Melocotón),
                 border = androidx.compose.foundation.BorderStroke(0.dp, Color.Transparent)
             ) {
-                Text("Volver al inicio", fontWeight = FontWeight.Bold, color = Pimentón, fontSize = 16.sp)
+                Text("Volver al inicio", fontWeight = FontWeight.SemiBold, color = Pimentón, fontSize = 16.sp)
             }
         }
 

@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.*
+import androidx.compose.ui.res.painterResource
+import com.qless.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,11 +64,16 @@ fun BackOfficeScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("🔔", fontSize = 32.sp)
+                    Icon(
+                        painter = painterResource(R.drawable.ic_qless_blanco),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(36.dp)
+                    )
                     Text(
                         "BackOffice",
                         style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = Color.White
                     )
                 }
@@ -76,7 +83,7 @@ fun BackOfficeScreen(
                 Text(
                     "Pedidos en curso",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = Espresso
                 )
                 Text(
@@ -101,7 +108,7 @@ fun BackOfficeScreen(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = Pimentón,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
 
@@ -199,7 +206,7 @@ fun BackOfficeScreen(
                             Text(
                                 "Resumen del turno",
                                 style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = Espresso
                             )
                             Spacer(Modifier.height(8.dp))
@@ -216,7 +223,7 @@ fun BackOfficeScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Próximo retiro", style = MaterialTheme.typography.labelSmall, color = Madera)
                             Row(verticalAlignment = Alignment.Bottom) {
-                                Text("7", fontSize = 36.sp, fontWeight = FontWeight.Bold, color = Pimentón)
+                                Text("7", fontSize = 36.sp, fontWeight = FontWeight.SemiBold, color = Pimentón)
                                 Text("min", modifier = Modifier.padding(bottom = 8.dp, start = 4.dp), color = Madera, fontSize = 14.sp)
                             }
                             Text("12:35", style = MaterialTheme.typography.labelSmall, color = Madera.copy(alpha = 0.6f))
@@ -242,7 +249,7 @@ private fun FilterChip(selected: Boolean, text: String) {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = if (selected) Color.White else Espresso,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }
@@ -277,7 +284,7 @@ private fun BackOfficeOrderCard(
                 color = Melocotón
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(initials, color = Pimentón, fontWeight = FontWeight.Bold)
+                    Text(initials, color = Pimentón, fontWeight = FontWeight.SemiBold)
                 }
             }
             
@@ -293,7 +300,7 @@ private fun BackOfficeOrderCard(
                         Text(
                             "Pedido $orderNum",
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = Espresso
                         )
                         Text(customer, style = MaterialTheme.typography.bodyMedium, color = Madera)
@@ -307,7 +314,7 @@ private fun BackOfficeOrderCard(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = statusColor,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
@@ -325,7 +332,7 @@ private fun BackOfficeOrderCard(
                             "Actualizar",
                             style = MaterialTheme.typography.labelSmall,
                             color = Pimentón,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.SemiBold
                         )
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -399,7 +406,7 @@ private fun NavItem(
             label,
             fontSize = 10.sp,
             color = if (isSelected) Pimentón else Madera.copy(alpha = 0.5f),
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }
