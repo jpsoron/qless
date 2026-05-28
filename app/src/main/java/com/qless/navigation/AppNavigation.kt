@@ -355,7 +355,14 @@ fun AppNavigation(
         composable(Screen.Menu.route) {
             MenuScreen(
                 onViewCart = { navController.navigate(Screen.Cart.route) },
-                onBack = { navController.popBackStack() }
+                onBack = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
             )
         }
 

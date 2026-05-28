@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,7 +25,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qless.ui.theme.*
+import com.qless.ui.theme.Azafrán
+import com.qless.ui.theme.CremaCálida
+import com.qless.ui.theme.Espresso
+import com.qless.ui.theme.Madera
+import com.qless.ui.theme.Mantequilla
+import com.qless.ui.theme.Melocotón
+import com.qless.ui.theme.Pimentón
+import com.qless.ui.theme.QLessTheme
 import kotlinx.coroutines.delay
 
 private data class MenuItem(
@@ -411,9 +420,35 @@ private fun MenuItemCard(
                                 .padding(horizontal = 12.dp, vertical = 4.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Text("−", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, modifier = Modifier.clickable { onRemove() })
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .clickable { onRemove() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Filled.Remove,
+                                    contentDescription = "Quitar",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = Pimentón
+                                )
+                            }
                             Text("$quantity", fontWeight = FontWeight.SemiBold, color = Espresso)
-                            Text("+", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, modifier = Modifier.clickable { onAdd() })
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .clickable { onAdd() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Filled.Add,
+                                    contentDescription = "Agregar",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = Pimentón
+                                )
+                            }
                         }
                     } else {
                         Box(
@@ -424,7 +459,12 @@ private fun MenuItemCard(
                                 .clickable { onAdd() },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("+", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Light)
+                            Icon(
+                                Icons.Filled.Add,
+                                contentDescription = "Agregar",
+                                modifier = Modifier.size(18.dp),
+                                tint = Color.White
+                            )
                         }
                     }
                 }
