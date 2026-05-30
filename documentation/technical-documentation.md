@@ -1,5 +1,61 @@
 # QLess — Documentacion Tecnica
 
+## Alcance del Proyecto
+
+### Problema que resuelve
+
+En locales gastronimicos de alta demanda, los usuarios deben hacer filas en caja para realizar su pedido, lo que genera fricciones en la experiencia y desperdicios de tiempo tanto para el cliente como para el local. QLess actua como un beeper virtual: el usuario arma y confirma su pedido desde su celular, y la app le notifica cuando esta listo para retirar.
+
+### Usuarios objetivo
+
+Dos actores principales:
+
+- **Cliente final:** usuario que escanea el QR de la mesa o selecciona un local, arma su pedido, paga in-app y hace seguimiento del estado en tiempo real.
+- **Operador del local (BackOffice):** encargado de caja o cocina que gestiona los pedidos entrantes, actualiza su estado y confirma el retiro.
+
+### Casos de uso principales (Entrega 1)
+
+1. Onboarding inicial con presentacion de la propuesta de valor y descuento de bienvenida del 10 %.
+2. Registro e inicio de sesion (email/contrasena y Google).
+3. Deteccion de local por GPS o escaneo de QR de mesa.
+4. Navegacion del menu del local y armado del carrito.
+5. Confirmacion del pedido y seleccion del metodo de pago.
+6. Seguimiento del estado del pedido (beeper virtual) con timeline en tiempo real.
+7. Confirmacion de retiro y calificacion del local.
+8. Gestion de pedidos desde la vista BackOffice del local.
+
+### Flujos de pantallas implementados
+
+El prototipo cubre tres flujos diferenciados, cumpliendo RF2:
+
+- **Flujo de autenticacion:** Splash → Onboarding → Login / Registro → Google Auth
+- **Flujo de pedido:** Deteccion GPS / Scan QR → Seleccion de local → Menu → Carrito → Pago → Pedido confirmado → Seguimiento → Pedido listo → Retiro exitoso
+- **Flujo de gestion:** BackOffice → Historial de pedidos → Actualizacion de estado de pedido
+
+### Sensor utilizado
+
+Camara del dispositivo para escaneo de codigos QR de mesa (requisito RF6).
+
+### Design System
+
+| Token | Valor |
+|-------|-------|
+| Crema calida | `#FFFBF5` — fondo principal |
+| Mantequilla | `#FFF8EE` — superficies / cards |
+| Espresso | `#2C1A0E` — texto principal |
+| Madera | `#7A5C3E` — texto secundario |
+| Pimenton | `#C44B1B` — CTA principal |
+| Tomate | `#E8673A` — hover / destacados |
+| Melocoton | `#FFEDE0` — chips / tags |
+| Albahaca | `#1A7A4A` — entregado / disponible |
+| Azafran | `#D4870E` — en preparacion |
+| Arandano | `#1D6FA8` — en camino / tracking |
+| Borgona | `#8C2A2A` — agotado / error |
+
+Tipografia: **Sora** (titulos y UI primaria) + **Plus Jakarta Sans** (cuerpo y labels).
+
+---
+
 ## Descripcion General
 
 QLess es una aplicacion Android nativa orientada al pedido anticipado en locales gastronimicos. El usuario escanea un codigo QR o selecciona un local, arma su pedido desde el menu, lo confirma y realiza el pago desde la aplicacion, evitando filas en el punto de venta. El local recibe el pedido y notifica cuando esta listo para retirar.
