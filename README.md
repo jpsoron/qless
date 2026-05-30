@@ -2,26 +2,6 @@
 
 Desarrollo De Aplicaciones 1 — Demo APK
 
----
-
-## Estructura del proyecto
-
-```
-app/src/main/java/com/qless/
-├── MainActivity.kt
-├── navigation/
-│   └── AppNavigation.kt       # Rutas y navegación (Jetpack Navigation Compose)
-└── ui/
-    ├── components/             # Componentes reutilizables (BottomNav, etc.)
-    ├── samples/                # Pantallas de muestra/UI samples
-    ├── screens/                # Todas las pantallas de la app
-    └── theme/                  # Colores, tipografía y tema
-```
-
-La app es un prototipo navegable sin backend. Toda la lógica está mockeada en las pantallas.
-
----
-
 ## Cómo simular la app
 
 ### Flujo principal (cliente)
