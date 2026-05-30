@@ -1,10 +1,13 @@
 package com.qless.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.qless.ui.CartViewModel
+import com.qless.ui.PaymentMethodViewModel
 import com.qless.ui.screens.*
 
 sealed class Screen(val route: String) {
@@ -42,6 +45,9 @@ sealed class Screen(val route: String) {
 fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
+    val cartViewModel: CartViewModel = viewModel()
+    val paymentViewModel: PaymentMethodViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route
@@ -253,6 +259,7 @@ fun AppNavigation(
 
         composable(Screen.MetodosDePago.route) {
             MetodosDePagoScreen(
+                paymentViewModel = paymentViewModel,
                 onBack = { navController.popBackStack() },
                 onNavigateToAgregarMetodo = { navController.navigate(Screen.AgregarMetodoDePago.route) },
                 onNavigateToInicio = {
@@ -273,6 +280,7 @@ fun AppNavigation(
 
         composable(Screen.AgregarMetodoDePago.route) {
             AgregarMetodoDePagoScreen(
+                paymentViewModel = paymentViewModel,
                 onBack = { navController.popBackStack() },
                 onNavigateToInicio = {
                     navController.navigate(Screen.Home.route) {
@@ -354,6 +362,7 @@ fun AppNavigation(
 
         composable(Screen.Menu.route) {
             MenuScreen(
+                cartViewModel = cartViewModel,
                 onViewCart = { navController.navigate(Screen.Cart.route) },
                 onBack = {
                     if (!navController.popBackStack()) {
@@ -368,6 +377,7 @@ fun AppNavigation(
 
         composable(Screen.Cart.route) {
             CartScreen(
+                cartViewModel = cartViewModel,
                 onConfirm = { navController.navigate(Screen.Payment.route) },
                 onBack = { navController.popBackStack() }
             )
