@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.data.CartItem
-import com.qless.ui.CartViewModel
+import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.theme.*
 
 @Composable

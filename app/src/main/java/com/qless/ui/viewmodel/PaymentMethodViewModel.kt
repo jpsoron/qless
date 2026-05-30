@@ -1,4 +1,4 @@
-package com.qless.ui
+package com.qless.ui.viewmodel
 
 import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
@@ -68,9 +68,8 @@ class PaymentMethodViewModel(app: Application) : AndroidViewModel(app) {
             else -> "CARD"
         }
 
-        // Si el nuevo es principal, quitar ese flag al resto
         if (esPrincipal) {
-            val updated = methods.mapIndexed { _, m -> m.copy(esPrincipal = false) }
+            val updated = methods.map { m -> m.copy(esPrincipal = false) }
             methods.clear()
             methods.addAll(updated)
         }

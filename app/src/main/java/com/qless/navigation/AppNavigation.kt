@@ -6,8 +6,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.qless.ui.CartViewModel
-import com.qless.ui.PaymentMethodViewModel
+import com.qless.ui.viewmodel.CartViewModel
+import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.screens.*
 
 sealed class Screen(val route: String) {

@@ -1,4 +1,4 @@
-package com.qless.ui
+package com.qless.ui.viewmodel
 
 import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
