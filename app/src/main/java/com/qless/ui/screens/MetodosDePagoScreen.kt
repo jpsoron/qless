@@ -1,7 +1,6 @@
 package com.qless.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -11,19 +10,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.PaymentMethodViewModel
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
 @Composable
 fun MetodosDePagoScreen(
+    paymentViewModel: PaymentMethodViewModel,
     onBack: () -> Unit,
     onNavigateToAgregarMetodo: () -> Unit,
     onNavigateToInicio: () -> Unit,
@@ -32,6 +36,7 @@ fun MetodosDePagoScreen(
     onNavigateToMisPedidos: () -> Unit,
     onNavigateToAjustes: () -> Unit
 ) {
+    val methods = paymentViewModel.methods
     Scaffold(
         bottomBar = {
             QLessBottomNav(
@@ -112,39 +117,61 @@ fun MetodosDePagoScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Lista de métodos de pago
-            PaymentMethodCard(
-                icon = "VISA",
-                iconBgColor = Color(0xFF1A1F71),
-                iconTextColor = Color.White,
-                title = "Visa crédito •••• 4242",
-                subtitle = "Vence 08/29",
-                description = "Predeterminada para pedidos",
-                tag = "Principal"
-            )
+            // Lista de métodos de pago guardados
+            if (methods.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("💳", fontSize = 40.sp)
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            "Todavía no agregaste métodos de pago",
+                            color = Madera,
+                            fontSize = 15.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
+            } else {
+                methods.forEachIndexed { index, method ->
+                    val (iconBg, iconText) = when (method.tipo) {
+                        "VISA"  -> Color(0xFF1A1F71) to Color.White
+                        "MC"    -> Color(0xFFF79E1B) to Color.White
+                        "AMEX"  -> Color(0xFF2E77BC) to Color.White
+                        "MP"    -> Color(0xFFFFE100) to Color(0xFF2D3277)
+                        else    -> Madera to Color.White
+                    }
+                    val title = if (method.esBilletera) {
+                        method.nombre  // "Mercado Pago", "MODO", etc.
+                    } else {
+                        "${method.tipo.lowercase().replaceFirstChar { it.uppercase() }} •••• ${method.ultimosDigitos}"
+                    }
+                    val subtitle = if (method.esBilletera) "Cuenta vinculada" else "Vence ${method.vencimiento}"
+                    val description = if (method.esBilletera) "" else method.nombre
+                    val tag = when {
+                        method.esPrincipal  -> "Principal"
+                        method.esBilletera  -> "Billetera"
+                        else                -> null
+                    }
 
-            Spacer(Modifier.height(16.dp))
+                    PaymentMethodCard(
+                        icon = method.tipo,
+                        iconBgColor = iconBg,
+                        iconTextColor = iconText,
+                        title = title,
+                        subtitle = subtitle,
+                        description = description,
+                        tag = tag,
+                        onDelete = { paymentViewModel.removeMethod(method.id) }
+                    )
 
-            PaymentMethodCard(
-                icon = "MP",
-                iconBgColor = Color(0xFFFFE100),
-                iconTextColor = Color(0xFF2D3277),
-                title = "Mercado Pago",
-                subtitle = "Cuenta vinculada",
-                description = "Pagos rápidos y promociones",
-                tag = "Billetera"
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            PaymentMethodCard(
-                icon = "MC",
-                iconBgColor = Color(0xFFF79E1B),
-                iconTextColor = Color.White,
-                title = "Mastercard débito •••• 1034",
-                subtitle = "Vence 03/28",
-                description = "Usada por última vez ayer"
-            )
+                    if (index < methods.lastIndex) Spacer(Modifier.height(16.dp))
+                }
+            }
 
             Spacer(Modifier.height(32.dp))
 
@@ -169,7 +196,8 @@ fun PaymentMethodCard(
     title: String,
     subtitle: String,
     description: String,
-    tag: String? = null
+    tag: String? = null,
+    onDelete: (() -> Unit)? = null,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -219,30 +247,43 @@ fun PaymentMethodCard(
                 )
             }
 
-            // Tag opcional
-            if (tag != null) {
-                Surface(
-                    shape = RoundedCornerShape(99.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Madera.copy(alpha = 0.2f))
-                ) {
-                    Text(
-                        text = tag,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        fontSize = 12.sp,
-                        color = Madera,
-                        fontWeight = FontWeight.Medium
-                    )
+            // Tag y acciones
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (tag != null) {
+                    Surface(
+                        shape = RoundedCornerShape(99.dp),
+                        color = Color.White,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Madera.copy(alpha = 0.2f))
+                    ) {
+                        Text(
+                            text = tag,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            fontSize = 12.sp,
+                            color = Madera,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+                if (onDelete != null) {
+                    var showConfirm by remember { mutableStateOf(false) }
+                    if (showConfirm) {
+                        TextButton(
+                            onClick = { onDelete(); showConfirm = false },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("Confirmar", color = Borgoña, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    } else {
+                        TextButton(
+                            onClick = { showConfirm = true },
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text("Eliminar", color = Madera.copy(alpha = 0.5f), fontSize = 12.sp)
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun MetodosDePagoPreview() {
-    QLessTheme {
-        MetodosDePagoScreen({}, {}, {}, {}, {}, {}, {})
-    }
-}
