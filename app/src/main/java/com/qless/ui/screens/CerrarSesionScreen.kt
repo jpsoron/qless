@@ -19,11 +19,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
 @Composable
 fun CerrarSesionScreen(
+    authViewModel: AuthViewModel,
     onBack: () -> Unit,
     onConfirmLogout: () -> Unit,
     onNavigateToInicio: () -> Unit,
@@ -31,6 +33,9 @@ fun CerrarSesionScreen(
     onNavigateToScanQr: () -> Unit,
     onNavigateToMisPedidos: () -> Unit,
 ) {
+    val userName = authViewModel.currentUserName
+    val userEmail = authViewModel.currentUserEmail
+    val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     Scaffold(
         bottomBar = {
             Box(modifier = Modifier.zIndex(100f).graphicsLayer(clip = false)) {
@@ -152,18 +157,18 @@ fun CerrarSesionScreen(
                             .background(Melocotón),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("M", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                        Text(initial, color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
                         Text(
-                            "María González",
+                            userName.ifBlank { "Usuario" },
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
                             color = Espresso
                         )
                         Text(
-                            "maria@email.com",
+                            userEmail.ifBlank { "" },
                             style = MaterialTheme.typography.bodySmall,
                             color = Madera
                         )
@@ -175,7 +180,10 @@ fun CerrarSesionScreen(
 
             // Action Buttons
             Button(
-                onClick = onConfirmLogout,
+                onClick = {
+                    authViewModel.logout()
+                    onConfirmLogout()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -202,10 +210,3 @@ fun CerrarSesionScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun CerrarSesionPreview() {
-    QLessTheme {
-        CerrarSesionScreen({}, {}, {}, {}, {}, {})
-    }
-}

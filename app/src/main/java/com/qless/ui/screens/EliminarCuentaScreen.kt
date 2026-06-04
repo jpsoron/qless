@@ -16,11 +16,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
 @Composable
 fun EliminarCuentaScreen(
+    authViewModel: AuthViewModel,
     onBack: () -> Unit,
     onConfirmDelete: () -> Unit,
     onNavigateToInicio: () -> Unit,
@@ -29,6 +31,9 @@ fun EliminarCuentaScreen(
     onNavigateToMisPedidos: () -> Unit,
     onNavigateToAjustes: () -> Unit,
 ) {
+    val userName = authViewModel.currentUserName
+    val userEmail = authViewModel.currentUserEmail
+    val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     Scaffold(
         bottomBar = {
             QLessBottomNav(
@@ -95,7 +100,7 @@ fun EliminarCuentaScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "M",
+                        initial,
                         color = Pimentón,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 24.sp
@@ -104,13 +109,13 @@ fun EliminarCuentaScreen(
                 Spacer(Modifier.width(16.dp))
                 Column {
                     Text(
-                        "María González",
+                        userName.ifBlank { "Usuario" },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
                         color = Espresso
                     )
                     Text(
-                        "maria@email.com",
+                        userEmail.ifBlank { "" },
                         style = MaterialTheme.typography.bodyMedium,
                         color = Madera.copy(alpha = 0.6f)
                     )
@@ -132,7 +137,7 @@ fun EliminarCuentaScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = onConfirmDelete,
+                onClick = { authViewModel.deleteAccount(onConfirmDelete) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -161,10 +166,3 @@ fun EliminarCuentaScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun EliminarCuentaPreview() {
-    QLessTheme {
-        EliminarCuentaScreen({}, {}, {}, {}, {}, {}, {})
-    }
-}

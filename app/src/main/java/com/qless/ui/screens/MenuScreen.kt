@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qless.ui.CartViewModel
+import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.theme.Azafrán
 import com.qless.ui.theme.CremaCálida
 import com.qless.ui.theme.Espresso

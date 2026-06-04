@@ -47,12 +47,14 @@ private val featured = listOf(
 
 @Composable
 fun HomeScreen(
+    userName: String,
     onNavigateToMisLocales: () -> Unit,
     onNavigateToTracking: () -> Unit,
     onNavigateToMisPedidos: () -> Unit,
     onNavigateToScanQr: () -> Unit,
     onNavigateToAjustes: () -> Unit,
 ) {
+    val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     var selectedTab by remember { mutableIntStateOf(0) }
 
     val pulseTransition = rememberInfiniteTransition(label = "pulse")
@@ -146,13 +148,13 @@ fun HomeScreen(
                             .background(Pimentón),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("M", fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = 18.sp)
+                        Text(initial, fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = 18.sp)
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
                         Text("Buenos días 👋", style = MaterialTheme.typography.bodySmall, color = Madera)
                         Text(
-                            "María González",
+                            userName.ifBlank { "Usuario" },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = Espresso
@@ -353,5 +355,5 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun HomePreview() {
-    QLessTheme { HomeScreen(onNavigateToMisLocales = {}, onNavigateToTracking = {}, onNavigateToMisPedidos = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
+    QLessTheme { HomeScreen(userName = "María González", onNavigateToMisLocales = {}, onNavigateToTracking = {}, onNavigateToMisPedidos = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
 }

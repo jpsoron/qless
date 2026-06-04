@@ -6,8 +6,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.qless.ui.CartViewModel
-import com.qless.ui.PaymentMethodViewModel
+import com.qless.ui.viewmodel.AuthViewModel
+import com.qless.ui.viewmodel.CartViewModel
+import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.screens.*
 
 sealed class Screen(val route: String) {
@@ -45,6 +46,7 @@ sealed class Screen(val route: String) {
 fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
+    val authViewModel: AuthViewModel = viewModel()
     val cartViewModel: CartViewModel = viewModel()
     val paymentViewModel: PaymentMethodViewModel = viewModel()
 
@@ -75,6 +77,7 @@ fun AppNavigation(
 
         composable(Screen.Login.route) {
             LoginScreen(
+                authViewModel = authViewModel,
                 onLoginSuccess = {
                     navController.navigate(Screen.LocationDetected.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
@@ -151,6 +154,7 @@ fun AppNavigation(
 
         composable(Screen.Register.route) {
             RegisterScreen(
+                authViewModel = authViewModel,
                 onRegisterSuccess = {
                     navController.navigate(Screen.LocationDetected.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
@@ -165,6 +169,7 @@ fun AppNavigation(
 
         composable(Screen.Home.route) {
             HomeScreen(
+                userName = authViewModel.currentUserName,
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToTracking = { navController.navigate(Screen.Tracking.route) },
                 onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
@@ -240,6 +245,8 @@ fun AppNavigation(
 
         composable(Screen.Ajustes.route) {
             AjustesScreen(
+                userName = authViewModel.currentUserName,
+                userEmail = authViewModel.currentUserEmail,
                 onNavigateToInicio = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
@@ -319,6 +326,7 @@ fun AppNavigation(
 
         composable(Screen.CerrarSesion.route) {
             CerrarSesionScreen(
+                authViewModel = authViewModel,
                 onBack = { navController.popBackStack() },
                 onConfirmLogout = {
                     navController.navigate(Screen.Login.route) {
@@ -338,6 +346,7 @@ fun AppNavigation(
 
         composable(Screen.EliminarCuenta.route) {
             EliminarCuentaScreen(
+                authViewModel = authViewModel,
                 onBack = { navController.popBackStack() },
                 onConfirmDelete = {
                     navController.navigate(Screen.Login.route) {
