@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.*
@@ -32,19 +31,23 @@ import com.qless.ui.theme.*
 fun BackOfficeUpdateOrderScreen(
     onBack: () -> Unit,
     onNavigateToOrders: () -> Unit,
-    onNavigateToHistory: () -> Unit
+    onNavigateToHistory: () -> Unit,
+    onNavigateToAjustes: () -> Unit
 ) {
     Scaffold(
         bottomBar = {
             BackOfficeBottomNav(
-                selectedTab = 1,
+                selectedTab = 0,
                 onTabSelected = { tab ->
-                    if (tab == 1) onNavigateToOrders()
-                    if (tab == 2) onNavigateToHistory()
+                    when (tab) {
+                        0 -> onNavigateToOrders()
+                        1 -> onNavigateToHistory()
+                        2 -> onNavigateToAjustes()
+                    }
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -58,20 +61,20 @@ fun BackOfficeUpdateOrderScreen(
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Pimentón)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = MaterialTheme.colorScheme.primary)
                 }
                 Text(
                     "Actualizar pedido",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             
             Text(
                 "Pedido #5921 · Big Pons",
                 modifier = Modifier.padding(start = 48.dp),
-                color = Madera,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -84,20 +87,20 @@ fun BackOfficeUpdateOrderScreen(
             ) {
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = AzafránClaro
+                    color = QLessStatusColors.enPreparacionSurface
                 ) {
                     Text(
                         "En preparación",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Azafrán,
+                        color = QLessStatusColors.enPreparacion,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
                 Text(
                     "Retiro estimado: 12:35",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Madera
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -108,7 +111,7 @@ fun BackOfficeUpdateOrderScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón.copy(alpha = 0.5f))
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -117,70 +120,70 @@ fun BackOfficeUpdateOrderScreen(
                     Surface(
                         modifier = Modifier.size(44.dp),
                         shape = CircleShape,
-                        color = Melocotón
+                        color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("CR", color = Pimentón, fontWeight = FontWeight.SemiBold)
+                            Text("CR", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                         }
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Camila Ruiz", fontWeight = FontWeight.SemiBold, color = Espresso)
-                        Text("3 items · pago aprobado", style = MaterialTheme.typography.bodySmall, color = Madera)
+                        Text("Camila Ruiz", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("3 items · pago aprobado", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    VerticalDivider(modifier = Modifier.height(40.dp).padding(horizontal = 8.dp), color = Melocotón)
+                    VerticalDivider(modifier = Modifier.height(40.dp).padding(horizontal = 8.dp), color = MaterialTheme.colorScheme.primaryContainer)
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Punto de retiro", fontSize = 10.sp, color = Madera)
+                        Text("Punto de retiro", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = AzafránClaro.copy(alpha = 0.5f)
+                            color = QLessStatusColors.enPreparacionSurface.copy(alpha = 0.5f)
                         ) {
                             Text(
                                 "Caja 1",
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                color = Pimentón,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 12.sp
                             )
                         }
-                        Text("Retiro por mostrador", fontSize = 8.sp, color = Madera.copy(alpha = 0.6f))
+                        Text("Retiro por mostrador", fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                     }
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            Text("Items del pedido", fontWeight = FontWeight.SemiBold, color = Espresso)
+            Text("Items del pedido", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(8.dp))
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                color = Mantequilla.copy(alpha = 0.5f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón.copy(alpha = 0.3f))
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("2x Burger clásica", fontWeight = FontWeight.SemiBold, color = Espresso)
-                        Text("1x Papas medianas", fontWeight = FontWeight.SemiBold, color = Espresso)
+                        Text("2x Burger clásica", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("1x Papas medianas", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                         Spacer(Modifier.height(8.dp))
-                        Text("Sin cebolla · extra cheddar", style = MaterialTheme.typography.bodySmall, color = Madera)
+                        Text("Sin cebolla · extra cheddar", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    VerticalDivider(modifier = Modifier.height(60.dp).padding(horizontal = 16.dp), color = Melocotón)
+                    VerticalDivider(modifier = Modifier.height(60.dp).padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.primaryContainer)
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Preparación\nestimada\n12 min", fontSize = 10.sp, color = Madera, textAlign = TextAlign.Center)
+                        Text("Preparación\nestimada\n12 min", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
                     }
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            Text("Estado del pedido", fontWeight = FontWeight.SemiBold, color = Espresso)
+            Text("Estado del pedido", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(12.dp))
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón.copy(alpha = 0.5f))
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     StatusStep(
@@ -213,7 +216,7 @@ fun BackOfficeUpdateOrderScreen(
                 onClick = {},
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Marcar listo para retirar", fontWeight = FontWeight.SemiBold)
             }
@@ -224,9 +227,9 @@ fun BackOfficeUpdateOrderScreen(
                 onClick = {},
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
-                Text("Marcar como retirado", color = Pimentón, fontWeight = FontWeight.SemiBold)
+                Text("Marcar como retirado", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.height(32.dp))
@@ -251,9 +254,9 @@ private fun StatusStep(
                     .clip(CircleShape)
                     .background(
                         when (status) {
-                            StatusType.DONE -> Albahaca
-                            StatusType.ACTIVE -> Azafrán
-                            StatusType.PENDING -> Melocotón
+                            StatusType.DONE -> QLessStatusColors.disponible
+                            StatusType.ACTIVE -> QLessStatusColors.enPreparacion
+                            StatusType.PENDING -> MaterialTheme.colorScheme.primaryContainer
                         }
                     ),
                 contentAlignment = Alignment.Center
@@ -270,15 +273,15 @@ private fun StatusStep(
                         .width(2.dp)
                         .height(40.dp)
                         .background(
-                            if (status == StatusType.DONE) Albahaca else Melocotón
+                            if (status == StatusType.DONE) QLessStatusColors.disponible else MaterialTheme.colorScheme.primaryContainer
                         )
                 )
             }
         }
         Spacer(Modifier.width(16.dp))
         Column {
-            Text(title, fontWeight = FontWeight.SemiBold, color = Espresso)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Madera.copy(alpha = 0.6f))
+            Text(title, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
             Spacer(Modifier.height(20.dp))
         }
     }
@@ -304,10 +307,9 @@ private fun BackOfficeBottomNav(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            NavItem(Icons.Default.Home, "Inicio", selectedTab == 0) { onTabSelected(0) }
-            NavItem(Icons.AutoMirrored.Filled.List, "Pedidos en curso", selectedTab == 1) { onTabSelected(1) }
-            NavItem(Icons.Outlined.DateRange, "Historial", selectedTab == 2) { onTabSelected(2) }
-            NavItem(Icons.Default.Settings, "Ajustes", selectedTab == 3) { onTabSelected(3) }
+            NavItem(Icons.AutoMirrored.Filled.List, "Pedidos en curso", selectedTab == 0) { onTabSelected(0) }
+            NavItem(Icons.Outlined.DateRange, "Historial", selectedTab == 1) { onTabSelected(1) }
+            NavItem(Icons.Default.Settings, "Ajustes", selectedTab == 2) { onTabSelected(2) }
         }
     }
 }
@@ -326,13 +328,13 @@ private fun NavItem(
         Icon(
             icon,
             contentDescription = null,
-            tint = if (isSelected) Pimentón else Madera.copy(alpha = 0.5f),
+            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(24.dp)
         )
         Text(
             label,
             fontSize = 10.sp,
-            color = if (isSelected) Pimentón else Madera.copy(alpha = 0.5f),
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
@@ -342,6 +344,6 @@ private fun NavItem(
 @Composable
 private fun BackOfficeUpdateOrderPreview() {
     QLessTheme {
-        BackOfficeUpdateOrderScreen(onBack = {}, onNavigateToOrders = {}, onNavigateToHistory = {})
+        BackOfficeUpdateOrderScreen(onBack = {}, onNavigateToOrders = {}, onNavigateToHistory = {}, onNavigateToAjustes = {})
     }
 }

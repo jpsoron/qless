@@ -17,7 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qless.ui.theme.Pimentón
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +82,7 @@ fun ScanearQrScreen(
                     modifier = Modifier
                         .fillMaxWidth(0.8f)
                         .height(3.dp)
-                        .background(Pimentón)
+                        .background(MaterialTheme.colorScheme.primary)
                 )
                 
                 Text(
@@ -101,7 +100,7 @@ fun ScanearQrScreen(
             Button(
                 onClick = { onQrDetected("success") },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Pimentón,
+                    containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
                 ),
                 modifier = Modifier

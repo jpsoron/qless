@@ -83,7 +83,7 @@ fun HomeScreen(
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -95,7 +95,7 @@ fun HomeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Pimentón)
+                    .background(MaterialTheme.colorScheme.primary)
                     .statusBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -145,19 +145,19 @@ fun HomeScreen(
                         modifier = Modifier
                             .size(44.dp)
                             .clip(CircleShape)
-                            .background(Pimentón),
+                            .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(initial, fontWeight = FontWeight.SemiBold, color = Color.White, fontSize = 18.sp)
                     }
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Buenos días 👋", style = MaterialTheme.typography.bodySmall, color = Madera)
+                        Text("Buenos días 👋", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             userName.ifBlank { "Usuario" },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = Espresso
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -168,8 +168,8 @@ fun HomeScreen(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    color = Mantequilla,
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -178,11 +178,11 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = null,
-                            tint = Madera.copy(alpha = 0.6f),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(10.dp))
-                        Text("Buscar locales o productos...", color = Madera.copy(alpha = 0.6f))
+                        Text("Buscar locales o productos...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                     }
                 }
 
@@ -206,7 +206,7 @@ fun HomeScreen(
                                 .size(44.dp)
                                 .scale(pulseScale)
                                 .clip(CircleShape)
-                                .background(Albahaca),
+                                .background(QLessStatusColors.disponible),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -222,21 +222,21 @@ fun HomeScreen(
                                 "PEDIDO EN CURSO",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = Albahaca,
+                                color = QLessStatusColors.disponible,
                                 letterSpacing = 0.8.sp
                             )
                             Text(
                                 "Big Pons · #4521",
                                 fontWeight = FontWeight.SemiBold,
-                                color = Espresso
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 "En preparación · ~12 min",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Madera
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Text("Ver →", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text("Ver →", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
                 }
 
@@ -252,10 +252,10 @@ fun HomeScreen(
                         "Tus favoritos",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     TextButton(onClick = onNavigateToMisLocales, contentPadding = PaddingValues(0.dp)) {
-                        Text("Ver todos", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text("Ver todos", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
                 }
 
@@ -279,8 +279,8 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = Mantequilla,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -290,7 +290,7 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(52.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Melocotón),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Text(resto.emoji, fontSize = 28.sp)
@@ -305,44 +305,44 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
                     Text(
                         resto.name,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = if (resto.isOpen) AlbahacaClaro else BorgoñaClaro
+                        color = if (resto.isOpen) QLessStatusColors.disponibleSurface else MaterialTheme.colorScheme.errorContainer
                     ) {
                         Text(
                             if (resto.isOpen) "Abierto" else "Cerrado",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (resto.isOpen) Albahaca else Borgoña
+                            color = if (resto.isOpen) QLessStatusColors.disponible else MaterialTheme.colorScheme.error
                         )
                     }
                 }
-                Text(resto.category, style = MaterialTheme.typography.bodySmall, color = Madera)
+                Text(resto.category, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Icon(Icons.Default.Star, contentDescription = null, tint = Azafrán, modifier = Modifier.size(12.dp))
-                        Text(resto.rating, style = MaterialTheme.typography.bodySmall, color = Madera, fontWeight = FontWeight.SemiBold)
+                        Icon(Icons.Default.Star, contentDescription = null, tint = QLessStatusColors.enPreparacion, modifier = Modifier.size(12.dp))
+                        Text(resto.rating, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = Madera, modifier = Modifier.size(12.dp))
-                        Text(resto.location, style = MaterialTheme.typography.bodySmall, color = Madera)
+                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
+                        Text(resto.location, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     if (resto.hasPromo) {
                         Surface(
                             shape = RoundedCornerShape(999.dp),
-                            color = Melocotón
+                            color = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Text(
                                 "10% OFF",
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = Pimentón
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }

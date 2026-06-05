@@ -29,7 +29,7 @@ fun PickupSuccessScreen(
     onViewSummary: () -> Unit
 ) {
     Scaffold(
-        containerColor = CremaCálida 
+        containerColor = MaterialTheme.colorScheme.background 
     ) { padding ->
         Column(
             modifier = Modifier
@@ -42,7 +42,7 @@ fun PickupSuccessScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(320.dp) // Más altura para evitar superposición
-                    .background(Albahaca)
+                    .background(QLessStatusColors.disponible)
                     .statusBarsPadding(), 
                 contentAlignment = Alignment.TopCenter // Alineamos arriba
             ) {
@@ -54,7 +54,7 @@ fun PickupSuccessScreen(
                     Surface(
                         modifier = Modifier.size(80.dp),
                         shape = CircleShape,
-                        color = Pimentón
+                        color = MaterialTheme.colorScheme.primary
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text("M", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
@@ -93,7 +93,7 @@ fun PickupSuccessScreen(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    color = Mantequilla,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shadowElevation = 2.dp
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -109,38 +109,38 @@ fun PickupSuccessScreen(
                             }
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Big Pons · San Isidro", fontWeight = FontWeight.SemiBold, color = Espresso)
-                                Text("Pedido #4521 · Retiro en mostrador", style = MaterialTheme.typography.bodySmall, color = Madera)
+                                Text("Big Pons · San Isidro", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("Pedido #4521 · Retiro en mostrador", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            Text("$9.000", fontWeight = FontWeight.SemiBold, color = Espresso, fontSize = 18.sp)
+                            Text("$9.000", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp)
                         }
                         
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Melocotón)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.primaryContainer)
                         
                         // Lista de Items
                         OrderItemRow("Combo Big Classic", "x2")
                         OrderItemRow("Papas Fritas Grandes", "x1")
                         OrderItemRow("Gaseosa 500 ml", "x1")
                         
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Melocotón)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.primaryContainer)
                         
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Visa •••• 4242 · $9.000", style = MaterialTheme.typography.bodySmall, color = Madera)
+                            Text("Visa •••• 4242 · $9.000", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Surface(
                                 shape = RoundedCornerShape(999.dp),
-                                color = AlbahacaClaro
+                                color = QLessStatusColors.disponibleSurface
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.Check, contentDescription = null, tint = Albahaca, modifier = Modifier.size(14.dp))
+                                    Icon(Icons.Default.Check, contentDescription = null, tint = QLessStatusColors.disponible, modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(4.dp))
-                                    Text("Retirado", style = MaterialTheme.typography.labelSmall, color = Albahaca, fontWeight = FontWeight.SemiBold)
+                                    Text("Retirado", style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.disponible, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }
@@ -153,25 +153,25 @@ fun PickupSuccessScreen(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    color = Mantequilla,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shadowElevation = 2.dp
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("¿Cómo estuvo Big Pons?", fontWeight = FontWeight.SemiBold, color = Espresso)
-                        Text("Tu opinión ayuda a otros usuarios", style = MaterialTheme.typography.bodySmall, color = Madera)
+                        Text("¿Cómo estuvo Big Pons?", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Tu opinión ayuda a otros usuarios", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         
                         Spacer(Modifier.height(16.dp))
                         
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            repeat(4) { Icon(Icons.Filled.Star, contentDescription = null, tint = Azafrán, modifier = Modifier.size(32.dp)) }
-                            Icon(Icons.Outlined.Star, contentDescription = null, tint = Madera.copy(alpha = 0.3f), modifier = Modifier.size(32.dp))
+                            repeat(4) { Icon(Icons.Filled.Star, contentDescription = null, tint = QLessStatusColors.enPreparacion, modifier = Modifier.size(32.dp)) }
+                            Icon(Icons.Outlined.Star, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f), modifier = Modifier.size(32.dp))
                         }
                         
                         Spacer(Modifier.height(12.dp))
-                        Text("Tocá para calificar", style = MaterialTheme.typography.labelSmall, color = Madera.copy(alpha = 0.5f))
+                        Text("Tocá para calificar", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                     }
                 }
 
@@ -182,7 +182,7 @@ fun PickupSuccessScreen(
                     onClick = onGoHome,
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("Volver al inicio", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
@@ -193,7 +193,7 @@ fun PickupSuccessScreen(
                     onClick = onViewSummary,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Ver resumen del pedido", color = Espresso, fontWeight = FontWeight.SemiBold)
+                    Text("Ver resumen del pedido", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
                 }
                 
                 Spacer(Modifier.height(40.dp))
@@ -208,8 +208,8 @@ private fun OrderItemRow(name: String, quantity: String) {
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(name, color = Espresso, style = MaterialTheme.typography.bodyMedium)
-        Text(quantity, color = Madera, style = MaterialTheme.typography.bodySmall)
+        Text(name, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium)
+        Text(quantity, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
     }
 }
 

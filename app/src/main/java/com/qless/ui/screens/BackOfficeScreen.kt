@@ -10,7 +10,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.*
@@ -32,18 +31,22 @@ import com.qless.ui.theme.*
 @Composable
 fun BackOfficeScreen(
     onNavigateToHistory: () -> Unit,
-    onUpdateOrder: () -> Unit
+    onUpdateOrder: () -> Unit,
+    onNavigateToAjustes: () -> Unit
 ) {
     Scaffold(
         bottomBar = {
             BackOfficeBottomNav(
-                selectedTab = 1,
+                selectedTab = 0,
                 onTabSelected = { tab ->
-                    if (tab == 2) onNavigateToHistory()
+                    when (tab) {
+                        1 -> onNavigateToHistory()
+                        2 -> onNavigateToAjustes()
+                    }
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -84,12 +87,12 @@ fun BackOfficeScreen(
                     "Pedidos en curso",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     "Gestioná los pedidos activos del local y actualizá su estado.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Madera
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -101,13 +104,13 @@ fun BackOfficeScreen(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = Melocotón
+                        color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Text(
                             "Big Pons · San Isidro",
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Pimentón,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -115,13 +118,13 @@ fun BackOfficeScreen(
                     Surface(
                         shape = RoundedCornerShape(999.dp),
                         color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Text(
                             "12 pedidos activos",
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Madera
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -139,7 +142,7 @@ fun BackOfficeScreen(
                 Text(
                     "Tocá un pedido para ver su detalle y actualizar el estado.",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Madera.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -151,8 +154,8 @@ fun BackOfficeScreen(
                     customer = "Mateo Gómez",
                     details = "4 items · listo para empaquetar",
                     status = "En preparación",
-                    statusColor = Azafrán,
-                    statusBg = AzafránClaro,
+                    statusColor = QLessStatusColors.enPreparacion,
+                    statusBg = QLessStatusColors.enPreparacionSurface,
                     onClick = onUpdateOrder
                 )
 
@@ -162,8 +165,8 @@ fun BackOfficeScreen(
                     customer = "Lucía Méndez",
                     details = "2 combos · recibido hace 11 min",
                     status = "Pago confirmado",
-                    statusColor = Madera,
-                    statusBg = Melocotón,
+                    statusColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    statusBg = MaterialTheme.colorScheme.primaryContainer,
                     onClick = onUpdateOrder
                 )
 
@@ -173,8 +176,8 @@ fun BackOfficeScreen(
                     customer = "Juan Pérez",
                     details = "1 ítem · retiro inmediato",
                     status = "Listo para retirar",
-                    statusColor = Albahaca,
-                    statusBg = AlbahacaClaro,
+                    statusColor = QLessStatusColors.disponible,
+                    statusBg = QLessStatusColors.disponibleSurface,
                     onClick = onUpdateOrder
                 )
 
@@ -184,8 +187,8 @@ fun BackOfficeScreen(
                     customer = "Camila Ruiz",
                     details = "3 items · recibido hace 4 min",
                     status = "En preparación",
-                    statusColor = Azafrán,
-                    statusBg = AzafránClaro,
+                    statusColor = QLessStatusColors.enPreparacion,
+                    statusBg = QLessStatusColors.enPreparacionSurface,
                     onClick = onUpdateOrder
                 )
 
@@ -196,7 +199,7 @@ fun BackOfficeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
                         modifier = Modifier.padding(20.dp),
@@ -207,7 +210,7 @@ fun BackOfficeScreen(
                                 "Resumen del turno",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.SemiBold,
-                                color = Espresso
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(Modifier.height(8.dp))
                             SummaryRow("4 en preparación")
@@ -217,16 +220,16 @@ fun BackOfficeScreen(
                         
                         VerticalDivider(
                             modifier = Modifier.height(80.dp).padding(horizontal = 16.dp),
-                            color = Melocotón
+                            color = MaterialTheme.colorScheme.primaryContainer
                         )
                         
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Próximo retiro", style = MaterialTheme.typography.labelSmall, color = Madera)
+                            Text("Próximo retiro", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Row(verticalAlignment = Alignment.Bottom) {
-                                Text("7", fontSize = 36.sp, fontWeight = FontWeight.SemiBold, color = Pimentón)
-                                Text("min", modifier = Modifier.padding(bottom = 8.dp, start = 4.dp), color = Madera, fontSize = 14.sp)
+                                Text("7", fontSize = 36.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                                Text("min", modifier = Modifier.padding(bottom = 8.dp, start = 4.dp), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                             }
-                            Text("12:35", style = MaterialTheme.typography.labelSmall, color = Madera.copy(alpha = 0.6f))
+                            Text("12:35", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                         }
                     }
                 }
@@ -241,14 +244,14 @@ fun BackOfficeScreen(
 private fun FilterChip(selected: Boolean, text: String) {
     Surface(
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) Pimentón else Color.White,
-        border = if (selected) null else androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+        color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
+        border = if (selected) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             style = MaterialTheme.typography.bodyMedium,
-            color = if (selected) Color.White else Espresso,
+            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
@@ -272,7 +275,7 @@ private fun BackOfficeOrderCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón.copy(alpha = 0.5f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -281,10 +284,10 @@ private fun BackOfficeOrderCard(
             Surface(
                 modifier = Modifier.size(44.dp),
                 shape = CircleShape,
-                color = Melocotón
+                color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(initials, color = Pimentón, fontWeight = FontWeight.SemiBold)
+                    Text(initials, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 }
             }
             
@@ -301,9 +304,9 @@ private fun BackOfficeOrderCard(
                             "Pedido $orderNum",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = Espresso
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(customer, style = MaterialTheme.typography.bodyMedium, color = Madera)
+                        Text(customer, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Surface(
                         shape = RoundedCornerShape(999.dp),
@@ -326,18 +329,18 @@ private fun BackOfficeOrderCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(details, style = MaterialTheme.typography.labelSmall, color = Madera.copy(alpha = 0.6f))
+                    Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             "Actualizar",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Pimentón,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             contentDescription = null,
-                            tint = Pimentón,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -352,7 +355,7 @@ private fun SummaryRow(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall,
-        color = Madera,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(vertical = 1.dp)
     )
 }
@@ -377,10 +380,9 @@ private fun BackOfficeBottomNav(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            NavItem(Icons.Default.Home, "Inicio", selectedTab == 0) { onTabSelected(0) }
-            NavItem(Icons.AutoMirrored.Filled.List, "Pedidos en curso", selectedTab == 1) { onTabSelected(1) }
-            NavItem(Icons.Outlined.DateRange, "Historial", selectedTab == 2) { onTabSelected(2) }
-            NavItem(Icons.Default.Settings, "Ajustes", selectedTab == 3) { onTabSelected(3) }
+            NavItem(Icons.AutoMirrored.Filled.List, "Pedidos en curso", selectedTab == 0) { onTabSelected(0) }
+            NavItem(Icons.Outlined.DateRange, "Historial", selectedTab == 1) { onTabSelected(1) }
+            NavItem(Icons.Default.Settings, "Ajustes", selectedTab == 2) { onTabSelected(2) }
         }
     }
 }
@@ -399,13 +401,13 @@ private fun NavItem(
         Icon(
             icon,
             contentDescription = null,
-            tint = if (isSelected) Pimentón else Madera.copy(alpha = 0.5f),
+            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(24.dp)
         )
         Text(
             label,
             fontSize = 10.sp,
-            color = if (isSelected) Pimentón else Madera.copy(alpha = 0.5f),
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
@@ -415,6 +417,6 @@ private fun NavItem(
 @Composable
 private fun BackOfficePreview() {
     QLessTheme {
-        BackOfficeScreen(onNavigateToHistory = {}, onUpdateOrder = {})
+        BackOfficeScreen(onNavigateToHistory = {}, onUpdateOrder = {}, onNavigateToAjustes = {})
     }
 }

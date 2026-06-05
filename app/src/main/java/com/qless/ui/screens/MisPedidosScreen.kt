@@ -60,7 +60,7 @@ fun MisPedidosScreen(
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -74,13 +74,13 @@ fun MisPedidosScreen(
             Text(
                 "Mis Pedidos",
                 style = MaterialTheme.typography.headlineMedium,
-                color = Espresso,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 "Seguí tus pedidos y revisá el historial",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Madera
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(18.dp))
@@ -96,7 +96,7 @@ fun MisPedidosScreen(
             Text(
                 "RECIENTES",
                 style = MaterialTheme.typography.labelMedium,
-                color = Madera.copy(alpha = 0.62f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f),
                 fontWeight = FontWeight.SemiBold,
                 letterSpacing = 1.2.sp
             )
@@ -126,13 +126,13 @@ private fun OrderFilterTabs() {
 private fun FilterChip(text: String, selected: Boolean) {
     Surface(
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) Espresso else Mantequilla,
-        border = if (selected) null else BorderStroke(1.dp, Melocotón)
+        color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceVariant,
+        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Text(
             text,
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 11.dp),
-            color = if (selected) Color.White else Madera,
+            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp
         )
@@ -146,7 +146,7 @@ private fun ActiveOrderCard(onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(22.dp),
-        color = Albahaca
+        color = QLessStatusColors.disponible
     ) {
         Box(
             modifier = Modifier
@@ -194,7 +194,7 @@ private fun ActiveOrderCard(onClick: () -> Unit) {
                     Text(
                         "Ver →",
                         modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
-                        color = Albahaca,
+                        color = QLessStatusColors.disponible,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
                     )
@@ -211,7 +211,7 @@ private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
-        color = Mantequilla,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.4.dp, Color(0xFFEAD5C5))
     ) {
         Row(
@@ -222,7 +222,7 @@ private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Melocotón),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Text(order.emoji, fontSize = 28.sp)
@@ -230,20 +230,20 @@ private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Pedido ${order.number}", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    Text("Pedido ${order.number}", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                     Spacer(Modifier.weight(1f))
                     DeliveredBadge()
                 }
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(order.local, color = Madera, style = MaterialTheme.typography.bodyMedium)
+                        Text(order.local, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(8.dp))
-                        Text(order.date, color = Madera.copy(alpha = 0.65f), style = MaterialTheme.typography.bodySmall)
+                        Text(order.date, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
-                        Text("Ver resumen →", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text("Ver resumen →", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
-                    Text(order.amount, color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    Text(order.amount, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
             }
         }
@@ -252,11 +252,11 @@ private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
 
 @Composable
 private fun DeliveredBadge() {
-    Surface(shape = RoundedCornerShape(999.dp), color = AlbahacaClaro) {
+    Surface(shape = RoundedCornerShape(999.dp), color = QLessStatusColors.disponibleSurface) {
         Text(
             "Entregado",
             modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
-            color = Albahaca,
+            color = QLessStatusColors.disponible,
             fontWeight = FontWeight.SemiBold,
             fontSize = 11.sp
         )

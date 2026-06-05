@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.viewmodel.AuthNavEvent
 import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.theme.*
 
@@ -33,12 +34,18 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    val registerError = authViewModel.registerError
+    val uiState by authViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        authViewModel.navEvent.collect { event ->
+            if (event is AuthNavEvent.RegisterSuccess) onRegisterSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(CremaCálida)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
@@ -51,9 +58,9 @@ fun RegisterScreen(
             onClick = onBack,
             modifier = Modifier
                 .size(40.dp)
-                .background(Melocotón, RoundedCornerShape(999.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(999.dp))
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Pimentón)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = MaterialTheme.colorScheme.primary)
         }
 
         Spacer(Modifier.height(20.dp))
@@ -62,12 +69,12 @@ fun RegisterScreen(
             "Crear cuenta",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.SemiBold,
-            color = Espresso
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             "Completá tus datos para comenzar",
             style = MaterialTheme.typography.bodyMedium,
-            color = Madera
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(Modifier.height(28.dp))
@@ -85,29 +92,29 @@ fun RegisterScreen(
         // Hint
         Surface(
             shape = RoundedCornerShape(8.dp),
-            color = Melocotón,
+            color = MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 "Usá al menos 8 caracteres, una mayúscula y un número",
                 modifier = Modifier.padding(12.dp),
                 style = MaterialTheme.typography.bodySmall,
-                color = Madera
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
         // Error de registro
-        if (registerError != null) {
+        if (uiState.registerError != null) {
             Spacer(Modifier.height(12.dp))
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
-                color = Borgoña.copy(alpha = 0.1f)
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
             ) {
                 Text(
-                    text = registerError,
+                    text = uiState.registerError ?: "",
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                    color = Borgoña,
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium
                 )
@@ -117,18 +124,11 @@ fun RegisterScreen(
         Spacer(Modifier.height(24.dp))
 
         Button(
-            onClick = {
-                authViewModel.register(
-                    name = name,
-                    email = email,
-                    password = password,
-                    confirmPassword = confirmPassword,
-                    onSuccess = onRegisterSuccess,
-                )
-            },
+            onClick = { authViewModel.register(name, email, password, confirmPassword) },
+            enabled = !uiState.isLoading,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(999.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("Crear cuenta", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         }
@@ -136,9 +136,9 @@ fun RegisterScreen(
         Spacer(Modifier.height(20.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Melocotón)
-            Text(" o ", color = Madera.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Melocotón)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.primaryContainer)
+            Text(" o ", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
+            HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.primaryContainer)
         }
 
         Spacer(Modifier.height(16.dp))
@@ -147,20 +147,20 @@ fun RegisterScreen(
             onClick = onNavigateToGoogleLogin,
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = Mantequilla),
-            border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Text("G", fontWeight = FontWeight.SemiBold, color = Color(0xFF4285F4), fontSize = 18.sp)
             Spacer(Modifier.width(10.dp))
-            Text("Registrarme con Google", color = Espresso, fontWeight = FontWeight.SemiBold)
+            Text("Registrarme con Google", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(Modifier.height(20.dp))
 
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-            Text("¿Ya tenés cuenta? ", color = Madera, style = MaterialTheme.typography.bodyMedium)
+            Text("¿Ya tenés cuenta? ", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) {
-                Text("Iniciar sesión", color = Pimentón, fontWeight = FontWeight.SemiBold)
+                Text("Iniciar sesión", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -169,7 +169,7 @@ fun RegisterScreen(
         Text(
             "Al registrarte, aceptás los Términos y condiciones",
             style = MaterialTheme.typography.bodySmall,
-            color = Madera.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.fillMaxWidth(),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
@@ -187,21 +187,21 @@ private fun QLessTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false,
 ) {
-    Text(label, style = MaterialTheme.typography.labelMedium, color = Espresso)
+    Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
     Spacer(Modifier.height(6.dp))
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(placeholder, color = Madera.copy(alpha = 0.5f)) },
+        placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
         colors = OutlinedTextFieldDefaults.colors(
-            unfocusedBorderColor = Melocotón,
-            focusedBorderColor = Pimentón,
-            unfocusedContainerColor = Mantequilla,
-            focusedContainerColor = Mantequilla,
+            unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         singleLine = true
     )

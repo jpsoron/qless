@@ -26,8 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.components.QLessBottomNav
+import com.qless.ui.viewmodel.MisLocalesViewModel
 import com.qless.ui.theme.*
-import kotlinx.coroutines.delay
 
 private data class LocalItem(
     val emoji: String,
@@ -50,6 +50,7 @@ private val locales = listOf(
 
 @Composable
 fun MisLocalesScreen(
+    misLocalesViewModel: MisLocalesViewModel,
     onLocalSelected: () -> Unit,
     onBack: () -> Unit,
     onNavigateToInicio: () -> Unit,
@@ -58,9 +59,9 @@ fun MisLocalesScreen(
     onNavigateToMisPedidos: () -> Unit,
     onNavigateToAjustes: () -> Unit,
 ) {
+    val uiState by misLocalesViewModel.uiState.collectAsState()
+    val isLoading = uiState.isLoading
     var selectedTab by remember { mutableIntStateOf(1) }
-    var isLoading by remember { mutableStateOf(true) }
-    LaunchedEffect(Unit) { delay(1500L); isLoading = false }
     val shimmerBrush = shimmerBrush()
 
     Scaffold(
@@ -78,7 +79,7 @@ fun MisLocalesScreen(
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -93,12 +94,12 @@ fun MisLocalesScreen(
                     "Mis Locales",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     "Elegí en qué local querés pedir",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Madera
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(14.dp))
@@ -118,7 +119,7 @@ fun MisLocalesScreen(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(RoundedCornerShape(999.dp))
-                                .background(Albahaca),
+                                .background(QLessStatusColors.disponible),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
@@ -129,18 +130,18 @@ fun MisLocalesScreen(
                                 "¿Estás en Big Pons - San Isidro?",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = Espresso
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 "Av. del Libertador 1420, San Isidro",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Madera
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Spacer(Modifier.width(8.dp))
                         Button(
                             onClick = onNavigateToLocationDetected,
-                            colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             modifier = Modifier.height(32.dp)
                         ) {
@@ -151,9 +152,9 @@ fun MisLocalesScreen(
                             onClick = {},
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             modifier = Modifier.height(32.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                         ) {
-                            Text("No", fontSize = 12.sp, color = Madera)
+                            Text("No", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -164,16 +165,16 @@ fun MisLocalesScreen(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    color = Mantequilla,
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Search, contentDescription = null, tint = Madera.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Buscar local...", color = Madera.copy(alpha = 0.5f))
+                        Text("Buscar local...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                     }
                 }
 
@@ -191,7 +192,7 @@ fun MisLocalesScreen(
                         "${locales.count { it.isOpen }} LOCALES DISPONIBLES",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = Madera.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         letterSpacing = 0.8.sp
                     )
                 }
@@ -216,7 +217,7 @@ fun MisLocalesScreen(
                         .fillMaxWidth()
                         .clickable { onNavigateToScanQr() },
                     shape = RoundedCornerShape(16.dp),
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -249,9 +250,9 @@ fun MisLocalesScreen(
 @Composable
 private fun shimmerBrush(): Brush {
     val shimmerColors = listOf(
-        Melocotón.copy(alpha = 0.9f),
-        Mantequilla,
-        Melocotón.copy(alpha = 0.9f),
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+        MaterialTheme.colorScheme.surfaceVariant,
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
     )
     val transition = rememberInfiniteTransition(label = "shimmer")
     val translateAnim by transition.animateFloat(
@@ -275,8 +276,8 @@ private fun SkeletonLocalCard(brush: Brush) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Mantequilla,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -313,10 +314,10 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(enabled = local.isOpen) { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = if (local.isFeatured) Color(0xFFFFF5F0) else Mantequilla,
+        color = if (local.isFeatured) Color(0xFFFFF5F0) else MaterialTheme.colorScheme.surfaceVariant,
         border = androidx.compose.foundation.BorderStroke(
             1.5.dp,
-            if (local.isFeatured) Tomate else Melocotón
+            if (local.isFeatured) MaterialTheme.colorScheme.inversePrimary else MaterialTheme.colorScheme.primaryContainer
         )
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -324,7 +325,7 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Melocotón),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Text(local.emoji, fontSize = 28.sp)
@@ -336,42 +337,42 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(local.name, fontWeight = FontWeight.SemiBold, color = Espresso)
+                    Text(local.name, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = if (local.isOpen) AlbahacaClaro else BorgoñaClaro
+                        color = if (local.isOpen) QLessStatusColors.disponibleSurface else MaterialTheme.colorScheme.errorContainer
                     ) {
                         Text(
                             if (local.isOpen) "Abierto" else "Cerrado",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (local.isOpen) Albahaca else Borgoña
+                            color = if (local.isOpen) QLessStatusColors.disponible else MaterialTheme.colorScheme.error
                         )
                     }
                 }
-                Text(local.category, style = MaterialTheme.typography.bodySmall, color = Madera)
+                Text(local.category, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Icon(Icons.Default.Star, contentDescription = null, tint = Azafrán, modifier = Modifier.size(12.dp))
-                        Text(local.rating, style = MaterialTheme.typography.labelSmall, color = Madera, fontWeight = FontWeight.SemiBold)
+                        Icon(Icons.Default.Star, contentDescription = null, tint = QLessStatusColors.enPreparacion, modifier = Modifier.size(12.dp))
+                        Text(local.rating, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = Madera, modifier = Modifier.size(12.dp))
-                        Text(local.location, style = MaterialTheme.typography.labelSmall, color = Madera)
+                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
+                        Text(local.location, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     if (local.time != null) {
                         Surface(
                             shape = RoundedCornerShape(999.dp),
-                            color = AzafránClaro
+                            color = QLessStatusColors.enPreparacionSurface
                         ) {
-                            Text(local.time, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = Azafrán, fontWeight = FontWeight.SemiBold)
+                            Text(local.time, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.enPreparacion, fontWeight = FontWeight.SemiBold)
                         }
                     }
                     if (local.hasPromo) {
-                        Surface(shape = RoundedCornerShape(999.dp), color = Melocotón) {
-                            Text("10% OFF", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = Pimentón, fontWeight = FontWeight.SemiBold)
+                        Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                            Text("10% OFF", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
@@ -383,5 +384,5 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun MisLocalesPreview() {
-    QLessTheme { MisLocalesScreen(onLocalSelected = {}, onBack = {}, onNavigateToInicio = {}, onNavigateToLocationDetected = {}, onNavigateToScanQr = {}, onNavigateToMisPedidos = {}, onNavigateToAjustes = {}) }
+    QLessTheme { MisLocalesScreen(misLocalesViewModel = MisLocalesViewModel(), onLocalSelected = {}, onBack = {}, onNavigateToInicio = {}, onNavigateToLocationDetected = {}, onNavigateToScanQr = {}, onNavigateToMisPedidos = {}, onNavigateToAjustes = {}) }
 }

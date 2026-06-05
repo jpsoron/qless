@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.*
@@ -29,18 +28,22 @@ import com.qless.ui.theme.*
 @Composable
 fun BackOfficeHistoryScreen(
     onBack: () -> Unit,
-    onNavigateToOrders: () -> Unit
+    onNavigateToOrders: () -> Unit,
+    onNavigateToAjustes: () -> Unit
 ) {
     Scaffold(
         bottomBar = {
             BackOfficeBottomNav(
-                selectedTab = 2,
+                selectedTab = 1,
                 onTabSelected = { tab ->
-                    if (tab == 1) onNavigateToOrders()
+                    when (tab) {
+                        0 -> onNavigateToOrders()
+                        2 -> onNavigateToAjustes()
+                    }
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -54,13 +57,13 @@ fun BackOfficeHistoryScreen(
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Pimentón)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = MaterialTheme.colorScheme.primary)
                 }
                 Text(
                     "Historial de pedidos",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             
@@ -69,18 +72,18 @@ fun BackOfficeHistoryScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Big Pons · San Isidro", color = Madera, style = MaterialTheme.typography.bodyMedium)
+                Text("Big Pons · San Isidro", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.weight(1f))
                 Surface(
                     shape = RoundedCornerShape(999.dp),
                     color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Text(
                         "Últimos 7 días",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Madera
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -101,18 +104,18 @@ fun BackOfficeHistoryScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 color = Color.White,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    StatItem("28", "pedidos totales", Pimentón)
-                    VerticalDivider(modifier = Modifier.height(40.dp), color = Melocotón)
-                    StatItem("22", "entregados", Albahaca)
-                    VerticalDivider(modifier = Modifier.height(40.dp), color = Melocotón)
-                    StatItem("6", "aún activos", Azafrán)
+                    StatItem("28", "pedidos totales", MaterialTheme.colorScheme.primary)
+                    VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.primaryContainer)
+                    StatItem("22", "entregados", QLessStatusColors.disponible)
+                    VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.primaryContainer)
+                    StatItem("6", "aún activos", QLessStatusColors.enPreparacion)
                 }
             }
 
@@ -125,8 +128,8 @@ fun BackOfficeHistoryScreen(
                 customer = "Mateo Gómez",
                 details = "En curso · hoy 12:45 · $14.200",
                 status = "En curso",
-                statusColor = Azafrán,
-                statusBg = AzafránClaro
+                statusColor = QLessStatusColors.enPreparacion,
+                statusBg = QLessStatusColors.enPreparacionSurface
             )
 
             HistoryOrderCard(
@@ -135,8 +138,8 @@ fun BackOfficeHistoryScreen(
                 customer = "Lucía Méndez",
                 details = "En curso · hoy 12:40 · $21.500",
                 status = "En curso",
-                statusColor = Azafrán,
-                statusBg = AzafránClaro
+                statusColor = QLessStatusColors.enPreparacion,
+                statusBg = QLessStatusColors.enPreparacionSurface
             )
 
             HistoryOrderCard(
@@ -145,8 +148,8 @@ fun BackOfficeHistoryScreen(
                 customer = "Juan Pérez",
                 details = "En curso · hoy 12:38 · $8.900",
                 status = "En curso",
-                statusColor = Azafrán,
-                statusBg = AzafránClaro
+                statusColor = QLessStatusColors.enPreparacion,
+                statusBg = QLessStatusColors.enPreparacionSurface
             )
 
             HistoryOrderCard(
@@ -155,8 +158,8 @@ fun BackOfficeHistoryScreen(
                 customer = "Camila Ruiz",
                 details = "En curso · hoy 12:35 · $12.400",
                 status = "En curso",
-                statusColor = Azafrán,
-                statusBg = AzafránClaro
+                statusColor = QLessStatusColors.enPreparacion,
+                statusBg = QLessStatusColors.enPreparacionSurface
             )
 
             HistoryOrderCard(
@@ -165,8 +168,8 @@ fun BackOfficeHistoryScreen(
                 customer = "Agustina López",
                 details = "Retirado · hoy 12:06 · $18.900",
                 status = "Retirado",
-                statusColor = Albahaca,
-                statusBg = AlbahacaClaro
+                statusColor = QLessStatusColors.disponible,
+                statusBg = QLessStatusColors.disponibleSurface
             )
 
             HistoryOrderCard(
@@ -175,15 +178,15 @@ fun BackOfficeHistoryScreen(
                 customer = "Sofía Martínez",
                 details = "Completado · hoy 11:42 · $12.500",
                 status = "Completado",
-                statusColor = Pimentón,
-                statusBg = Melocotón
+                statusColor = MaterialTheme.colorScheme.primary,
+                statusBg = MaterialTheme.colorScheme.primaryContainer
             )
 
             Spacer(Modifier.height(16.dp))
             Text(
                 "Los pedidos activos siguen disponibles también en la pantalla operativa.",
                 style = MaterialTheme.typography.labelSmall,
-                color = Madera.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
             
@@ -196,7 +199,7 @@ fun BackOfficeHistoryScreen(
 private fun StatItem(value: String, label: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(value, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = color)
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Madera)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -216,7 +219,7 @@ private fun HistoryOrderCard(
             .padding(vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
         color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón.copy(alpha = 0.5f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -225,10 +228,10 @@ private fun HistoryOrderCard(
             Surface(
                 modifier = Modifier.size(44.dp),
                 shape = CircleShape,
-                color = Melocotón
+                color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(initials, color = Pimentón, fontWeight = FontWeight.SemiBold)
+                    Text(initials, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 }
             }
             
@@ -245,9 +248,9 @@ private fun HistoryOrderCard(
                             "Pedido $orderNum",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = Espresso
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(customer, style = MaterialTheme.typography.bodyMedium, color = Madera)
+                        Text(customer, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Surface(
                         shape = RoundedCornerShape(999.dp),
@@ -270,18 +273,18 @@ private fun HistoryOrderCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(details, style = MaterialTheme.typography.labelSmall, color = Madera.copy(alpha = 0.6f))
+                    Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             "Ver resumen",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Pimentón,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             contentDescription = null,
-                            tint = Pimentón,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -295,14 +298,14 @@ private fun HistoryOrderCard(
 private fun FilterChip(selected: Boolean, text: String) {
     Surface(
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) Pimentón else Color.White,
-        border = if (selected) null else androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+        color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
+        border = if (selected) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             style = MaterialTheme.typography.bodyMedium,
-            color = if (selected) Color.White else Espresso,
+            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
@@ -328,10 +331,9 @@ private fun BackOfficeBottomNav(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            NavItem(Icons.Default.Home, "Inicio", selectedTab == 0) { onTabSelected(0) }
-            NavItem(Icons.AutoMirrored.Filled.List, "Pedidos en curso", selectedTab == 1) { onTabSelected(1) }
-            NavItem(Icons.Outlined.DateRange, "Historial de pedidos", selectedTab == 2) { onTabSelected(2) }
-            NavItem(Icons.Default.Settings, "Ajustes", selectedTab == 3) { onTabSelected(3) }
+            NavItem(Icons.AutoMirrored.Filled.List, "Pedidos en curso", selectedTab == 0) { onTabSelected(0) }
+            NavItem(Icons.Outlined.DateRange, "Historial", selectedTab == 1) { onTabSelected(1) }
+            NavItem(Icons.Default.Settings, "Ajustes", selectedTab == 2) { onTabSelected(2) }
         }
     }
 }
@@ -350,13 +352,13 @@ private fun NavItem(
         Icon(
             icon,
             contentDescription = null,
-            tint = if (isSelected) Pimentón else Madera.copy(alpha = 0.5f),
+            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(24.dp)
         )
         Text(
             label,
             fontSize = 10.sp,
-            color = if (isSelected) Pimentón else Madera.copy(alpha = 0.5f),
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
@@ -366,6 +368,6 @@ private fun NavItem(
 @Composable
 private fun BackOfficeHistoryPreview() {
     QLessTheme {
-        BackOfficeHistoryScreen(onBack = {}, onNavigateToOrders = {})
+        BackOfficeHistoryScreen(onBack = {}, onNavigateToOrders = {}, onNavigateToAjustes = {})
     }
 }

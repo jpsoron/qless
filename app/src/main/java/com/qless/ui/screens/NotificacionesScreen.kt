@@ -44,7 +44,7 @@ fun NotificacionesScreen(
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -64,12 +64,12 @@ fun NotificacionesScreen(
                     onClick = onBack,
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Melocotón, CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
-                        tint = Pimentón
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Spacer(Modifier.width(16.dp))
@@ -77,7 +77,7 @@ fun NotificacionesScreen(
                     "Notificaciones",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -86,7 +86,7 @@ fun NotificacionesScreen(
             Text(
                 "Elegí qué avisos querés recibir",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Madera
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(32.dp))
@@ -127,7 +127,7 @@ fun NotificacionesScreen(
             Text(
                 "Los avisos de pedido listo conviene dejarlos activos para no perder el retiro.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Madera.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 lineHeight = 18.sp
             )
 
@@ -147,8 +147,8 @@ private fun NotificationToggleItem(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = Mantequilla,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier
@@ -160,12 +160,12 @@ private fun NotificationToggleItem(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Madera
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Switch(
@@ -173,7 +173,7 @@ private fun NotificationToggleItem(
                 onCheckedChange = { isChecked = it },
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
-                    checkedTrackColor = Pimentón,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
                     uncheckedThumbColor = Color.White,
                     uncheckedTrackColor = Color.LightGray.copy(alpha = 0.4f),
                     uncheckedBorderColor = Color.Transparent

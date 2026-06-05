@@ -53,7 +53,7 @@ fun AjustesScreen(
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -68,7 +68,7 @@ fun AjustesScreen(
                 "Ajustes",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = Espresso
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(Modifier.height(24.dp))
@@ -77,7 +77,7 @@ fun AjustesScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Espresso)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onSurface)
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),
@@ -87,7 +87,7 @@ fun AjustesScreen(
                         modifier = Modifier
                             .size(60.dp)
                             .clip(CircleShape)
-                            .background(Pimentón),
+                            .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(initial, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 24.sp)
@@ -173,8 +173,8 @@ fun AjustesScreen(
                     .fillMaxWidth()
                     .clickable { onLogout() },
                 shape = RoundedCornerShape(24.dp),
-                color = Mantequilla, // Mismo color de fondo que las otras secciones
-                border = androidx.compose.foundation.BorderStroke(1.dp, Borgoña.copy(alpha = 0.2f))
+                color = MaterialTheme.colorScheme.surfaceVariant, // Mismo color de fondo que las otras secciones
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),
@@ -184,12 +184,12 @@ fun AjustesScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                         contentDescription = null,
-                        tint = Borgoña
+                        tint = MaterialTheme.colorScheme.error
                     )
                     Spacer(Modifier.width(12.dp))
                     Text(
                         "Cerrar sesión",
-                        color = Borgoña,
+                        color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
                     )
@@ -204,10 +204,10 @@ fun AjustesScreen(
 @Composable
 private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column {
-        Text(title, style = MaterialTheme.typography.labelMedium, color = Madera.copy(alpha = 0.6f), letterSpacing = 1.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp, bottom = 12.dp))
+        Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), letterSpacing = 1.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp, bottom = 12.dp))
         Surface(
-            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = Mantequilla,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+            modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceVariant,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(modifier = Modifier.padding(vertical = 8.dp)) { content() }
         }
@@ -231,11 +231,11 @@ private fun SettingsItem(
         }
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontWeight = FontWeight.SemiBold, color = Espresso, fontSize = 16.sp)
-            Text(description, color = Madera, fontSize = 13.sp)
+            Text(title, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+            Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
         }
         if (badge != null) { badge(); Spacer(Modifier.width(12.dp)) }
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = Madera.copy(alpha = 0.4f))
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
     }
 }
 
@@ -251,10 +251,10 @@ private fun SettingsToggleItem(icon: String, title: String, description: String,
         }
         Spacer(Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontWeight = FontWeight.SemiBold, color = Espresso, fontSize = 16.sp)
-            Text(description, color = Madera, fontSize = 13.sp)
+            Text(title, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+            Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
         }
-        Switch(checked = isChecked, onCheckedChange = { isChecked = it }, colors = SwitchDefaults.colors(checkedTrackColor = Pimentón))
+        Switch(checked = isChecked, onCheckedChange = { isChecked = it }, colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.primary))
     }
 }
 
