@@ -194,8 +194,8 @@ fun AppNavigation(
             RegisterScreen(
                 authViewModel = authViewModel,
                 onRegisterSuccess = {
-                    navController.navigate(Screen.LocationDetected.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },
                 onBack = { navController.popBackStack() },
