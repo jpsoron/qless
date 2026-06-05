@@ -22,9 +22,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.theme.Azafrán
 import com.qless.ui.theme.CremaCálida
 import com.qless.ui.theme.Espresso
@@ -56,12 +56,12 @@ private val categories = listOf("🔥 Popular", "Combos", "Hamburguesas", "Papas
 
 @Composable
 fun MenuScreen(
+    cartViewModel: CartViewModel,
     onViewCart: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val quantities = remember { mutableStateMapOf<String, Int>() }
-    val cartCount = quantities.values.sum()
-    val cartTotal = menuItems.sumOf { (quantities[it.name] ?: 0) * it.price }
+    val cartCount = cartViewModel.items.sumOf { it.quantity }
+    val cartTotal = cartViewModel.items.sumOf { it.unitPrice * it.quantity }
     var selectedCategory by remember { mutableStateOf("🔥 Popular") }
     var isLoading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) { delay(1500L); isLoading = false }
@@ -244,9 +244,9 @@ fun MenuScreen(
                 items(menuItems.filter { it.isPopular }) { item ->
                     MenuItemCard(
                         item = item,
-                        quantity = quantities[item.name] ?: 0,
-                        onAdd = { quantities[item.name] = (quantities[item.name] ?: 0) + 1 },
-                        onRemove = { if ((quantities[item.name] ?: 0) > 0) quantities[item.name] = quantities[item.name]!! - 1 }
+                        quantity = cartViewModel.getQuantity(item.name),
+                        onAdd = { cartViewModel.addItem(item.emoji, item.name, item.description, item.price) },
+                        onRemove = { cartViewModel.removeItem(item.name) }
                     )
                 }
 
@@ -263,9 +263,9 @@ fun MenuScreen(
                 items(menuItems.filter { !it.isPopular }) { item ->
                     MenuItemCard(
                         item = item,
-                        quantity = quantities[item.name] ?: 0,
-                        onAdd = { quantities[item.name] = (quantities[item.name] ?: 0) + 1 },
-                        onRemove = { if ((quantities[item.name] ?: 0) > 0) quantities[item.name] = quantities[item.name]!! - 1 }
+                        quantity = cartViewModel.getQuantity(item.name),
+                        onAdd = { cartViewModel.addItem(item.emoji, item.name, item.description, item.price) },
+                        onRemove = { cartViewModel.removeItem(item.name) }
                     )
                 }
             }
@@ -473,8 +473,3 @@ private fun MenuItemCard(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun MenuPreview() {
-    QLessTheme { MenuScreen(onViewCart = {}, onBack = {}) }
-}

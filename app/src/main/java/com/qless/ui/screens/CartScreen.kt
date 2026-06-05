@@ -15,25 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.data.CartItem
+import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.theme.*
-
-private data class CartItem(val emoji: String, val name: String, val detail: String, val unitPrice: Int, var quantity: Int)
 
 @Composable
 fun CartScreen(
+    cartViewModel: CartViewModel,
     onConfirm: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val items = remember {
-        mutableStateListOf(
-            CartItem("🍔", "Combo Big Classic", "Mediano · Sin cebolla", 4500, 1),
-            CartItem("🍟", "Papas Fritas Grandes", "Con mayonesa", 1200, 2),
-            CartItem("🥤", "Gaseosa 500ml", "Coca-Cola", 700, 1),
-        )
-    }
+    val items = cartViewModel.items
     var notes by remember { mutableStateOf("") }
 
     val subtotal = items.sumOf { it.unitPrice * it.quantity }
@@ -130,14 +124,11 @@ fun CartScreen(
             Text("Tu pedido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = Espresso)
             Spacer(Modifier.height(8.dp))
 
-            items.forEachIndexed { index, item ->
+            items.forEach { item ->
                 CartItemRow(
                     item = item,
-                    onAdd = { items[index] = item.copy(quantity = item.quantity + 1) },
-                    onRemove = {
-                        if (item.quantity > 1) items[index] = item.copy(quantity = item.quantity - 1)
-                        else items.removeAt(index)
-                    }
+                    onAdd = { cartViewModel.addItem(item.emoji, item.name, item.detail, item.unitPrice) },
+                    onRemove = { cartViewModel.removeItem(item.name) }
                 )
                 Spacer(Modifier.height(8.dp))
             }
@@ -233,8 +224,3 @@ private fun CartItemRow(item: CartItem, onAdd: () -> Unit, onRemove: () -> Unit)
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun CartPreview() {
-    QLessTheme { CartScreen(onConfirm = {}, onBack = {}) }
-}

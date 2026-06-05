@@ -20,10 +20,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.R
+import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.theme.*
 
 @Composable
 fun LoginScreen(
+    authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
     onNavigateToBackOffice: () -> Unit,
     onNavigateToRegister: () -> Unit,
@@ -32,6 +34,7 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(false) }
+    val loginError = authViewModel.loginError
 
     Column(
         modifier = Modifier
@@ -169,16 +172,37 @@ fun LoginScreen(
             }
         }
 
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(16.dp))
+
+        // Error de login
+        if (loginError != null) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = Borgoña.copy(alpha = 0.1f)
+            ) {
+                Text(
+                    text = loginError,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    color = Borgoña,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+        } else {
+            Spacer(Modifier.height(12.dp))
+        }
 
         // Botón principal
         Button(
             onClick = {
-                if (email.lowercase() == "backoffice" && password.lowercase() == "backoffice") {
-                    onNavigateToBackOffice()
-                } else {
-                    onLoginSuccess()
-                }
+                authViewModel.login(
+                    email = email,
+                    password = password,
+                    onSuccess = onLoginSuccess,
+                    onBackOffice = onNavigateToBackOffice,
+                )
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -262,15 +286,3 @@ fun LoginScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun LoginPreview() {
-    QLessTheme { 
-        LoginScreen(
-            onLoginSuccess = {}, 
-            onNavigateToBackOffice = {},
-            onNavigateToRegister = {}, 
-            onNavigateToGoogleLogin = {}
-        ) 
-    }
-}

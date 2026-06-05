@@ -19,10 +19,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.theme.*
 
 @Composable
 fun RegisterScreen(
+    authViewModel: AuthViewModel,
     onRegisterSuccess: () -> Unit,
     onBack: () -> Unit,
     onNavigateToGoogleLogin: () -> Unit,
@@ -31,6 +33,7 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    val registerError = authViewModel.registerError
 
     Column(
         modifier = Modifier
@@ -93,10 +96,36 @@ fun RegisterScreen(
             )
         }
 
+        // Error de registro
+        if (registerError != null) {
+            Spacer(Modifier.height(12.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = Borgoña.copy(alpha = 0.1f)
+            ) {
+                Text(
+                    text = registerError,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    color = Borgoña,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
         Spacer(Modifier.height(24.dp))
 
         Button(
-            onClick = onRegisterSuccess,
+            onClick = {
+                authViewModel.register(
+                    name = name,
+                    email = email,
+                    password = password,
+                    confirmPassword = confirmPassword,
+                    onSuccess = onRegisterSuccess,
+                )
+            },
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(999.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
@@ -178,8 +207,3 @@ private fun QLessTextField(
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun RegisterPreview() {
-    QLessTheme { RegisterScreen(onRegisterSuccess = {}, onBack = {}, onNavigateToGoogleLogin = {}) }
-}

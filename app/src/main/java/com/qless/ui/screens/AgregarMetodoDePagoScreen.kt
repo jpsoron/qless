@@ -20,11 +20,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
 @Composable
 fun AgregarMetodoDePagoScreen(
+    paymentViewModel: PaymentMethodViewModel,
     onBack: () -> Unit,
     onNavigateToInicio: () -> Unit,
     onNavigateToMisLocales: () -> Unit,
@@ -161,7 +163,16 @@ fun AgregarMetodoDePagoScreen(
 
             // Botones de acción
             Button(
-                onClick = { /* TODO: Guardar */ },
+                onClick = {
+                    paymentViewModel.addMethod(
+                        nombre = nombre,
+                        numero = numero,
+                        vencimiento = vencimiento,
+                        esPrincipal = esPrincipal,
+                        esBilletera = selectedTab == 1,
+                    )
+                    onBack()
+                },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
                 shape = RoundedCornerShape(12.dp)
@@ -246,10 +257,3 @@ fun CustomTextField(value: String, onValueChange: (String) -> Unit) {
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun AgregarMetodoDePagoPreview() {
-    QLessTheme {
-        AgregarMetodoDePagoScreen({}, {}, {}, {}, {}, {})
-    }
-}

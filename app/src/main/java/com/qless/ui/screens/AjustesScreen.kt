@@ -27,6 +27,8 @@ import com.qless.ui.theme.*
 
 @Composable
 fun AjustesScreen(
+    userName: String,
+    userEmail: String,
     onNavigateToInicio: () -> Unit,
     onNavigateToMisLocales: () -> Unit,
     onNavigateToScanQr: () -> Unit,
@@ -36,6 +38,7 @@ fun AjustesScreen(
     onNavigateToEliminarCuenta: () -> Unit,
     onLogout: () -> Unit,
 ) {
+    val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     Scaffold(
         bottomBar = {
             QLessBottomNav(
@@ -87,12 +90,12 @@ fun AjustesScreen(
                             .background(Pimentón),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("M", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 24.sp)
+                        Text(initial, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 24.sp)
                     }
                     Spacer(Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("María González", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                        Text("maria@email.com", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
+                        Text(userName.ifBlank { "Usuario" }, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                        Text(userEmail.ifBlank { "" }, color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
                         Spacer(Modifier.height(8.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -259,6 +262,6 @@ private fun SettingsToggleItem(icon: String, title: String, description: String,
 @Composable
 private fun AjustesPreview() {
     QLessTheme {
-        AjustesScreen({}, {}, {}, {}, {}, {}, {}, {})
+        AjustesScreen("María González", "maria@email.com", {}, {}, {}, {}, {}, {}, {}, {})
     }
 }
