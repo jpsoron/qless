@@ -3,6 +3,7 @@ package com.qless.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.qless.data.RemoteUser
 import com.qless.data.UserRepository
 import com.qless.data.local.QLessDatabase
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,10 +42,6 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
     private val _navEvent = MutableSharedFlow<AuthNavEvent>()
     val navEvent: SharedFlow<AuthNavEvent> = _navEvent.asSharedFlow()
 
-    init {
-        viewModelScope.launch { repository.seedBackOffice() }
-    }
-
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _uiState.update { it.copy(loginError = "Completa todos los campos") }
@@ -52,18 +49,20 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         }
         _uiState.update { it.copy(isLoading = true, loginError = null) }
         viewModelScope.launch {
-            val user = repository.login(email.trim(), password)
-            when {
-                user == null -> _uiState.update { it.copy(isLoading = false, loginError = "Correo o contraseña incorrectos") }
-                user.role == "BACK_OFFICE" -> {
-                    _uiState.update { it.copy(isLoading = false, currentUserName = user.name, currentUserEmail = user.email) }
-                    _navEvent.emit(AuthNavEvent.LoginBackOffice)
+            repository.login(email.trim(), password)
+                .onSuccess { user ->
+                    _uiState.update {
+                        it.copy(isLoading = false, currentUserName = user.name, currentUserEmail = user.email)
+                    }
+                    if (user.role == "BACK_OFFICE") {
+                        _navEvent.emit(AuthNavEvent.LoginBackOffice)
+                    } else {
+                        _navEvent.emit(AuthNavEvent.LoginSuccess)
+                    }
                 }
-                else -> {
-                    _uiState.update { it.copy(isLoading = false, currentUserName = user.name, currentUserEmail = user.email) }
-                    _navEvent.emit(AuthNavEvent.LoginSuccess)
+                .onFailure { err ->
+                    _uiState.update { it.copy(isLoading = false, loginError = mapAuthError(err.message)) }
                 }
-            }
         }
     }
 
@@ -83,13 +82,16 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
                     _navEvent.emit(AuthNavEvent.RegisterSuccess)
                 }
                 .onFailure { err ->
-                    _uiState.update { it.copy(isLoading = false, registerError = err.message) }
+                    _uiState.update { it.copy(isLoading = false, registerError = err.message ?: "null") }
                 }
         }
     }
 
     fun logout() {
-        _uiState.update { AuthUiState() }
+        viewModelScope.launch {
+            repository.logout()
+            _uiState.update { AuthUiState() }
+        }
     }
 
     fun deleteAccount() {
@@ -103,5 +105,14 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
 
     fun clearErrors() {
         _uiState.update { it.copy(loginError = null, registerError = null) }
+    }
+
+    private fun mapAuthError(message: String?): String = when {
+        message == null -> "Error de autenticación"
+        message.contains("Invalid login credentials", ignoreCase = true) -> "Correo o contraseña incorrectos"
+        message.contains("User already registered", ignoreCase = true) -> "El correo ya está registrado"
+        message.contains("Email not confirmed", ignoreCase = true) -> "Confirmá tu correo antes de ingresar"
+        message.contains("network", ignoreCase = true) || message.contains("connect", ignoreCase = true) -> "Sin conexión a internet"
+        else -> "Error de autenticación"
     }
 }
