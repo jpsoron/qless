@@ -80,7 +80,10 @@ fun AjustesScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onSurface)
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isDarkTheme) MaterialTheme.colorScheme.surfaceVariant
+                                     else MaterialTheme.colorScheme.onSurface
+                )
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),

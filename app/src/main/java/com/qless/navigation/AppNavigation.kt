@@ -210,8 +210,10 @@ fun AppNavigation(
         }
 
         composable(Screen.Home.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             HomeScreen(
                 userName = authViewModel.uiState.value.currentUserName,
+                isDarkTheme = isDarkTheme,
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToTracking = { navController.navigate(Screen.Tracking.route) },
                 onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
@@ -221,8 +223,10 @@ fun AppNavigation(
         }
 
         composable(Screen.MisLocales.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             MisLocalesScreen(
                 misLocalesViewModel = misLocalesViewModel,
+                isDarkTheme = isDarkTheme,
                 onLocalSelected = { navController.navigate(Screen.Menu.route) },
                 onBack = { navController.popBackStack() },
                 onNavigateToInicio = {
