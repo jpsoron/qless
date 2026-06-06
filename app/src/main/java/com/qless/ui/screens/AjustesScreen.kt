@@ -29,6 +29,8 @@ import com.qless.ui.theme.*
 fun AjustesScreen(
     userName: String,
     userEmail: String,
+    isDarkTheme: Boolean,
+    onDarkModeToggle: (Boolean) -> Unit,
     onNavigateToInicio: () -> Unit,
     onNavigateToMisLocales: () -> Unit,
     onNavigateToScanQr: () -> Unit,
@@ -39,6 +41,7 @@ fun AjustesScreen(
     onLogout: () -> Unit,
 ) {
     val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+    var gpsEnabled by remember { mutableStateOf(true) }
     Scaffold(
         bottomBar = {
             QLessBottomNav(
@@ -154,8 +157,20 @@ fun AjustesScreen(
                         modifier = Modifier.background(Color(0xFF1A7A4A).copy(alpha = 0.1f), RoundedCornerShape(99.dp)).padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
-                SettingsToggleItem("🌙", "Modo oscuro", "Seguir el sistema", false)
-                SettingsToggleItem("📡", "Detección por GPS", "Sugerir locales cercanos", true)
+                SettingsToggleItem(
+                    icon = "🌙",
+                    title = "Modo oscuro",
+                    description = "Cambiar la apariencia de la app",
+                    checked = isDarkTheme,
+                    onCheckedChange = onDarkModeToggle
+                )
+                SettingsToggleItem(
+                    icon = "📡",
+                    title = "Detección por GPS",
+                    description = "Sugerir locales cercanos",
+                    checked = gpsEnabled,
+                    onCheckedChange = { gpsEnabled = it }
+                )
             }
 
             Spacer(Modifier.height(20.dp))
@@ -240,8 +255,13 @@ private fun SettingsItem(
 }
 
 @Composable
-private fun SettingsToggleItem(icon: String, title: String, description: String, checked: Boolean) {
-    var isChecked by remember { mutableStateOf(checked) }
+private fun SettingsToggleItem(
+    icon: String,
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -254,7 +274,7 @@ private fun SettingsToggleItem(icon: String, title: String, description: String,
             Text(title, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
             Text(description, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
         }
-        Switch(checked = isChecked, onCheckedChange = { isChecked = it }, colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.primary))
+        Switch(checked = checked, onCheckedChange = onCheckedChange, colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.primary))
     }
 }
 
@@ -262,6 +282,19 @@ private fun SettingsToggleItem(icon: String, title: String, description: String,
 @Composable
 private fun AjustesPreview() {
     QLessTheme {
-        AjustesScreen("María González", "maria@email.com", {}, {}, {}, {}, {}, {}, {}, {})
+        AjustesScreen(
+            userName = "María González",
+            userEmail = "maria@email.com",
+            isDarkTheme = false,
+            onDarkModeToggle = {},
+            onNavigateToInicio = {},
+            onNavigateToMisLocales = {},
+            onNavigateToScanQr = {},
+            onNavigateToMisPedidos = {},
+            onNavigateToNotificaciones = {},
+            onNavigateToMetodosDePago = {},
+            onNavigateToEliminarCuenta = {},
+            onLogout = {},
+        )
     }
 }

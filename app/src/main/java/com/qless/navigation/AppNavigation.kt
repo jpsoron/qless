@@ -6,11 +6,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.viewmodel.MenuViewModel
 import com.qless.ui.viewmodel.MisLocalesViewModel
 import com.qless.ui.viewmodel.PaymentMethodViewModel
+import com.qless.ui.viewmodel.ThemeViewModel
 import com.qless.ui.screens.*
 
 sealed class Screen(val route: String) {
@@ -47,7 +50,8 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    themeViewModel: ThemeViewModel,
 ) {
     val authViewModel: AuthViewModel = viewModel()
     val cartViewModel: CartViewModel = viewModel()
@@ -283,9 +287,12 @@ fun AppNavigation(
         }
 
         composable(Screen.Ajustes.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             AjustesScreen(
                 userName = authViewModel.uiState.value.currentUserName,
                 userEmail = authViewModel.uiState.value.currentUserEmail,
+                isDarkTheme = isDarkTheme,
+                onDarkModeToggle = themeViewModel::setDarkMode,
                 onNavigateToInicio = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }

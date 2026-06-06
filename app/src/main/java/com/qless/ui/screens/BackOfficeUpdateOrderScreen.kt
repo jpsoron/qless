@@ -110,7 +110,7 @@ fun BackOfficeUpdateOrderScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
             ) {
                 Row(
@@ -182,7 +182,7 @@ fun BackOfficeUpdateOrderScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
@@ -293,7 +293,7 @@ private fun BackOfficeBottomNav(
     onTabSelected: (Int) -> Unit
 ) {
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp,
         modifier = Modifier
             .fillMaxWidth()

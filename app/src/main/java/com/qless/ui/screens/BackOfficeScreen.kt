@@ -117,7 +117,7 @@ fun BackOfficeScreen(
 
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Text(
@@ -198,7 +198,7 @@ fun BackOfficeScreen(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
@@ -244,7 +244,7 @@ fun BackOfficeScreen(
 private fun FilterChip(selected: Boolean, text: String) {
     Surface(
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
         border = if (selected) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Text(
@@ -274,7 +274,7 @@ private fun BackOfficeOrderCard(
             .padding(vertical = 6.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
     ) {
         Row(
@@ -366,7 +366,7 @@ private fun BackOfficeBottomNav(
     onTabSelected: (Int) -> Unit
 ) {
     Surface(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp,
         modifier = Modifier
             .fillMaxWidth()
