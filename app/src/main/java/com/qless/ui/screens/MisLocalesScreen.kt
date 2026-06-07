@@ -25,28 +25,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.data.Local
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.viewmodel.MisLocalesViewModel
 import com.qless.ui.theme.*
 
-private data class LocalItem(
-    val emoji: String,
-    val name: String,
-    val category: String,
-    val location: String,
-    val rating: String,
-    val time: String?,
-    val isOpen: Boolean,
-    val hasPromo: Boolean = false,
-    val isFeatured: Boolean = false,
-)
-
-private val locales = listOf(
-    LocalItem("🍔", "Big Pons", "Hamburguesas & Snacks", "San Isidro", "4.8", "15-25 min", true, hasPromo = true, isFeatured = true),
-    LocalItem("🍱", "Sushi Nori", "Japonesa · Rolls & Pokés", "Palermo", "4.9", "20-30 min", true),
-    LocalItem("🍕", "Pizza Mía", "Italiana · Pastas y Pizzas", "Recoleta", "4.7", "20-35 min", true),
-    LocalItem("🥗", "Green Bowl", "Saludable · Bowls", "Núñez", "4.6", null, false),
-)
 
 @Composable
 fun MisLocalesScreen(
@@ -201,7 +184,7 @@ fun MisLocalesScreen(
                     )
                 } else {
                     Text(
-                        "${locales.count { it.isOpen }} LOCALES DISPONIBLES",
+                        "${uiState.locales.count { it.abierto }} LOCALES DISPONIBLES",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -217,9 +200,17 @@ fun MisLocalesScreen(
                         Spacer(Modifier.height(10.dp))
                     }
                 } else {
-                    locales.forEach { local ->
+                    uiState.locales.forEach { local ->
                         LocalCard(local = local, onClick = onLocalSelected)
                         Spacer(Modifier.height(10.dp))
+                    }
+                    // DEBUG — borrar antes de entregar
+                    if (uiState.error != null) {
+                        Text(
+                            "Error: ${uiState.error}",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
 
@@ -320,11 +311,11 @@ private fun SkeletonLocalCard(brush: Brush) {
 }
 
 @Composable
-private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
+private fun LocalCard(local: Local, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = local.isOpen) { onClick() },
+            .clickable(enabled = local.abierto) { onClick() },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
         border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
@@ -346,21 +337,21 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(local.name, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(local.nombre, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = if (local.isOpen) QLessStatusColors.disponibleSurface else MaterialTheme.colorScheme.errorContainer
+                        color = if (local.abierto) QLessStatusColors.disponibleSurface else MaterialTheme.colorScheme.errorContainer
                     ) {
                         Text(
-                            if (local.isOpen) "Abierto" else "Cerrado",
+                            if (local.abierto) "Abierto" else "Cerrado",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (local.isOpen) QLessStatusColors.disponible else MaterialTheme.colorScheme.error
+                            color = if (local.abierto) QLessStatusColors.disponible else MaterialTheme.colorScheme.error
                         )
                     }
                 }
-                Text(local.category, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(local.categoria, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -369,17 +360,17 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
-                        Text(local.location, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(local.barrio, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (local.time != null) {
+                    if (local.tiempoEntrega != null) {
                         Surface(
                             shape = RoundedCornerShape(999.dp),
                             color = QLessStatusColors.enPreparacionSurface
                         ) {
-                            Text(local.time, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.enPreparacion, fontWeight = FontWeight.SemiBold)
+                            Text(local.tiempoEntrega, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.enPreparacion, fontWeight = FontWeight.SemiBold)
                         }
                     }
-                    if (local.hasPromo) {
+                    if (local.tienePromo) {
                         Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                             Text("10% OFF", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                         }

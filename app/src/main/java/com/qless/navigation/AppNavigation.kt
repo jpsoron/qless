@@ -1,15 +1,20 @@
 package com.qless.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.LaunchedEffect
 import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.viewmodel.CartViewModel
+import com.qless.ui.viewmodel.HomeViewModel
 import com.qless.ui.viewmodel.MenuViewModel
 import com.qless.ui.viewmodel.MisLocalesViewModel
 import com.qless.ui.viewmodel.PaymentMethodViewModel
@@ -62,6 +67,7 @@ fun AppNavigation(
     val paymentViewModel: PaymentMethodViewModel = viewModel()
     val menuViewModel: MenuViewModel = viewModel()
     val misLocalesViewModel: MisLocalesViewModel = viewModel()
+    val homeViewModel: HomeViewModel = viewModel()
 
     val onboardingCompleted by themeViewModel.isOnboardingCompleted.collectAsStateWithLifecycle()
 
@@ -71,14 +77,23 @@ fun AppNavigation(
     ) {
 
         composable(Screen.Splash.route) {
-            SplashScreen(
-                onSplashComplete = {
-                    val destination = if (onboardingCompleted) Screen.Login.route else Screen.Onboarding.route
-                    navController.navigate(destination) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+            var splashAnimDone by remember { mutableStateOf(false) }
+
+            LaunchedEffect(splashAnimDone, authState.sessionCheckDone) {
+                if (!splashAnimDone || !authState.sessionCheckDone) return@LaunchedEffect
+                val destination = when {
+                    authState.sessionRestored && authState.currentUserRole == "BACK_OFFICE" -> Screen.BackOffice.route
+                    authState.sessionRestored -> Screen.Home.route
+                    onboardingCompleted -> Screen.Login.route
+                    else -> Screen.Onboarding.route
                 }
-            )
+                navController.navigate(destination) {
+                    popUpTo(Screen.Splash.route) { inclusive = true }
+                }
+            }
+
+            SplashScreen(onSplashComplete = { splashAnimDone = true })
         }
 
         composable(Screen.Onboarding.route) {
@@ -220,8 +235,13 @@ fun AppNavigation(
 
         composable(Screen.Home.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(authState.currentUserFavoritos) {
+                homeViewModel.loadFavoritos(authState.currentUserFavoritos)
+            }
             HomeScreen(
-                userName = authViewModel.uiState.value.currentUserName,
+                homeViewModel = homeViewModel,
+                userName = authState.currentUserName,
                 isDarkTheme = isDarkTheme,
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToTracking = { navController.navigate(Screen.Tracking.route) },
@@ -429,9 +449,11 @@ fun AppNavigation(
         }
 
         composable(Screen.Menu.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             MenuScreen(
                 cartViewModel = cartViewModel,
                 menuViewModel = menuViewModel,
+                isDarkTheme = isDarkTheme,
                 onViewCart = { navController.navigate(Screen.Cart.route) },
                 onBack = {
                     if (!navController.popBackStack()) {
@@ -445,16 +467,20 @@ fun AppNavigation(
         }
 
         composable(Screen.Cart.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             CartScreen(
                 cartViewModel = cartViewModel,
+                isDarkTheme = isDarkTheme,
                 onConfirm = { navController.navigate(Screen.Payment.route) },
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable(Screen.Payment.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             PaymentScreen(
                 cartViewModel = cartViewModel,
+                isDarkTheme = isDarkTheme,
                 onPaymentSuccess = {
                     navController.navigate(Screen.OrderConfirmed.route) {
                         popUpTo(Screen.Menu.route) { inclusive = false }
@@ -466,7 +492,9 @@ fun AppNavigation(
         }
 
         composable(Screen.OrderConfirmed.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             OrderConfirmedScreen(
+                isDarkTheme = isDarkTheme,
                 onViewTracking = {
                     navController.navigate(Screen.Tracking.route) {
                         popUpTo(Screen.OrderConfirmed.route) { inclusive = true }
@@ -505,7 +533,9 @@ fun AppNavigation(
         }
 
         composable(Screen.PickupSuccess.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             PickupSuccessScreen(
+                isDarkTheme = isDarkTheme,
                 onGoHome = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
@@ -533,7 +563,9 @@ fun AppNavigation(
         }
 
         composable(Screen.OrderSummary.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             OrderSummaryScreen(
+                isDarkTheme = isDarkTheme,
                 onBack = {
                     if (!navController.popBackStack(Screen.MisPedidos.route, inclusive = false)) {
                         navController.navigate(Screen.MisPedidos.route)

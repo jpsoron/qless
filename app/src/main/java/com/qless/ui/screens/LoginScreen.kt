@@ -207,7 +207,7 @@ fun LoginScreen(
 
         // Botón principal
         Button(
-            onClick = { authViewModel.login(email, password) },
+            onClick = { authViewModel.login(email, password, rememberMe) },
             enabled = !uiState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()

@@ -1,0 +1,14 @@
+package com.qless.data
+
+data class Local(
+    val id: String,
+    val emoji: String,
+    val nombre: String,
+    val categoria: String,
+    val barrio: String,
+    val rating: String,
+    val tiempoEntrega: String?,
+    val abierto: Boolean,
+    val tienePromo: Boolean,
+    val destacado: Boolean,
+)

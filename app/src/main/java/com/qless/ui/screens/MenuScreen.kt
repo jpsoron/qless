@@ -51,6 +51,7 @@ private val categories = listOf("🔥 Popular", "Combos", "Hamburguesas", "Papas
 fun MenuScreen(
     cartViewModel: CartViewModel,
     menuViewModel: MenuViewModel,
+    isDarkTheme: Boolean = false,
     onViewCart: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -141,7 +142,7 @@ fun MenuScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .background(if (isDarkTheme) Madera else MaterialTheme.colorScheme.primaryContainer)
                             .statusBarsPadding()
                     ) {
                         Column {
@@ -184,10 +185,10 @@ fun MenuScreen(
                                 Text("Hamburguesas & Snacks · San Isidro", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(Modifier.height(10.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Chip("⭐ 4.8")
-                                    Chip("⏱ 15–25 min")
-                                    Chip("Mín. $1.500")
-                                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primary) {
+                                    Chip("⭐ 4.8", isDarkTheme)
+                                    Chip("⏱ 15–25 min", isDarkTheme)
+                                    Chip("Mín. $1.500", isDarkTheme)
+                                    Surface(shape = RoundedCornerShape(999.dp), color = if (isDarkTheme) Albahaca else MaterialTheme.colorScheme.primary) {
                                         Text("10% OFF 1.er pedido", modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.SemiBold)
                                     }
                                 }
@@ -277,7 +278,7 @@ fun MenuScreen(
                     .fillMaxWidth()
                     .clickable { onViewCart() },
                 shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.primary,
+                color = if (isDarkTheme) Pimentón else MaterialTheme.colorScheme.primary,
                 shadowElevation = 12.dp
             ) {
                 Row(
@@ -353,9 +354,17 @@ private fun SkeletonMenuItemCard(brush: Brush) {
 }
 
 @Composable
-private fun Chip(text: String) {
-    Surface(shape = RoundedCornerShape(999.dp), color = Color.White) {
-        Text(text, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+private fun Chip(text: String, isDarkTheme: Boolean = false) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = if (isDarkTheme) PimentónDark else Color.White
+    ) {
+        Text(
+            text,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 

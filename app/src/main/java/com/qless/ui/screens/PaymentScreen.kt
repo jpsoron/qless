@@ -36,6 +36,7 @@ private val methods = listOf(
 @Composable
 fun PaymentScreen(
     cartViewModel: CartViewModel,
+    isDarkTheme: Boolean = false,
     onPaymentSuccess: () -> Unit,
     onNavigateToAgregarMetodo: () -> Unit,
     onBack: () -> Unit,
@@ -102,7 +103,10 @@ fun PaymentScreen(
                     onClick = onPaymentSuccess,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDarkTheme) Pimentón else MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text("Pagar $$totalFormatted", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
