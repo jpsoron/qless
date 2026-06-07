@@ -45,7 +45,7 @@ fun OrderReadyScreen(
             // Header Status Badge
             Surface(
                 shape = RoundedCornerShape(999.dp),
-                color = AlbahacaClaro
+                color = QLessStatusColors.disponibleSurface
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -56,12 +56,12 @@ fun OrderReadyScreen(
                         modifier = Modifier
                             .size(6.dp)
                             .clip(CircleShape)
-                            .background(Albahaca)
+                            .background(QLessStatusColors.disponible)
                     )
                     Text(
                         "¡Listo para retirar!",
                         style = MaterialTheme.typography.labelMedium,
-                        color = Albahaca,
+                        color = QLessStatusColors.disponible,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -77,7 +77,7 @@ fun OrderReadyScreen(
                 SegmentedCircle(
                     segments = 4,
                     progress = 4,
-                    activeColor = Albahaca,
+                    activeColor = QLessStatusColors.disponible,
                     inactiveColor = MaderaOscura,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -86,7 +86,7 @@ fun OrderReadyScreen(
                     Text(
                         "PEDIDO #4521",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Madera,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
                     )
                     Spacer(Modifier.height(8.dp))
@@ -109,7 +109,7 @@ fun OrderReadyScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                color = Albahaca
+                color = QLessStatusColors.disponible
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),
@@ -182,7 +182,7 @@ fun OrderReadyScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Albahaca,
+                    containerColor = QLessStatusColors.disponible,
                     contentColor = Color.White
                 )
             ) {
@@ -264,13 +264,13 @@ private fun ReadyStepRow(
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(if (isHighlight) Albahaca else Albahaca.copy(alpha = 0.15f)),
+                .background(if (isHighlight) QLessStatusColors.disponible else QLessStatusColors.disponible.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 Icons.Default.Check,
                 contentDescription = null,
-                tint = if (isHighlight) Color.White else Albahaca,
+                tint = if (isHighlight) Color.White else QLessStatusColors.disponible,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -285,7 +285,7 @@ private fun ReadyStepRow(
             Text(
                 time,
                 style = MaterialTheme.typography.labelSmall,
-                color = Madera
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

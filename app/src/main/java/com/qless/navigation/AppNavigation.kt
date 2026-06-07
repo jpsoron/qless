@@ -6,10 +6,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.viewmodel.CartViewModel
+import com.qless.ui.viewmodel.MenuViewModel
+import com.qless.ui.viewmodel.MisLocalesViewModel
 import com.qless.ui.viewmodel.PaymentMethodViewModel
+import com.qless.ui.viewmodel.ThemeViewModel
 import com.qless.ui.screens.*
+import com.qless.ui.screens.backoffice.BackOfficeAjustesScreen
+import com.qless.ui.screens.backoffice.BackOfficeHistoryScreen
+import com.qless.ui.screens.backoffice.BackOfficeScreen
+import com.qless.ui.screens.backoffice.BackOfficeUpdateOrderScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -40,15 +49,19 @@ sealed class Screen(val route: String) {
     object BackOffice : Screen("back_office")
     object BackOfficeHistory : Screen("back_office_history")
     object BackOfficeUpdateOrder : Screen("back_office_update_order")
+    object BackOfficeAjustes : Screen("back_office_ajustes")
 }
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    themeViewModel: ThemeViewModel,
 ) {
     val authViewModel: AuthViewModel = viewModel()
     val cartViewModel: CartViewModel = viewModel()
     val paymentViewModel: PaymentMethodViewModel = viewModel()
+    val menuViewModel: MenuViewModel = viewModel()
+    val misLocalesViewModel: MisLocalesViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -104,6 +117,9 @@ fun AppNavigation(
                 },
                 onUpdateOrder = {
                     navController.navigate(Screen.BackOfficeUpdateOrder.route)
+                },
+                onNavigateToAjustes = {
+                    navController.navigate(Screen.BackOfficeAjustes.route)
                 }
             )
         }
@@ -120,6 +136,9 @@ fun AppNavigation(
                     navController.navigate(Screen.BackOfficeHistory.route) {
                         popUpTo(Screen.BackOffice.route) { inclusive = false }
                     }
+                },
+                onNavigateToAjustes = {
+                    navController.navigate(Screen.BackOfficeAjustes.route)
                 }
             )
         }
@@ -130,6 +149,33 @@ fun AppNavigation(
                 onNavigateToOrders = {
                     navController.navigate(Screen.BackOffice.route) {
                         popUpTo(Screen.BackOffice.route) { inclusive = true }
+                    }
+                },
+                onNavigateToAjustes = {
+                    navController.navigate(Screen.BackOfficeAjustes.route)
+                }
+            )
+        }
+
+        composable(Screen.BackOfficeAjustes.route) {
+            BackOfficeAjustesScreen(
+                userName = authViewModel.uiState.value.currentUserName,
+                userEmail = authViewModel.uiState.value.currentUserEmail,
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onBack = { navController.popBackStack() },
+                onNavigateToOrders = {
+                    navController.navigate(Screen.BackOffice.route) {
+                        popUpTo(Screen.BackOffice.route) { inclusive = true }
+                    }
+                },
+                onNavigateToHistory = {
+                    navController.navigate(Screen.BackOfficeHistory.route) {
+                        popUpTo(Screen.BackOffice.route) { inclusive = false }
                     }
                 }
             )
@@ -156,8 +202,8 @@ fun AppNavigation(
             RegisterScreen(
                 authViewModel = authViewModel,
                 onRegisterSuccess = {
-                    navController.navigate(Screen.LocationDetected.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },
                 onBack = { navController.popBackStack() },
@@ -169,7 +215,7 @@ fun AppNavigation(
 
         composable(Screen.Home.route) {
             HomeScreen(
-                userName = authViewModel.currentUserName,
+                userName = authViewModel.uiState.value.currentUserName,
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToTracking = { navController.navigate(Screen.Tracking.route) },
                 onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
@@ -180,6 +226,7 @@ fun AppNavigation(
 
         composable(Screen.MisLocales.route) {
             MisLocalesScreen(
+                misLocalesViewModel = misLocalesViewModel,
                 onLocalSelected = { navController.navigate(Screen.Menu.route) },
                 onBack = { navController.popBackStack() },
                 onNavigateToInicio = {
@@ -244,9 +291,12 @@ fun AppNavigation(
         }
 
         composable(Screen.Ajustes.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             AjustesScreen(
-                userName = authViewModel.currentUserName,
-                userEmail = authViewModel.currentUserEmail,
+                userName = authViewModel.uiState.value.currentUserName,
+                userEmail = authViewModel.uiState.value.currentUserEmail,
+                isDarkTheme = isDarkTheme,
+                onDarkModeToggle = themeViewModel::setDarkMode,
                 onNavigateToInicio = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
@@ -372,6 +422,7 @@ fun AppNavigation(
         composable(Screen.Menu.route) {
             MenuScreen(
                 cartViewModel = cartViewModel,
+                menuViewModel = menuViewModel,
                 onViewCart = { navController.navigate(Screen.Cart.route) },
                 onBack = {
                     if (!navController.popBackStack()) {
@@ -394,6 +445,7 @@ fun AppNavigation(
 
         composable(Screen.Payment.route) {
             PaymentScreen(
+                cartViewModel = cartViewModel,
                 onPaymentSuccess = {
                     navController.navigate(Screen.OrderConfirmed.route) {
                         popUpTo(Screen.Menu.route) { inclusive = false }

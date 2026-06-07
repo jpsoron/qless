@@ -26,7 +26,7 @@ import com.qless.ui.theme.*
 fun OrderSummaryScreen(
     onBack: () -> Unit,
 ) {
-    Scaffold(containerColor = CremaCálida) { padding ->
+    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -42,36 +42,36 @@ fun OrderSummaryScreen(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(Melocotón)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Pimentón)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
                     "Resumen del pedido",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = Espresso,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
             }
 
             Spacer(Modifier.height(2.dp))
 
-            Text("Pedido #5801 · Agustina López", color = Madera, style = MaterialTheme.typography.bodyLarge)
+            Text("Pedido #5801 · Agustina López", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyLarge)
 
             Spacer(Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(shape = RoundedCornerShape(999.dp), color = AlbahacaClaro) {
+                Surface(shape = RoundedCornerShape(999.dp), color = QLessStatusColors.disponibleSurface) {
                     Text(
                         "Retirado",
                         modifier = Modifier.padding(horizontal = 22.dp, vertical = 8.dp),
-                        color = Albahaca,
+                        color = QLessStatusColors.disponible,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
                 Spacer(Modifier.weight(1f))
-                Text("Retirado hoy a las\n12:06", color = Madera, style = MaterialTheme.typography.bodyMedium)
+                Text("Retirado hoy a las\n12:06", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             }
 
             Spacer(Modifier.height(16.dp))
@@ -92,7 +92,7 @@ fun OrderSummaryScreen(
                 onClick = onBack,
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Text("← Volver al historial", color = Pimentón, fontWeight = FontWeight.SemiBold)
+                Text("← Volver al historial", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.height(48.dp))
@@ -113,15 +113,15 @@ private fun SummaryHeaderCard() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Big Pons · San Isidro", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
-                Text("Retiro en mostrador", color = Madera, style = MaterialTheme.typography.bodySmall)
-                Text("Tarjeta terminada en 4242", color = Madera.copy(alpha = 0.62f), style = MaterialTheme.typography.bodySmall)
+                Text("Big Pons · San Isidro", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
+                Text("Retiro en mostrador", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Text("Tarjeta terminada en 4242", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f), style = MaterialTheme.typography.bodySmall)
             }
-            Surface(shape = RoundedCornerShape(999.dp), color = Melocotón) {
+            Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                 Text(
                     "$18.900",
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 9.dp),
-                    color = Pimentón,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -134,18 +134,18 @@ private fun ItemsCard() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        color = Mantequilla,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.dp, Color(0xFFE4CDBB))
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Items", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
+                Text("Items", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
                 Spacer(Modifier.height(8.dp))
-                Text("2x Burger clásica", color = Espresso, fontWeight = FontWeight.SemiBold)
-                Text("1x Papas medianas", color = Espresso, fontWeight = FontWeight.SemiBold)
-                Text("1x Gaseosa lata", color = Espresso, fontWeight = FontWeight.SemiBold)
+                Text("2x Burger clásica", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
+                Text("1x Papas medianas", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
+                Text("1x Gaseosa lata", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(6.dp))
-                Text("Sin cebolla · cheddar extra", color = Madera, style = MaterialTheme.typography.bodySmall)
+                Text("Sin cebolla · cheddar extra", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
             Box(
                 modifier = Modifier
@@ -155,10 +155,10 @@ private fun ItemsCard() {
             )
             Spacer(Modifier.width(18.dp))
             Column(modifier = Modifier.width(92.dp)) {
-                Text("Totales", color = Madera, fontWeight = FontWeight.SemiBold)
-                Text("Subtotal\n$17.000", color = Madera.copy(alpha = 0.72f), style = MaterialTheme.typography.bodySmall, lineHeight = 16.sp)
+                Text("Totales", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                Text("Subtotal\n$17.000", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f), style = MaterialTheme.typography.bodySmall, lineHeight = 16.sp)
                 Spacer(Modifier.height(8.dp))
-                Text("Tasa\n$1.900", color = Madera.copy(alpha = 0.72f), style = MaterialTheme.typography.bodySmall, lineHeight = 16.sp)
+                Text("Tasa\n$1.900", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f), style = MaterialTheme.typography.bodySmall, lineHeight = 16.sp)
             }
         }
     }
@@ -173,7 +173,7 @@ private fun SummaryTrackingCard() {
         border = BorderStroke(1.dp, Color(0xFFE4CDBB))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Seguimiento", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
+            Text("Seguimiento", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
             Spacer(Modifier.height(18.dp))
             SummaryStep("Pedido recibido", "Confirmado a las 11:41", showLine = true)
             SummaryStep("En preparación", "Cocina inició a las 11:46", showLine = true)
@@ -190,7 +190,7 @@ private fun SummaryStep(title: String, detail: String, showLine: Boolean) {
                 modifier = Modifier
                     .size(16.dp)
                     .clip(CircleShape)
-                    .background(Albahaca),
+                    .background(QLessStatusColors.disponible),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(11.dp))
@@ -200,14 +200,14 @@ private fun SummaryStep(title: String, detail: String, showLine: Boolean) {
                     modifier = Modifier
                         .width(3.dp)
                         .height(34.dp)
-                        .background(Albahaca)
+                        .background(QLessStatusColors.disponible)
                 )
             }
         }
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.padding(bottom = if (showLine) 8.dp else 0.dp)) {
-            Text(title, color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-            Text(detail, color = Madera, style = MaterialTheme.typography.bodySmall)
+            Text(title, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            Text(detail, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         }
     }
 }

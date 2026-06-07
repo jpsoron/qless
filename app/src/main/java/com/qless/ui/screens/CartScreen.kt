@@ -27,7 +27,8 @@ fun CartScreen(
     onConfirm: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val items = cartViewModel.items
+    val uiState by cartViewModel.uiState.collectAsState()
+    val items = uiState.items
     var notes by remember { mutableStateOf("") }
 
     val subtotal = items.sumOf { it.unitPrice * it.quantity }
@@ -36,7 +37,7 @@ fun CartScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(CremaCálida).statusBarsPadding()) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -47,24 +48,24 @@ fun CartScreen(
                         onClick = onBack,
                         modifier = Modifier
                             .size(40.dp)
-                            .background(Melocotón, RoundedCornerShape(999.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(999.dp))
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Pimentón, modifier = Modifier.size(18.dp))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                     }
                     Spacer(Modifier.width(12.dp))
                     Text(
                         "Mi carrito",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                HorizontalDivider(color = Melocotón)
+                HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer)
             }
         },
         bottomBar = {
             Surface(
-                color = CremaCálida,
+                color = MaterialTheme.colorScheme.background,
                 shadowElevation = 8.dp,
                 modifier = Modifier.navigationBarsPadding()
             ) {
@@ -75,7 +76,7 @@ fun CartScreen(
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                         .height(52.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text(
                         "Confirmar pedido — $${"%,d".format(total)}",
@@ -85,7 +86,7 @@ fun CartScreen(
                 }
             }
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -100,8 +101,8 @@ fun CartScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = Mantequilla,
-                border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(14.dp),
@@ -111,17 +112,17 @@ fun CartScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("🍔", fontSize = 20.sp)
                         Spacer(Modifier.width(8.dp))
-                        Text("Big Pons – San Isidro", fontWeight = FontWeight.SemiBold, color = Espresso)
+                        Text("Big Pons – San Isidro", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                     }
                     TextButton(onClick = {}, contentPadding = PaddingValues(0.dp)) {
-                        Text("Cambiar", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text("Cambiar", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
                 }
             }
 
             Spacer(Modifier.height(20.dp))
 
-            Text("Tu pedido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = Espresso)
+            Text("Tu pedido", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(8.dp))
 
             items.forEach { item ->
@@ -134,28 +135,28 @@ fun CartScreen(
             }
 
             TextButton(onClick = onBack, contentPadding = PaddingValues(vertical = 4.dp)) {
-                Text("+ Agregar más productos", color = Pimentón, fontWeight = FontWeight.SemiBold)
+                Text("+ Agregar más productos", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
             }
 
-            HorizontalDivider(color = Melocotón, modifier = Modifier.padding(vertical = 16.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.padding(vertical = 16.dp))
 
             // Resumen
-            Text("Resumen del pedido", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = Espresso)
+            Text("Resumen del pedido", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(10.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Subtotal", color = Madera)
-                Text("$${"%,d".format(subtotal)}", color = Espresso)
+                Text("Subtotal", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("$${"%,d".format(subtotal)}", color = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(Modifier.height(6.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Descuento (10% primera vez)", color = Albahaca)
-                Text("−$${"%,d".format(discount)}", color = Albahaca)
+                Text("Descuento (10% primera vez)", color = QLessStatusColors.disponible)
+                Text("−$${"%,d".format(discount)}", color = QLessStatusColors.disponible)
             }
-            HorizontalDivider(color = Melocotón, modifier = Modifier.padding(vertical = 10.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.padding(vertical = 10.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Total", fontWeight = FontWeight.SemiBold, color = Espresso, style = MaterialTheme.typography.titleMedium)
-                Text("$${"%,d".format(total)}", fontWeight = FontWeight.SemiBold, color = Pimentón, style = MaterialTheme.typography.titleMedium)
+                Text("Total", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
+                Text("$${"%,d".format(total)}", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
             }
 
             Spacer(Modifier.height(20.dp))
@@ -164,14 +165,14 @@ fun CartScreen(
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
-                placeholder = { Text("Notas para el local... (sin picante, bien cocido)", color = Madera.copy(alpha = 0.5f)) },
+                placeholder = { Text("Notas para el local... (sin picante, bien cocido)", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Melocotón,
-                    focusedBorderColor = Pimentón,
-                    unfocusedContainerColor = Mantequilla,
-                    focusedContainerColor = Mantequilla,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                 ),
                 minLines = 2
             )
@@ -186,8 +187,8 @@ private fun CartItemRow(item: CartItem, onAdd: () -> Unit, onRemove: () -> Unit)
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Mantequilla,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -195,7 +196,7 @@ private fun CartItemRow(item: CartItem, onAdd: () -> Unit, onRemove: () -> Unit)
         ) {
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = Pimentón
+                color = MaterialTheme.colorScheme.primary
             ) {
                 Text(
                     "x${item.quantity}",
@@ -207,18 +208,18 @@ private fun CartItemRow(item: CartItem, onAdd: () -> Unit, onRemove: () -> Unit)
             }
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(item.name, fontWeight = FontWeight.SemiBold, color = Espresso)
-                Text(item.detail, style = MaterialTheme.typography.bodySmall, color = Madera)
+                Text(item.name, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                Text(item.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
                 "$${"%,d".format(item.unitPrice * item.quantity)}",
                 fontWeight = FontWeight.SemiBold,
-                color = Espresso
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(Modifier.width(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("−", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, modifier = Modifier.clickable { onRemove() })
-                Text("+", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, modifier = Modifier.clickable { onAdd() })
+                Text("−", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, modifier = Modifier.clickable { onRemove() })
+                Text("+", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, modifier = Modifier.clickable { onAdd() })
             }
         }
     }

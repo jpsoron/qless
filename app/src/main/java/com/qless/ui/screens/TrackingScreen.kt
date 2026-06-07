@@ -65,7 +65,7 @@ fun TrackingScreen(
         bottomBar = {
             QLessBottomNav(selectedTab = 0, onTabSelected = { if (it == 0) onGoHome() })
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -88,13 +88,13 @@ fun TrackingScreen(
                         "Seguimiento",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text("Pedido #4521 · Big Pons", color = Madera, style = MaterialTheme.typography.bodySmall)
+                    Text("Pedido #4521 · Big Pons", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 }
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = AzafránClaro
+                    color = QLessStatusColors.enPreparacionSurface
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -105,9 +105,9 @@ fun TrackingScreen(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(Azafrán)
+                                .background(QLessStatusColors.enPreparacion)
                         )
-                        Text("En preparación", style = MaterialTheme.typography.labelSmall, color = Azafrán, fontWeight = FontWeight.SemiBold)
+                        Text("En preparación", style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.enPreparacion, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -120,8 +120,8 @@ fun TrackingScreen(
                 horizontalArrangement = Arrangement.End
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.Default.Schedule, contentDescription = null, tint = Madera, modifier = Modifier.size(14.dp))
-                    Text("~15 min estimados", style = MaterialTheme.typography.bodySmall, color = Madera)
+                    Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                    Text("~15 min estimados", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -137,8 +137,8 @@ fun TrackingScreen(
                 CircularProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxSize(),
-                    color = Azafrán,
-                    trackColor = Melocotón,
+                    color = QLessStatusColors.enPreparacion,
+                    trackColor = MaterialTheme.colorScheme.primaryContainer,
                     strokeWidth = 10.dp,
                     strokeCap = StrokeCap.Round
                 )
@@ -146,21 +146,21 @@ fun TrackingScreen(
                     Icon(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = null,
-                        tint = Azafrán,
+                        tint = QLessStatusColors.enPreparacion,
                         modifier = Modifier.size(32.dp)
                     )
                     Text(
                         "12",
                         fontSize = 48.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso,
+                        color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 52.sp
                     )
-                    Text("min", color = Madera, style = MaterialTheme.typography.bodyMedium)
+                    Text("min", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                     Text(
                         "ESTIMADO",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Madera.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         letterSpacing = 1.sp
                     )
                 }
@@ -179,9 +179,9 @@ fun TrackingScreen(
                                 .width(2.dp)
                                 .height(24.dp)
                                 .background(
-                                    if (step.status == StepStatus.DONE) Albahaca
-                                    else if (step.status == StepStatus.ACTIVE) Azafrán
-                                    else Melocotón
+                                    if (step.status == StepStatus.DONE) QLessStatusColors.disponible
+                                    else if (step.status == StepStatus.ACTIVE) QLessStatusColors.enPreparacion
+                                    else MaterialTheme.colorScheme.primaryContainer
                                 )
                         )
                     }
@@ -196,8 +196,8 @@ fun TrackingScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
                 shape = RoundedCornerShape(16.dp),
-                color = Melocotón,
-                border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+                color = MaterialTheme.colorScheme.primaryContainer,
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -205,16 +205,16 @@ fun TrackingScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("Mostrá este código al retirar", style = MaterialTheme.typography.bodySmall, color = Madera)
+                        Text("Mostrá este código al retirar", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             "#4521",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = Pimentón
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = Madera, modifier = Modifier.size(14.dp))
-                            Text("Retiro en Caja 1", style = MaterialTheme.typography.bodySmall, color = Madera)
+                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                            Text("Retiro en Caja 1", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Surface(
@@ -224,7 +224,7 @@ fun TrackingScreen(
                         Text(
                             "▦▦\n▦▦",
                             modifier = Modifier.padding(12.dp),
-                            color = Espresso,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 24.sp,
                             lineHeight = 26.sp,
                             textAlign = TextAlign.Center
@@ -242,11 +242,11 @@ fun TrackingScreen(
                     .padding(horizontal = 20.dp)
                     .height(48.dp),
                 shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Default.Notifications, contentDescription = null, tint = Espresso, modifier = Modifier.size(18.dp))
-                    Text("Simular: Pedido Listo", color = Espresso)
+                    Icon(Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
+                    Text("Simular: Pedido Listo", color = MaterialTheme.colorScheme.onSurface)
                 }
             }
 
@@ -267,9 +267,9 @@ private fun TrackingStepRow(step: TrackingStep) {
                 .clip(CircleShape)
                 .background(
                     when (step.status) {
-                        StepStatus.DONE -> Albahaca
-                        StepStatus.ACTIVE -> Azafrán
-                        StepStatus.PENDING -> Melocotón
+                        StepStatus.DONE -> QLessStatusColors.disponible
+                        StepStatus.ACTIVE -> QLessStatusColors.enPreparacion
+                        StepStatus.PENDING -> MaterialTheme.colorScheme.primaryContainer
                     }
                 ),
             contentAlignment = Alignment.Center
@@ -277,7 +277,7 @@ private fun TrackingStepRow(step: TrackingStep) {
             Icon(
                 imageVector = step.icon,
                 contentDescription = null,
-                tint = if (step.status == StepStatus.PENDING) Madera else Color.White,
+                tint = if (step.status == StepStatus.PENDING) MaterialTheme.colorScheme.onSurfaceVariant else Color.White,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -286,15 +286,15 @@ private fun TrackingStepRow(step: TrackingStep) {
             Text(
                 step.title,
                 fontWeight = FontWeight.SemiBold,
-                color = if (step.status == StepStatus.PENDING) Madera else Espresso,
+                color = if (step.status == StepStatus.PENDING) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge
             )
-            Text(step.description, style = MaterialTheme.typography.bodySmall, color = Madera)
+            Text(step.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (step.time != null) {
                 Text(
                     step.time,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (step.status == StepStatus.DONE) Albahaca else Azafrán,
+                    color = if (step.status == StepStatus.DONE) QLessStatusColors.disponible else QLessStatusColors.enPreparacion,
                     fontWeight = FontWeight.SemiBold
                 )
             }

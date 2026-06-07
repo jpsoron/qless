@@ -93,7 +93,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             TextButton(onClick = onFinish) {
                 Text(
                     text = "Saltar",
-                    color = if (currentPage == 1) Color.White.copy(alpha = 0.6f) else Madera,
+                    color = if (currentPage == 1) Color.White.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -106,9 +106,9 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                             .size(if (i == currentPage) 24.dp else 8.dp, 8.dp)
                             .clip(RoundedCornerShape(4.dp))
                             .background(
-                                if (i == currentPage) Pimentón
+                                if (i == currentPage) MaterialTheme.colorScheme.primary
                                 else if (currentPage == 1) Color.White.copy(alpha = 0.3f)
-                                else Madera.copy(alpha = 0.25f)
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f)
                             )
                     )
                 }
@@ -125,7 +125,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                 },
                 modifier = Modifier.size(52.dp),
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = Pimentón,
+                    containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
                 )
             ) {
@@ -142,8 +142,8 @@ fun OnboardingScreen(onFinish: () -> Unit) {
 @Composable
 private fun OnboardingPage(page: OnboardingPage) {
     val isDark = page.bgColor == Espresso
-    val textColor = if (isDark) Color.White else Espresso
-    val bodyColor = if (isDark) Color.White.copy(alpha = 0.65f) else Madera
+    val textColor = if (isDark) Color.White else MaterialTheme.colorScheme.onBackground
+    val bodyColor = if (isDark) Color.White.copy(alpha = 0.65f) else MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
         modifier = Modifier
@@ -171,7 +171,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Pimentón)
+                            .background(MaterialTheme.colorScheme.primary)
                             .padding(horizontal = 32.dp, vertical = 24.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -217,7 +217,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                         CircularProgressIndicator(
                             progress = { 0.6f },
                             modifier = Modifier.fillMaxSize(),
-                            color = Azafrán,
+                            color = QLessStatusColors.enPreparacion,
                             trackColor = Color.White.copy(alpha = 0.2f),
                             strokeWidth = 8.dp
                         )
@@ -230,7 +230,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                     Spacer(Modifier.height(16.dp))
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = Azafrán.copy(alpha = 0.25f)
+                        color = QLessStatusColors.enPreparacion.copy(alpha = 0.25f)
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -262,7 +262,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                             Text(
                                 "QLess",
                                 fontWeight = FontWeight.SemiBold,
-                                color = Espresso,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }
@@ -282,11 +282,11 @@ private fun OnboardingPage(page: OnboardingPage) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(emoji, fontSize = 20.sp)
                                     Spacer(Modifier.width(8.dp))
-                                    Text(name, style = MaterialTheme.typography.bodyMedium, color = Espresso)
+                                    Text(name, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                                 }
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
-                                    color = Pimentón
+                                    color = MaterialTheme.colorScheme.primary
                                 ) {
                                     Text(
                                         "+",
@@ -301,7 +301,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                         Button(
                             onClick = {},
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
                             Text("Confirmar pedido · $6.400", color = Color.White)
                         }
@@ -320,7 +320,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                 text = page.eyebrow,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Pimentón,
+                color = MaterialTheme.colorScheme.primary,
                 letterSpacing = 1.sp
             )
             Spacer(Modifier.height(8.dp))

@@ -54,7 +54,7 @@ fun LocationDetectedScreen(
                 modifier = Modifier
                     .size(110.dp)
                     .clip(CircleShape)
-                    .background(Pimentón.copy(alpha = 0.08f))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
             )
             Box(
                 modifier = Modifier
@@ -67,7 +67,7 @@ fun LocationDetectedScreen(
                             bottomStart = 31.dp
                         )
                     )
-                    .background(Pimentón),
+                    .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 Text("🍔", fontSize = 28.sp)
@@ -79,7 +79,7 @@ fun LocationDetectedScreen(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                .background(CremaCálida)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(horizontal = 28.dp)
                 .padding(top = 14.dp, bottom = 28.dp)
                 .navigationBarsPadding(),
@@ -98,7 +98,7 @@ fun LocationDetectedScreen(
             Text(
                 "UBICACIÓN DETECTADA",
                 style = MaterialTheme.typography.labelMedium,
-                color = Pimentón,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
                 letterSpacing = 1.6.sp
             )
@@ -106,7 +106,7 @@ fun LocationDetectedScreen(
             Text(
                 "¿Estás acá?",
                 style = MaterialTheme.typography.headlineMedium,
-                color = Espresso,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
 
@@ -119,7 +119,7 @@ fun LocationDetectedScreen(
             Text(
                 "Detectamos que estás cerca de este local.\n¿Querés ver el menú y hacer un pedido?",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Madera,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp
             )
@@ -137,12 +137,12 @@ fun LocationDetectedScreen(
                         .weight(0.9f)
                         .height(72.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = Mantequilla),
-                    border = BorderStroke(1.dp, Melocotón)
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Text(
                         "No,\ngracias",
-                        color = Espresso,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
@@ -156,7 +156,7 @@ fun LocationDetectedScreen(
                         .weight(1.55f)
                         .height(72.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp)
                 ) {
                     Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
@@ -170,12 +170,12 @@ fun LocationDetectedScreen(
             TextButton(onClick = onSearchAnother) {
                 Text(
                     "¿No es este local? ",
-                    color = Madera,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
                     "Buscar otro",
-                    color = Pimentón,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -242,10 +242,10 @@ private fun GpsStatusPill(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .size(10.dp)
                     .clip(CircleShape)
-                    .background(Albahaca.copy(alpha = 0.65f))
+                    .background(QLessStatusColors.disponible.copy(alpha = 0.65f))
             )
             Spacer(Modifier.width(10.dp))
-            Text("GPS activo · precisión alta", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+            Text("GPS activo · precisión alta", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
         }
     }
 }
@@ -255,7 +255,7 @@ private fun DetectedRestaurantCard() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(26.dp),
-        color = Mantequilla,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.5.dp, Color(0xFFEAD5C5))
     ) {
         Row(
@@ -267,14 +267,14 @@ private fun DetectedRestaurantCard() {
                     .width(4.dp)
                     .height(96.dp)
                     .clip(RoundedCornerShape(99.dp))
-                    .background(Pimentón)
+                    .background(MaterialTheme.colorScheme.primary)
             )
             Spacer(Modifier.width(16.dp))
             Box(
                 modifier = Modifier
                     .size(70.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(Melocotón),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Text("🍔", fontSize = 34.sp)
@@ -282,23 +282,23 @@ private fun DetectedRestaurantCard() {
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Big Pons", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
+                    Text("Big Pons", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
                     Spacer(Modifier.weight(1f))
                     DistancePill()
                 }
                 Spacer(Modifier.height(4.dp))
-                Text("San Isidro · Hamburguesas & Snacks", color = Madera, style = MaterialTheme.typography.bodySmall)
+                Text("San Isidro · Hamburguesas & Snacks", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
-                    SmallStatusPill("Abierto", Albahaca, AlbahacaClaro)
+                    SmallStatusPill("Abierto", QLessStatusColors.disponible, QLessStatusColors.disponibleSurface)
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Icon(Icons.Default.Star, contentDescription = null, tint = Azafrán, modifier = Modifier.size(12.dp))
-                        Text("4.8", color = Madera, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                        Icon(Icons.Default.Star, contentDescription = null, tint = QLessStatusColors.enPreparacion, modifier = Modifier.size(12.dp))
+                        Text("4.8", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                     }
-                    SmallStatusPill("15–25 min", Azafrán, AzafránClaro)
+                    SmallStatusPill("15–25 min", QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
                 }
                 Spacer(Modifier.height(7.dp))
-                SmallStatusPill("10% OFF 1.er pedido", Pimentón, Melocotón)
+                SmallStatusPill("10% OFF 1.er pedido", MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primaryContainer)
             }
         }
     }
@@ -306,7 +306,7 @@ private fun DetectedRestaurantCard() {
 
 @Composable
 private fun DistancePill() {
-    Surface(shape = RoundedCornerShape(999.dp), color = Espresso) {
+    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.onSurface) {
         Text(
             "~30 m",
             modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),

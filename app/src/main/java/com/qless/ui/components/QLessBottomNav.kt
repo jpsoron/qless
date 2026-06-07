@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -93,7 +94,7 @@ fun QLessBottomNav(
             Box(
                 modifier = Modifier
                     .size(56.dp)
-                    .background(Pimentón, CircleShape),
+                    .background(MaterialTheme.colorScheme.primary, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -108,7 +109,7 @@ fun QLessBottomNav(
                 "Escanear",
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Madera.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
         }
     }
@@ -132,7 +133,7 @@ private fun NavTabItem(
                 .then(
                     if (isSelected) Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Melocotón)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                     else Modifier
                 ),
             contentAlignment = Alignment.Center
@@ -140,7 +141,7 @@ private fun NavTabItem(
             Icon(
                 imageVector = item.icon,
                 contentDescription = item.label,
-                tint = if (isSelected) Pimentón else Madera.copy(alpha = 0.6f),
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -148,7 +149,7 @@ private fun NavTabItem(
             item.label,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
-            color = if (isSelected) Pimentón else Madera.copy(alpha = 0.6f)
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
     }
 }

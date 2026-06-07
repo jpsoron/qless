@@ -37,7 +37,7 @@ fun OrderConfirmedScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(CremaCálida)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState()),
@@ -50,7 +50,7 @@ fun OrderConfirmedScreen(
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
-                .background(Melocotón)
+                .background(MaterialTheme.colorScheme.primaryContainer)
                 .scale(scale),
             contentAlignment = Alignment.Center
         ) {
@@ -58,7 +58,7 @@ fun OrderConfirmedScreen(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(Albahaca),
+                    .background(QLessStatusColors.disponible),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(40.dp))
@@ -71,14 +71,14 @@ fun OrderConfirmedScreen(
             "¡Pedido confirmado!",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.SemiBold,
-            color = Espresso,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
         Text(
             "Tu pago se procesó correctamente y el local ya está preparando tu pedido.",
             style = MaterialTheme.typography.bodyMedium,
-            color = Madera,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 32.dp)
         )
@@ -91,14 +91,14 @@ fun OrderConfirmedScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
             shape = RoundedCornerShape(16.dp),
-            color = Mantequilla,
-            border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Pedido #4521", fontWeight = FontWeight.SemiBold, color = Espresso, style = MaterialTheme.typography.titleMedium)
-                Text("Big Pons – San Isidro", color = Madera, style = MaterialTheme.typography.bodySmall)
+                Text("Pedido #4521", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
+                Text("Big Pons – San Isidro", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(4.dp))
-                Text("Retiro estimado: 15 min", color = Pimentón, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
+                Text("Retiro estimado: 15 min", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
             }
         }
 
@@ -113,7 +113,7 @@ fun OrderConfirmedScreen(
                 onClick = onViewTracking,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Ver seguimiento", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
@@ -122,10 +122,10 @@ fun OrderConfirmedScreen(
                 onClick = onGoHome,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = Melocotón),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                 border = androidx.compose.foundation.BorderStroke(0.dp, Color.Transparent)
             ) {
-                Text("Volver al inicio", fontWeight = FontWeight.SemiBold, color = Pimentón, fontSize = 16.sp)
+                Text("Volver al inicio", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary, fontSize = 16.sp)
             }
         }
 
@@ -134,7 +134,7 @@ fun OrderConfirmedScreen(
         Text(
             "También podés ver este pedido desde Mis Pedidos",
             style = MaterialTheme.typography.bodySmall,
-            color = Madera.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 32.dp)
         )

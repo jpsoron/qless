@@ -25,15 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.viewmodel.CartViewModel
-import com.qless.ui.theme.Azafrán
-import com.qless.ui.theme.CremaCálida
-import com.qless.ui.theme.Espresso
-import com.qless.ui.theme.Madera
-import com.qless.ui.theme.Mantequilla
-import com.qless.ui.theme.Melocotón
-import com.qless.ui.theme.Pimentón
-import com.qless.ui.theme.QLessTheme
-import kotlinx.coroutines.delay
+import com.qless.ui.viewmodel.MenuViewModel
+import com.qless.ui.theme.*
 
 private data class MenuItem(
     val emoji: String,
@@ -57,17 +50,19 @@ private val categories = listOf("🔥 Popular", "Combos", "Hamburguesas", "Papas
 @Composable
 fun MenuScreen(
     cartViewModel: CartViewModel,
+    menuViewModel: MenuViewModel,
     onViewCart: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val cartCount = cartViewModel.items.sumOf { it.quantity }
-    val cartTotal = cartViewModel.items.sumOf { it.unitPrice * it.quantity }
-    var selectedCategory by remember { mutableStateOf("🔥 Popular") }
-    var isLoading by remember { mutableStateOf(true) }
-    LaunchedEffect(Unit) { delay(1500L); isLoading = false }
+    val cartUiState by cartViewModel.uiState.collectAsState()
+    val menuUiState by menuViewModel.uiState.collectAsState()
+    val cartCount = cartUiState.items.sumOf { it.quantity }
+    val cartTotal = cartUiState.items.sumOf { it.unitPrice * it.quantity }
+    val selectedCategory = menuUiState.selectedCategory
+    val isLoading = menuUiState.isLoading
     val shimmerBrush = shimmerBrush()
 
-    Box(modifier = Modifier.fillMaxSize().background(CremaCálida)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = if (cartCount > 0) 100.dp else 16.dp)
@@ -100,7 +95,7 @@ fun MenuScreen(
                                     Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Volver",
                                     modifier = Modifier.size(18.dp),
-                                    tint = Espresso
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -111,7 +106,7 @@ fun MenuScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(CremaCálida)
+                            .background(MaterialTheme.colorScheme.background)
                             .padding(horizontal = 16.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -124,7 +119,7 @@ fun MenuScreen(
                             )
                         }
                     }
-                    HorizontalDivider(color = Melocotón)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer)
                 }
                 // Skeleton section header
                 item {
@@ -146,7 +141,7 @@ fun MenuScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Melocotón)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                             .statusBarsPadding()
                     ) {
                         Column {
@@ -164,7 +159,7 @@ fun MenuScreen(
                                         .clickable { onBack() },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", modifier = Modifier.size(18.dp), tint = Espresso)
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurface)
                                 }
                                 Box(
                                     modifier = Modifier
@@ -173,7 +168,7 @@ fun MenuScreen(
                                         .background(Color.White.copy(alpha = 0.7f)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("···", color = Espresso, fontWeight = FontWeight.SemiBold)
+                                    Text("···", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                             Column(
@@ -185,14 +180,14 @@ fun MenuScreen(
                             ) {
                                 Text("🍔", fontSize = 56.sp)
                                 Spacer(Modifier.height(8.dp))
-                                Text("Big Pons", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, color = Espresso)
-                                Text("Hamburguesas & Snacks · San Isidro", style = MaterialTheme.typography.bodySmall, color = Madera)
+                                Text("Big Pons", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("Hamburguesas & Snacks · San Isidro", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(Modifier.height(10.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Chip("⭐ 4.8")
                                     Chip("⏱ 15–25 min")
                                     Chip("Mín. $1.500")
-                                    Surface(shape = RoundedCornerShape(999.dp), color = Pimentón) {
+                                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primary) {
                                         Text("10% OFF 1.er pedido", modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.SemiBold)
                                     }
                                 }
@@ -206,7 +201,7 @@ fun MenuScreen(
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(CremaCálida)
+                            .background(MaterialTheme.colorScheme.background)
                             .padding(vertical = 10.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -214,20 +209,20 @@ fun MenuScreen(
                         items(categories) { cat ->
                             Surface(
                                 shape = RoundedCornerShape(999.dp),
-                                color = if (cat == selectedCategory) Melocotón else Color.Transparent,
-                                modifier = Modifier.clickable { selectedCategory = cat }
+                                color = if (cat == selectedCategory) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                                modifier = Modifier.clickable { menuViewModel.selectCategory(cat) }
                             ) {
                                 Text(
                                     cat,
                                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = if (cat == selectedCategory) Pimentón else Madera
+                                    color = if (cat == selectedCategory) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
                     }
-                    HorizontalDivider(color = Melocotón)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer)
                 }
 
                 // Sección Popular
@@ -237,7 +232,7 @@ fun MenuScreen(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -256,7 +251,7 @@ fun MenuScreen(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -282,7 +277,7 @@ fun MenuScreen(
                     .fillMaxWidth()
                     .clickable { onViewCart() },
                 shape = RoundedCornerShape(16.dp),
-                color = Pimentón,
+                color = MaterialTheme.colorScheme.primary,
                 shadowElevation = 12.dp
             ) {
                 Row(
@@ -309,9 +304,9 @@ fun MenuScreen(
 @Composable
 private fun shimmerBrush(): Brush {
     val shimmerColors = listOf(
-        Melocotón.copy(alpha = 0.9f),
-        Mantequilla,
-        Melocotón.copy(alpha = 0.9f),
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+        MaterialTheme.colorScheme.surfaceVariant,
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
     )
     val transition = rememberInfiniteTransition(label = "shimmer")
     val translateAnim by transition.animateFloat(
@@ -337,8 +332,8 @@ private fun SkeletonMenuItemCard(brush: Brush) {
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 5.dp),
         shape = RoundedCornerShape(16.dp),
-        color = Mantequilla,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -360,7 +355,7 @@ private fun SkeletonMenuItemCard(brush: Brush) {
 @Composable
 private fun Chip(text: String) {
     Surface(shape = RoundedCornerShape(999.dp), color = Color.White) {
-        Text(text, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = Espresso)
+        Text(text, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
@@ -376,15 +371,15 @@ private fun MenuItemCard(
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 5.dp),
         shape = RoundedCornerShape(16.dp),
-        color = Mantequilla,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Melocotón),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Text(item.emoji, fontSize = 30.sp)
@@ -392,13 +387,13 @@ private fun MenuItemCard(
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 if (item.isPopular) {
-                    Surface(shape = RoundedCornerShape(999.dp), color = Azafrán) {
+                    Surface(shape = RoundedCornerShape(999.dp), color = QLessStatusColors.enPreparacion) {
                         Text("Más pedido", modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.SemiBold)
                     }
                     Spacer(Modifier.height(4.dp))
                 }
-                Text(item.name, fontWeight = FontWeight.SemiBold, color = Espresso, style = MaterialTheme.typography.bodyMedium)
-                Text(item.description, style = MaterialTheme.typography.bodySmall, color = Madera, lineHeight = 16.sp)
+                Text(item.name, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium)
+                Text(item.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 16.sp)
                 Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -408,7 +403,7 @@ private fun MenuItemCard(
                     Text(
                         "$${"%,d".format(item.price)}",
                         fontWeight = FontWeight.SemiBold,
-                        color = Pimentón,
+                        color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleMedium
                     )
                     if (quantity > 0) {
@@ -416,7 +411,7 @@ private fun MenuItemCard(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(999.dp))
-                                .background(Melocotón)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
                                 .padding(horizontal = 12.dp, vertical = 4.dp),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
@@ -431,10 +426,10 @@ private fun MenuItemCard(
                                     Icons.Filled.Remove,
                                     contentDescription = "Quitar",
                                     modifier = Modifier.size(16.dp),
-                                    tint = Pimentón
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
-                            Text("$quantity", fontWeight = FontWeight.SemiBold, color = Espresso)
+                            Text("$quantity", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
@@ -446,7 +441,7 @@ private fun MenuItemCard(
                                     Icons.Filled.Add,
                                     contentDescription = "Agregar",
                                     modifier = Modifier.size(16.dp),
-                                    tint = Pimentón
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
@@ -455,7 +450,7 @@ private fun MenuItemCard(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(Pimentón)
+                                .background(MaterialTheme.colorScheme.primary)
                                 .clickable { onAdd() },
                             contentAlignment = Alignment.Center
                         ) {

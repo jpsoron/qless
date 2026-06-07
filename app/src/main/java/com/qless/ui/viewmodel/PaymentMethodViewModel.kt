@@ -1,13 +1,20 @@
 package com.qless.ui.viewmodel
 
 import android.app.Application
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.qless.data.PaymentMethod
 import com.qless.data.PaymentMethodRepository
 import com.qless.data.local.QLessDatabase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+data class PaymentMethodUiState(
+    val methods: List<PaymentMethod> = emptyList(),
+)
 
 class PaymentMethodViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -15,16 +22,14 @@ class PaymentMethodViewModel(app: Application) : AndroidViewModel(app) {
         dao = QLessDatabase.getInstance(app).paymentMethodDao()
     )
 
-    val methods = mutableStateListOf<PaymentMethod>()
+    private val _uiState = MutableStateFlow(PaymentMethodUiState())
+    val uiState: StateFlow<PaymentMethodUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            if (repository.isEmpty()) {
-                repository.seedDefaults()
-            }
+            if (repository.isEmpty()) repository.seedDefaults()
             repository.getMethods().collect { list ->
-                methods.clear()
-                methods.addAll(list)
+                _uiState.update { it.copy(methods = list) }
             }
         }
     }
@@ -42,8 +47,6 @@ class PaymentMethodViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun removeMethod(id: String) {
-        viewModelScope.launch {
-            repository.remove(id)
-        }
+        viewModelScope.launch { repository.remove(id) }
     }
 }
