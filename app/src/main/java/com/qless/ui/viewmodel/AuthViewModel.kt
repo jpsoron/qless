@@ -18,6 +18,10 @@ import kotlinx.coroutines.launch
 data class AuthUiState(
     val currentUserName: String = "",
     val currentUserEmail: String = "",
+    val currentUserRole: String = "",
+    val currentUserFavoritos: List<String> = emptyList(),
+    val sessionCheckDone: Boolean = false,
+    val sessionRestored: Boolean = false,
     val loginError: String? = null,
     val registerError: String? = null,
     val isLoading: Boolean = false,
@@ -33,7 +37,8 @@ sealed interface AuthNavEvent {
 class AuthViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repository = UserRepository(
-        dao = QLessDatabase.getInstance(app).userDao()
+        dao = QLessDatabase.getInstance(app).userDao(),
+        context = app
     )
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -42,17 +47,53 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
     private val _navEvent = MutableSharedFlow<AuthNavEvent>()
     val navEvent: SharedFlow<AuthNavEvent> = _navEvent.asSharedFlow()
 
-    fun login(email: String, password: String) {
+    init {
+        checkExistingSession()
+    }
+
+    private fun checkExistingSession() {
+        viewModelScope.launch {
+            repository.tryRestoreSession()
+                .onSuccess { user ->
+                    if (user != null) {
+                        _uiState.update {
+                            it.copy(
+                                currentUserName = user.name,
+                                currentUserEmail = user.email,
+                                currentUserRole = user.role,
+                                currentUserFavoritos = user.favoritos,
+                                sessionCheckDone = true,
+                                sessionRestored = true
+                            )
+                        }
+                    } else {
+                        _uiState.update { it.copy(sessionCheckDone = true, sessionRestored = false) }
+                    }
+                }
+                .onFailure {
+                    viewModelScope.launch { repository.clearSession() }
+                    _uiState.update { it.copy(sessionCheckDone = true, sessionRestored = false) }
+                }
+        }
+    }
+
+    fun login(email: String, password: String, rememberMe: Boolean = false) {
         if (email.isBlank() || password.isBlank()) {
             _uiState.update { it.copy(loginError = "Completa todos los campos") }
             return
         }
         _uiState.update { it.copy(isLoading = true, loginError = null) }
         viewModelScope.launch {
-            repository.login(email.trim(), password)
+            repository.login(email.trim(), password, rememberMe)
                 .onSuccess { user ->
                     _uiState.update {
-                        it.copy(isLoading = false, currentUserName = user.name, currentUserEmail = user.email)
+                        it.copy(
+                            isLoading = false,
+                            currentUserName = user.name,
+                            currentUserEmail = user.email,
+                            currentUserRole = user.role,
+                            currentUserFavoritos = user.favoritos
+                        )
                     }
                     if (user.role == "BACK_OFFICE") {
                         _navEvent.emit(AuthNavEvent.LoginBackOffice)
@@ -90,7 +131,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
     fun logout() {
         viewModelScope.launch {
             repository.logout()
-            _uiState.update { AuthUiState() }
+            _uiState.update { AuthUiState(sessionCheckDone = true) }
         }
     }
 
@@ -98,7 +139,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         val email = _uiState.value.currentUserEmail
         viewModelScope.launch {
             repository.deleteAccount(email)
-            _uiState.update { AuthUiState() }
+            _uiState.update { AuthUiState(sessionCheckDone = true) }
             _navEvent.emit(AuthNavEvent.AccountDeleted)
         }
     }

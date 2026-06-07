@@ -70,7 +70,7 @@ QLess es una aplicación Android nativa orientada al pedido anticipado en locale
 | UI | Jetpack Compose + Material 3 |
 | Navegación | Navigation Compose 2.9.0 |
 | Estado y ciclo de vida | ViewModel (AndroidViewModel / ViewModel), StateFlow, SharedFlow |
-| Persistencia local | Room 2.7.1 (entidades + DAOs + Flow) |
+| Persistencia local | Room 2.7.1 (carrito y métodos de pago) + DataStore Preferences (tema, onboarding, sesión) |
 | Backend / Auth | Supabase Auth 3.1.4 (email + password) |
 | Backend / Base de datos | Supabase PostgREST (postgrest-kt 3.1.4) sobre PostgreSQL |
 | Cliente HTTP | Ktor OkHttp Engine 3.1.3 |
@@ -89,50 +89,55 @@ QLess es una aplicación Android nativa orientada al pedido anticipado en locale
 com.qless
 ├── MainActivity.kt
 ├── navigation/
-│   └── AppNavigation.kt          — NavHost con 29 rutas (sealed class Screen)
+│   └── AppNavigation.kt             — NavHost con 29 rutas (sealed class Screen)
 ├── data/
-│   ├── CartItem.kt               — modelo de dominio
-│   ├── CartRepository.kt         — acceso a datos del carrito
-│   ├── PaymentMethod.kt          — modelo de dominio
+│   ├── CartItem.kt                  — modelo de dominio
+│   ├── CartRepository.kt
+│   ├── Local.kt                     — modelo de dominio (local gastronómico)
+│   ├── LocalesRepository.kt         — getLocales() + getFavoritos(ids)
+│   ├── PaymentMethod.kt             — modelo de dominio
 │   ├── PaymentMethodRepository.kt
-│   ├── RemoteUser.kt             — modelo de usuario autenticado (nombre, email, rol)
-│   ├── UserRepository.kt         — delega auth a Supabase vía RemoteDataSources
+│   ├── SessionStorage.kt            — persistencia de sesión en DataStore (qless_session)
+│   ├── ThemeRepository.kt           — dark mode + onboarding en DataStore (qless_settings)
+│   ├── UserRepository.kt            — auth + perfil + sesión persistente
 │   ├── local/
-│   │   ├── QLessDatabase.kt      — singleton RoomDatabase (v3)
+│   │   ├── QLessDatabase.kt         — singleton RoomDatabase (v3)
 │   │   ├── dao/
 │   │   │   ├── CartItemDao.kt
 │   │   │   ├── PaymentMethodDao.kt
 │   │   │   └── UserDao.kt
 │   │   └── entity/
-│   │       ├── CartItemEntity.kt      — + extensiones toDomain / toEntity
-│   │       ├── PaymentMethodEntity.kt — + extensiones toDomain / toEntity
-│   │       └── UserEntity.kt          — + extensión toDomain
+│   │       ├── CartItemEntity.kt
+│   │       ├── PaymentMethodEntity.kt
+│   │       └── UserEntity.kt
 │   └── remote/
-│       ├── SupabaseClient.kt          — singleton (URL + anon key desde BuildConfig)
-│       ├── AuthRemoteDataSource.kt    — signIn, signUp, signOut vía Supabase Auth
-│       ├── ProfileRemoteDataSource.kt — fetchProfile() desde tabla `perfiles` (PostgREST)
+│       ├── SupabaseClient.kt              — singleton (URL + anon key desde BuildConfig)
+│       ├── AuthRemoteDataSource.kt        — signIn, signUp, signOut, getCurrentSessionJson, tryImportSession
+│       ├── LocalesRemoteDataSource.kt     — fetchLocales(), fetchLocalesByIds(ids)
+│       ├── ProfileRemoteDataSource.kt     — fetchProfile() desde tabla `perfiles`
 │       └── dto/
-│           └── Perfil.kt              — DTO @Serializable que mapea la tabla perfiles
+│           ├── LocalDto.kt               — DTO @Serializable + toDomain()
+│           └── Perfil.kt                 — DTO @Serializable (id, nombre, email, rol, favoritos)
 └── ui/
     ├── viewmodel/
-    │   ├── AuthViewModel.kt          — AuthUiState + AuthNavEvent (SharedFlow)
-    │   ├── CartViewModel.kt          — CartUiState
-    │   ├── PaymentMethodViewModel.kt — PaymentMethodUiState
-    │   ├── MenuViewModel.kt          — MenuUiState (isLoading, selectedCategory)
-    │   └── MisLocalesViewModel.kt    — MisLocalesUiState (isLoading)
+    │   ├── AuthViewModel.kt           — AuthUiState + AuthNavEvent + checkExistingSession()
+    │   ├── CartViewModel.kt
+    │   ├── HomeViewModel.kt           — HomeUiState (favoritos) + loadFavoritos(ids)
+    │   ├── MisLocalesViewModel.kt     — MisLocalesUiState (locales desde Supabase)
+    │   ├── MenuViewModel.kt
+    │   ├── PaymentMethodViewModel.kt
+    │   └── ThemeViewModel.kt          — dark mode + onboarding
     ├── components/
     │   └── QLessBottomNav.kt
-    ├── samples/
-    │   └── UISamplesScreen.kt
     ├── screens/
     │   ├── SplashScreen.kt
     │   ├── OnboardingScreen.kt
-    │   ├── LoginScreen.kt
+    │   ├── LoginScreen.kt             — checkbox "Mantener sesión" funcional
     │   ├── RegisterScreen.kt
     │   ├── GoogleLoginScreen.kt
-    │   ├── HomeScreen.kt
+    │   ├── HomeScreen.kt              — favoritos reales desde Supabase (HomeViewModel)
     │   ├── LocationDetectedScreen.kt
-    │   ├── MisLocalesScreen.kt
+    │   ├── MisLocalesScreen.kt        — locales reales desde Supabase (MisLocalesViewModel)
     │   ├── ScanearQrScreen.kt
     │   ├── QrNoReconocidoScreen.kt
     │   ├── MenuScreen.kt
@@ -150,14 +155,15 @@ com.qless
     │   ├── NotificacionesScreen.kt
     │   ├── EliminarCuentaScreen.kt
     │   ├── CerrarSesionScreen.kt
-    │   ├── BackOfficeScreen.kt
-    │   ├── BackOfficeHistoryScreen.kt
-    │   ├── BackOfficeUpdateOrderScreen.kt
-    │   └── BackOfficeAjustesScreen.kt
+    │   └── backoffice/
+    │       ├── BackOfficeScreen.kt
+    │       ├── BackOfficeHistoryScreen.kt
+    │       ├── BackOfficeUpdateOrderScreen.kt
+    │       └── BackOfficeAjustesScreen.kt
     └── theme/
-        ├── Color.kt              — tokens primitivos, LightColorScheme, DarkColorScheme, QLessStatusColors
-        ├── Theme.kt              — QLessTheme(), KraftSurface, QLessExtras
-        └── Type.kt               — AppTypography con Lora y Plus Jakarta Sans
+        ├── Color.kt
+        ├── Theme.kt
+        └── Type.kt
 ```
 
 ---
@@ -168,11 +174,11 @@ La aplicación implementa MVVM con patrón Repository sobre tres capas.
 
 ### Capa de Datos (`data/`)
 
-**Entidades Room:**
+**Entidades Room (persistencia local):**
 
-- `CartItemEntity`: producto en carrito. PK: `name`. Campos: `emoji`, `detail`, `unitPrice`, `quantity`.
-- `PaymentMethodEntity`: método de pago. PK: `id` (UUID). Campos: `tipo`, `nombre`, `ultimosDigitos`, `vencimiento`, `esPrincipal`, `esBilletera`.
-- `UserEntity`: usuario registrado. PK: `email`. Campos: `name`, `passwordHash` (SHA-256), `role` (`USER` o `BACK_OFFICE`).
+- `CartItemEntity`: producto en carrito. PK: `name`.
+- `PaymentMethodEntity`: método de pago. PK: `id` (UUID).
+- `UserEntity`: disponible para caché de perfil (actualmente no usado para auth).
 
 **DAOs:**
 
@@ -180,97 +186,101 @@ La aplicación implementa MVVM con patrón Repository sobre tres capas.
 - `PaymentMethodDao`: `getAll(): Flow`, `count()`, `insert()`, `insertAll()`, `deleteById()`, `clearPrincipal()`.
 - `UserDao`: `findByEmail()`, `insert()`, `deleteByEmail()`.
 
+**Modelos de dominio:**
+
+- `Local`: representa un local gastronómico. Campos: `id`, `emoji`, `nombre`, `categoria`, `barrio`, `rating`, `tiempoEntrega`, `abierto`, `tienePromo`, `destacado`.
+- `RemoteUser`: usuario autenticado. Campos: `name`, `email`, `role`, `favoritos: List<String>`.
+
 **Repositorios:**
 
-- `CartRepository`: expone un `Flow` del carrito. `addItem()` hace upsert (incrementa cantidad). `updateQuantity()` elimina la fila si la nueva cantidad es 0.
-- `PaymentMethodRepository`: expone un `Flow` de métodos. `add()` infiere el tipo de tarjeta por el primer dígito. `seedDefaults()` siembra tres métodos por defecto en la primera instalación.
-- `UserRepository`: delega autenticación a `AuthRemoteDataSource` (Supabase Auth) y lectura de perfil a `ProfileRemoteDataSource` (PostgREST). `login()` encadena sign-in + fetch de perfil y devuelve `RemoteUser`. `register()` llama a `signUp` con nombre en metadata; el trigger de Postgres inserta automáticamente en `perfiles`. Room (UserDao) queda disponible para cacheo de perfil en entregas futuras.
+- `CartRepository`: expone un `Flow` del carrito. `addItem()` hace upsert.
+- `PaymentMethodRepository`: expone un `Flow` de métodos de pago.
+- `LocalesRepository`: `getLocales()` trae todos los locales desde Supabase. `getFavoritos(ids)` trae solo los locales cuyas UUIDs coinciden con la lista provista.
+- `UserRepository`: orquesta auth + perfil + persistencia de sesión. `login(email, password, rememberMe)` encadena sign-in + fetch de perfil; si `rememberMe=true`, guarda el JSON de sesión en `SessionStorage`. `logout()` hace sign-out y borra la sesión guardada. `tryRestoreSession()` carga el JSON de sesión desde `SessionStorage`, importa la sesión en supabase-kt (con auto-refresh del token) y retorna `RemoteUser?`.
 
 **RemoteDataSources:**
 
-- `AuthRemoteDataSource`: wrappea Supabase Auth SDK. `signIn()` y `signUp()` devuelven `Result<Unit>`; todos los errores se propagan como excepciones capturadas con `runCatching`. `signUp` incluye `name` y `role` en `raw_user_meta_data` para que el trigger de Postgres los lea al crear el perfil.
-- `ProfileRemoteDataSource`: hace `SELECT` a la tabla `perfiles` vía PostgREST. Gracias a la política RLS `perfil_select_own`, la query siempre retorna el perfil del usuario autenticado. Devuelve `Result<Perfil>`.
+- `AuthRemoteDataSource`: wrappea Supabase Auth SDK. `signIn()` y `signUp()` retornan `Result<Unit>`. `getCurrentSessionJson()` serializa la sesión activa a JSON. `tryImportSession(json)` deserializa e importa la sesión con `auth.importSession(session, autoRefresh = true)`, que renueva el access token si expiró.
+- `LocalesRemoteDataSource`: `fetchLocales()` trae todos los registros de la tabla `locales` vía PostgREST. `fetchLocalesByIds(ids)` filtra por `id IN (...)` usando el DSL de filtros de supabase-kt.
+- `ProfileRemoteDataSource`: `fetchProfile()` retorna el perfil del usuario autenticado desde la tabla `perfiles` (RLS garantiza que solo se retorna el propio perfil).
 
-**Base de datos:**
+**DTOs:**
 
-`QLessDatabase` es un singleton con `@Volatile` + `synchronized`. Versión 3, `fallbackToDestructiveMigration()` activo (aceptable en dev, requiere reemplazarse por migraciones explícitas antes de producción).
+- `Perfil`: `id`, `nombre`, `email`, `rol`, `favoritos: List<String>` — mapea la tabla `perfiles` incluyendo el array de UUIDs favoritos.
+- `LocalDto`: mapea la tabla `locales`. `toDomain()` convierte al modelo `Local`.
+
+**Persistencia de sesión (`SessionStorage`):**
+
+Guarda el JSON de la sesión de Supabase en un DataStore propio (`qless_session`). Expone tres operaciones: `save(json)`, `load(): String?` y `clear()`. El JSON almacenado incluye `access_token` y `refresh_token`. Al restaurar, supabase-kt renueva automáticamente el access token si está vencido usando el refresh token (que en Supabase dura 60 días por defecto).
 
 **Supabase (Postgres):**
 
-Tabla `perfiles` en el proyecto Supabase con columnas `id` (uuid, FK a `auth.users`), `nombre`, `email`, `rol` (`USER` | `BACK_OFFICE`). RLS habilitado con policy `perfil_select_own`. Un trigger `on_auth_user_created` inserta automáticamente en `perfiles` en cada signup, leyendo `nombre` y `rol` desde `raw_user_meta_data`. El script completo de setup está en `SUPABASE_SETUP.md`.
+- Tabla `perfiles`: `id` (uuid FK → `auth.users`), `nombre`, `email`, `rol` (`USER` | `BACK_OFFICE`), `favoritos` (`uuid[]`, default `{}`). RLS habilitado: SELECT con `using(true)`, UPDATE con `auth.uid() = id`. Trigger `on_auth_user_created` inserta automáticamente al registrarse.
+- Tabla `locales`: `id` (uuid PK), `nombre`, `emoji`, `categoria`, `barrio`, `direccion`, `rating`, `tiempo_entrega`, `abierto`, `tiene_promo`, `destacado`. RLS con `using(true)`. Setup en `SUPABASE_LOCALES.md`.
+
+---
 
 ### Capa de Presentación (`ui/`)
 
 #### Patrón de estado
 
-Todos los ViewModels exponen estado mediante `StateFlow<UiState>` y siguen el mismo esquema:
+Todos los ViewModels exponen estado mediante `StateFlow<UiState>`:
 
 ```kotlin
 private val _uiState = MutableStateFlow(XxxUiState())
 val uiState: StateFlow<XxxUiState> = _uiState.asStateFlow()
 ```
 
-Las pantallas observan el estado con `collectAsState()`:
-
-```kotlin
-val uiState by viewModel.uiState.collectAsState()
-```
-
-Las actualizaciones de estado son siempre inmutables usando `_uiState.update { it.copy(...) }`.
+Las actualizaciones son siempre inmutables: `_uiState.update { it.copy(...) }`.
 
 #### Eventos de navegación (one-shot)
 
-Para operaciones asíncronas que disparan navegación (login, registro, eliminación de cuenta), `AuthViewModel` expone un `SharedFlow<AuthNavEvent>` en lugar de recibir callbacks:
+Para operaciones asíncronas que disparan navegación, `AuthViewModel` expone un `SharedFlow<AuthNavEvent>`:
 
 ```kotlin
 private val _navEvent = MutableSharedFlow<AuthNavEvent>()
 val navEvent: SharedFlow<AuthNavEvent> = _navEvent.asSharedFlow()
 ```
 
-Las pantallas colectan los eventos en un `LaunchedEffect`:
-
-```kotlin
-LaunchedEffect(Unit) {
-    authViewModel.navEvent.collect { event ->
-        when (event) {
-            AuthNavEvent.LoginSuccess -> onLoginSuccess()
-            AuthNavEvent.LoginBackOffice -> onNavigateToBackOffice()
-            else -> Unit
-        }
-    }
-}
-```
-
-Esto elimina el acoplamiento entre el ViewModel y la lógica de navegación, siguiendo el principio de Unidirectional Data Flow (UDF).
+Las pantallas colectan eventos en un `LaunchedEffect(Unit)`.
 
 #### ViewModels
 
-| ViewModel | UiState | Eventos (SharedFlow) | Descripción |
-|---|---|---|---|
-| `AuthViewModel` | `AuthUiState` | `AuthNavEvent` | Login, registro, logout, deleteAccount. Mapea errores de Supabase Auth a mensajes en español. |
-| `CartViewModel` | `CartUiState` | — | Colecciona el Flow del repositorio. Expone addItem, removeItem, getQuantity, clearCart. |
-| `PaymentMethodViewModel` | `PaymentMethodUiState` | — | Siembra métodos por defecto si la tabla está vacía. Expone addMethod, removeMethod. |
-| `MenuViewModel` | `MenuUiState` | — | Gestiona isLoading (simulado con delay de 1.5s en init) y selectedCategory. |
-| `MisLocalesViewModel` | `MisLocalesUiState` | — | Gestiona isLoading (simulado con delay de 1.5s en init). |
+| ViewModel | UiState | Descripción |
+|---|---|---|
+| `AuthViewModel` | `AuthUiState` | Login, registro, logout, deleteAccount. Restaura sesión en `init {}`. Mapea errores de Supabase a mensajes en español. |
+| `HomeViewModel` | `HomeUiState` | Carga los locales favoritos del usuario por ID desde Supabase. `loadFavoritos(ids)` es llamado desde AppNavigation con `LaunchedEffect`. |
+| `MisLocalesViewModel` | `MisLocalesUiState` | Carga la lista completa de locales desde Supabase en `init {}`. |
+| `CartViewModel` | `CartUiState` | Colecciona el Flow del repositorio de carrito. |
+| `PaymentMethodViewModel` | `PaymentMethodUiState` | Siembra métodos por defecto si la tabla está vacía. |
+| `MenuViewModel` | `MenuUiState` | Gestiona `isLoading` y `selectedCategory`. |
+| `ThemeViewModel` | — | Dark mode + onboarding completado (DataStore). |
 
-**UiState types:**
+**UiState relevantes:**
 
 ```kotlin
 data class AuthUiState(
     val currentUserName: String = "",
     val currentUserEmail: String = "",
+    val currentUserRole: String = "",
+    val currentUserFavoritos: List<String> = emptyList(),
+    val sessionCheckDone: Boolean = false,   // true cuando checkExistingSession() terminó
+    val sessionRestored: Boolean = false,    // true si se restauró una sesión persistida
     val loginError: String? = null,
     val registerError: String? = null,
     val isLoading: Boolean = false,
 )
 
-data class CartUiState(val items: List<CartItem> = emptyList())
+data class HomeUiState(
+    val isLoading: Boolean = false,
+    val favoritos: List<Local> = emptyList(),
+)
 
-data class PaymentMethodUiState(val methods: List<PaymentMethod> = emptyList())
-
-data class MenuUiState(val isLoading: Boolean = true, val selectedCategory: String = "🔥 Popular")
-
-data class MisLocalesUiState(val isLoading: Boolean = true)
+data class MisLocalesUiState(
+    val isLoading: Boolean = true,
+    val locales: List<Local> = emptyList(),
+    val error: String? = null,
+)
 ```
 
 **AuthNavEvent:**
@@ -286,16 +296,14 @@ sealed interface AuthNavEvent {
 
 #### Pantallas con estado real
 
-- `LoginScreen` / `RegisterScreen`: colectan `AuthUiState` y el `SharedFlow` de nav events. El botón muestra `CircularProgressIndicator` mientras `isLoading = true`.
-- `CerrarSesionScreen` / `EliminarCuentaScreen`: colectan `AuthUiState` para mostrar nombre y email del usuario activo.
-- `MenuScreen`: recibe `CartViewModel` + `MenuViewModel`. Lee `selectedCategory` e `isLoading` del `MenuUiState`; las categorías del menú actualizan el estado via `menuViewModel.selectCategory()`.
-- `MisLocalesScreen`: recibe `MisLocalesViewModel`. Lee `isLoading` del `MisLocalesUiState`.
-- `CartScreen` / `PaymentScreen`: colectan `CartUiState` para obtener la lista de ítems y los totales.
-- `MetodosDePagoScreen` / `AgregarMetodoDePagoScreen`: colectan `PaymentMethodUiState`.
+- `LoginScreen`: colecta `AuthUiState` y el SharedFlow de nav events. El checkbox "Mantener sesión" pasa el flag `rememberMe` a `authViewModel.login()`.
+- `HomeScreen`: recibe `HomeViewModel`. Muestra los locales favoritos del usuario cargados desde Supabase, con shimmer skeleton durante la carga y mensaje vacío si no hay favoritos.
+- `MisLocalesScreen`: recibe `MisLocalesViewModel`. Muestra la lista completa de locales desde Supabase con skeleton de carga.
+- `CerrarSesionScreen` / `EliminarCuentaScreen`: muestran nombre y email del usuario activo desde `AuthUiState`.
 
 ### Navegación
 
-`AppNavigation.kt` define un `NavHost` con 29 rutas. Los ViewModels se instancian una única vez dentro de `AppNavigation` con `viewModel()` y se pasan como parámetros, garantizando estado compartido durante toda la sesión. Las pantallas reciben callbacks de navegación específicos (`onBack`, `onLoginSuccess`, etc.) y nunca tienen referencia directa al `NavController`.
+`AppNavigation.kt` define un `NavHost` con 29 rutas. Los ViewModels se instancian una única vez y se pasan como parámetros.
 
 **ViewModels instanciados en AppNavigation:**
 
@@ -305,44 +313,71 @@ val cartViewModel: CartViewModel = viewModel()
 val paymentViewModel: PaymentMethodViewModel = viewModel()
 val menuViewModel: MenuViewModel = viewModel()
 val misLocalesViewModel: MisLocalesViewModel = viewModel()
+val homeViewModel: HomeViewModel = viewModel()
+```
+
+**Flujo de Splash con verificación de sesión:**
+
+El composable de Splash espera dos condiciones simultáneas antes de navegar:
+
+```kotlin
+LaunchedEffect(splashAnimDone, authState.sessionCheckDone) {
+    if (!splashAnimDone || !authState.sessionCheckDone) return@LaunchedEffect
+    val destination = when {
+        authState.sessionRestored && authState.currentUserRole == "BACK_OFFICE" -> Screen.BackOffice.route
+        authState.sessionRestored -> Screen.Home.route
+        onboardingCompleted -> Screen.Login.route
+        else -> Screen.Onboarding.route
+    }
+    navController.navigate(destination) { popUpTo(Screen.Splash.route) { inclusive = true } }
+}
+```
+
+`AuthViewModel.init {}` lanza `checkExistingSession()` al crearse (en paralelo con la animación del splash). Cuando ambas condiciones se cumplen —animación de 2 s y check de sesión completo— se determina el destino.
+
+**Favoritos en Home:**
+
+```kotlin
+composable(Screen.Home.route) {
+    val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(authState.currentUserFavoritos) {
+        homeViewModel.loadFavoritos(authState.currentUserFavoritos)
+    }
+    HomeScreen(homeViewModel = homeViewModel, ...)
+}
 ```
 
 ### BackOffice
 
-La sección BackOffice tiene su propio stack de navegación con 4 pantallas y una bottom nav de 3 tabs:
-
-| Tab | Pantalla | Índice |
-|---|---|---|
-| Pedidos en curso | `BackOfficeScreen` | 0 |
-| Historial | `BackOfficeHistoryScreen` | 1 |
-| Ajustes | `BackOfficeAjustesScreen` | 2 |
-
-`BackOfficeAjustesScreen` muestra el perfil del operador (avatar con iniciales, nombre, email) y un botón de cierre de sesión con diálogo de confirmación. Recibe `userName` y `userEmail` como `String` desde `AppNavigation`, y `onLogout` / `onNavigateToOrders` / `onNavigateToHistory` como callbacks.
+La sección BackOffice tiene su propio stack con 4 pantallas y una bottom nav de 3 tabs. `BackOfficeAjustesScreen` muestra el perfil del operador y un botón de cierre de sesión con diálogo de confirmación.
 
 ---
 
 ## Flujo Principal del Usuario
 
 ```
-Splash → Onboarding → Login / Registro
-       → LocationDetected / Scan QR
-       → Menú (armar pedido)
-       → Carrito (revisar pedido)
-       → Pago (seleccionar método)
-       → OrderConfirmed
-       → Tracking
-       → OrderReady → PickupSuccess
+Splash (verificación de sesión en paralelo)
+  ├── sesión activa → Home / BackOffice (sin pasar por Login)
+  └── sin sesión → Onboarding (primera vez) / Login
+        └── Login con "Mantener sesión" ✓ → guarda tokens en DataStore
+              → LocationDetected → Menú → Carrito → Pago
+              → OrderConfirmed → Tracking → OrderReady → PickupSuccess
 ```
 
 ---
 
-## Estado de los Datos (actual)
+## Estado de los Datos
 
-- **Credenciales y sesión**: Supabase Auth (email + password). El JWT lo gestiona el SDK; la sesión sobrevive a reinicios del proceso mientras el token no expire.
-- **Perfil de usuario** (`nombre`, `email`, `rol`): Supabase Postgres, tabla `perfiles`. Se lee en cada login vía PostgREST. Sin caché local por ahora.
-- **Carrito y métodos de pago**: persistidos en Room. Sobreviven a reinicios de la app.
-- **Menú y locales**: hardcodeados en las pantallas. Sin backend.
-- **Pedidos activos**: sin persistencia. Simulados con estado local en la sesión.
+| Dato | Fuente | Persistencia |
+|---|---|---|
+| Sesión de usuario | Supabase Auth | DataStore (`qless_session`) si "Mantener sesión" activo |
+| Perfil (`nombre`, `email`, `rol`) | Supabase `perfiles` | En memoria (leído en cada login/restore) |
+| Favoritos del usuario (`favoritos uuid[]`) | Supabase `perfiles` | En `AuthUiState` durante la sesión |
+| Locales gastronómicos | Supabase `locales` | Sin caché local (siempre desde red) |
+| Carrito | Room | Sobrevive a reinicios |
+| Métodos de pago | Room | Sobrevive a reinicios |
+| Tema oscuro / onboarding | DataStore (`qless_settings`) | Permanente |
+| Menú y pedidos activos | Hardcodeado / simulado | Sin persistencia |
 
 ---
 
@@ -367,48 +402,44 @@ ktor                                 = "3.1.3"   # ktor-client-okhttp
 
 ### Backend e integración de red
 
-- Conectar menú, locales y pedidos a Supabase PostgREST (ya integrado para `perfiles`).
-- Manejar errores de conectividad y modo offline básico (RF4): cachear el último menú en Room.
+- ~~Conectar locales a Supabase PostgREST~~ ✓ (tabla `locales` + RLS)
+- ~~Favoritos del usuario desde Supabase~~ ✓ (columna `favoritos uuid[]` en `perfiles`)
+- Conectar menú y pedidos a Supabase PostgREST.
+- Manejar errores de conectividad y modo offline básico (RF4): cachear el último menú y locales en Room.
 
-### Autenticación (parcialmente completo)
+### Autenticación
 
-- ~~Integrar autenticación real con email/password~~ ✓ (Supabase Auth)
-- ~~Leer perfil de usuario desde Postgres~~ ✓ (tabla `perfiles` + RLS + trigger)
+- ~~Autenticación real con email/password~~ ✓ (Supabase Auth)
+- ~~Perfil de usuario desde Postgres~~ ✓ (tabla `perfiles` + RLS + trigger)
+- ~~Persistencia de sesión entre reinicios~~ ✓ (SessionStorage + DataStore + importSession)
 - Google Sign-In real (RF3): pendiente.
 - Cachear perfil en Room para lectura offline.
 - Eliminar cuenta: requiere Supabase Edge Function con service role (actualmente solo hace sign-out).
+- Agregar / quitar favoritos desde la UI (hoy solo se leen, la modificación se hace desde SQL).
 
 ### Clean Architecture
 
-- Introducir capa `domain/` con modelos puros y casos de uso (`LoginUseCase`, `AddToCartUseCase`, etc.).
+- Introducir capa `domain/` con modelos puros y casos de uso.
 - Definir interfaces de repositorio en `domain/` e implementarlas en `data/`.
-- Crear mappers explícitos en `data/mapper/` (actualmente las extension functions `toDomain` / `toEntity` viven en los archivos de entidad).
 
 ### Inyección de dependencias (Hilt)
 
 - Incorporar Hilt para eliminar la instanciación manual de DAOs y repositorios dentro de los ViewModels.
-- Anotar ViewModels con `@HiltViewModel` + `@Inject constructor`.
-- Migrar de `AndroidViewModel` (que requiere `Application`) a `ViewModel` regular una vez que el contexto lo provea Hilt.
-
-### Interfaces de repositorio
-
-- Convertir `UserRepository`, `CartRepository` y `PaymentMethodRepository` de clases concretas a implementaciones de interfaces, para permitir dobles de test.
+- Migrar de `AndroidViewModel` a `ViewModel` regular una vez que el contexto lo provea Hilt.
 
 ### Pruebas (RF5)
 
 - Unit tests de ViewModels con JUnit4 + MockK y repositorios falsos.
 - Tests de composables stateless con Compose Testing.
-- Métricas de cobertura.
 
 ### Accesibilidad
 
 - Auditar `contentDescription` en todos los elementos interactivos.
 - Verificar tamaños de fuente escalables y contraste en dark mode.
-- Internacionalización (strings.xml en inglés como base).
 
 ### Sensor real
 
-- Integrar CameraX + ML Kit para lectura real de QR (reemplazar la simulación actual).
+- ~~Integrar CameraX + ML Kit para lectura real de QR~~ ✓ (implementado, simulado con timer de 5 s)
 
 ### Migración de base de datos
 
