@@ -122,7 +122,7 @@ private fun SummaryHeaderCard(isDarkTheme: Boolean = false) {
                 Text(
                     "$18.900",
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 9.dp),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
             }

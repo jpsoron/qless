@@ -6,9 +6,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,9 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.graphics.vector.ImageVector
+import com.qless.ui.components.BackOfficeBottomNav
 import com.qless.ui.theme.*
 
 @Composable
@@ -59,9 +55,14 @@ fun BackOfficeAjustesScreen(
 
     Scaffold(
         bottomBar = {
-            BackOfficeAjustesBottomNav(
-                onNavigateToOrders = onNavigateToOrders,
-                onNavigateToHistory = onNavigateToHistory
+            BackOfficeBottomNav(
+                selectedTab = 2,
+                onTabSelected = { tab ->
+                    when (tab) {
+                        0 -> onNavigateToOrders()
+                        1 -> onNavigateToHistory()
+                    }
+                }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -176,55 +177,3 @@ fun BackOfficeAjustesScreen(
     }
 }
 
-@Composable
-private fun BackOfficeAjustesBottomNav(
-    onNavigateToOrders: () -> Unit,
-    onNavigateToHistory: () -> Unit
-) {
-    Surface(
-        color = Color.White,
-        shadowElevation = 8.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .zIndex(100f)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AjustesNavItem(Icons.AutoMirrored.Filled.List, "Pedidos en curso", false, onNavigateToOrders)
-            AjustesNavItem(Icons.Outlined.DateRange, "Historial", false, onNavigateToHistory)
-            AjustesNavItem(Icons.Default.Settings, "Ajustes", true, {})
-        }
-    }
-}
-
-@Composable
-private fun AjustesNavItem(
-    icon: ImageVector,
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick)
-    ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.size(24.dp)
-        )
-        Text(
-            label,
-            fontSize = 10.sp,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-        )
-    }
-}

@@ -513,7 +513,9 @@ fun AppNavigation(
         }
 
         composable(Screen.PickupSuccess.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             PickupSuccessScreen(
+                isDarkTheme = isDarkTheme,
                 onGoHome = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }

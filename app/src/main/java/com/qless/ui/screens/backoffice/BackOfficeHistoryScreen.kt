@@ -10,20 +10,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.components.BackOfficeBottomNav
 import com.qless.ui.theme.*
 
 @Composable
@@ -77,7 +73,7 @@ fun BackOfficeHistoryScreen(
                 Spacer(Modifier.weight(1f))
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = Color.White,
+                    color = if (QLessTheme.isDark) MaderaOscura else Color.White,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Text(
@@ -104,7 +100,7 @@ fun BackOfficeHistoryScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                color = Color.White,
+                color = if (QLessTheme.isDark) MaderaOscura else Color.White,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
@@ -219,7 +215,7 @@ private fun HistoryOrderCard(
             .fillMaxWidth()
             .padding(vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
-        color = Color.White,
+        color = if (QLessTheme.isDark) MaderaOscura else Color.White,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
     ) {
         Row(
@@ -299,7 +295,7 @@ private fun HistoryOrderCard(
 private fun FilterChip(selected: Boolean, text: String) {
     Surface(
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
+        color = if (selected) MaterialTheme.colorScheme.primary else if (QLessTheme.isDark) MaderaOscura else Color.White,
         border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Text(
@@ -308,59 +304,6 @@ private fun FilterChip(selected: Boolean, text: String) {
             style = MaterialTheme.typography.bodyMedium,
             color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-        )
-    }
-}
-
-@Composable
-private fun BackOfficeBottomNav(
-    selectedTab: Int,
-    onTabSelected: (Int) -> Unit
-) {
-    Surface(
-        color = Color.White,
-        shadowElevation = 8.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .zIndex(100f)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            NavItem(Icons.AutoMirrored.Filled.List, "Pedidos en curso", selectedTab == 0) { onTabSelected(0) }
-            NavItem(Icons.Outlined.DateRange, "Historial", selectedTab == 1) { onTabSelected(1) }
-            NavItem(Icons.Default.Settings, "Ajustes", selectedTab == 2) { onTabSelected(2) }
-        }
-    }
-}
-
-@Composable
-private fun NavItem(
-    icon: ImageVector,
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick)
-    ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.size(24.dp)
-        )
-        Text(
-            label,
-            fontSize = 10.sp,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }

@@ -25,6 +25,7 @@ import com.qless.ui.theme.*
 
 @Composable
 fun PickupSuccessScreen(
+    isDarkTheme: Boolean = false,
     onGoHome: () -> Unit,
     onViewSummary: () -> Unit
 ) {
@@ -182,7 +183,10 @@ fun PickupSuccessScreen(
                     onClick = onGoHome,
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDarkTheme) Pimentón else MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text("Volver al inicio", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
