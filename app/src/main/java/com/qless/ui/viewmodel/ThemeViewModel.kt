@@ -20,7 +20,18 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
             initialValue = false
         )
 
+    val isOnboardingCompleted: StateFlow<Boolean> = repository.isOnboardingCompleted
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = false
+        )
+
     fun setDarkMode(enabled: Boolean) {
         viewModelScope.launch { repository.setDarkMode(enabled) }
+    }
+
+    fun setOnboardingCompleted() {
+        viewModelScope.launch { repository.setOnboardingCompleted() }
     }
 }
