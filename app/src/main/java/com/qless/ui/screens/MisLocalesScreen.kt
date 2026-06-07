@@ -51,6 +51,7 @@ private val locales = listOf(
 @Composable
 fun MisLocalesScreen(
     misLocalesViewModel: MisLocalesViewModel,
+    isDarkTheme: Boolean = false,
     onLocalSelected: () -> Unit,
     onBack: () -> Unit,
     onNavigateToInicio: () -> Unit,
@@ -108,8 +109,11 @@ fun MisLocalesScreen(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFE8F5EE),
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFB8DEC8))
+                    color = if (isDarkTheme) Albahaca else Color(0xFFE8F5EE),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.5.dp,
+                        if (isDarkTheme) Albahaca else Color(0xFFB8DEC8)
+                    )
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
@@ -119,7 +123,7 @@ fun MisLocalesScreen(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(RoundedCornerShape(999.dp))
-                                .background(QLessStatusColors.disponible),
+                                .background(if (isDarkTheme) Color.Black else QLessStatusColors.disponible),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
@@ -130,31 +134,39 @@ fun MisLocalesScreen(
                                 "¿Estás en Big Pons - San Isidro?",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 "Av. del Libertador 1420, San Isidro",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isDarkTheme) Color.White.copy(alpha = 0.75f) else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Spacer(Modifier.width(8.dp))
                         Button(
                             onClick = onNavigateToLocationDetected,
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isDarkTheme) Color.Black else MaterialTheme.colorScheme.primary,
+                                contentColor = Color.White
+                            ),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             modifier = Modifier.height(32.dp)
                         ) {
                             Text("Sí", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         }
                         Spacer(Modifier.width(6.dp))
-                        OutlinedButton(
+                        Button(
                             onClick = {},
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             modifier = Modifier.height(32.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isDarkTheme) Color.Black else Color.Transparent,
+                                contentColor = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            border = if (isDarkTheme) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
+                            elevation = ButtonDefaults.buttonElevation(0.dp)
                         ) {
-                            Text("No", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("No", fontSize = 12.sp)
                         }
                     }
                 }
@@ -217,7 +229,7 @@ fun MisLocalesScreen(
                         .fillMaxWidth()
                         .clickable { onNavigateToScanQr() },
                     shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Pimentón
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),
@@ -227,7 +239,7 @@ fun MisLocalesScreen(
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White.copy(alpha = 0.1f)),
+                                .background(Color.Black),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
@@ -314,11 +326,8 @@ private fun LocalCard(local: LocalItem, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(enabled = local.isOpen) { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = if (local.isFeatured) Color(0xFFFFF5F0) else MaterialTheme.colorScheme.surfaceVariant,
-        border = androidx.compose.foundation.BorderStroke(
-            1.5.dp,
-            if (local.isFeatured) MaterialTheme.colorScheme.inversePrimary else MaterialTheme.colorScheme.primaryContainer
-        )
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(

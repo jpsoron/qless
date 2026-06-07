@@ -48,6 +48,7 @@ private val featured = listOf(
 @Composable
 fun HomeScreen(
     userName: String,
+    isDarkTheme: Boolean = false,
     onNavigateToMisLocales: () -> Unit,
     onNavigateToTracking: () -> Unit,
     onNavigateToMisPedidos: () -> Unit,
@@ -95,27 +96,27 @@ fun HomeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(Pimentón)
                     .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 14.dp),
+                    .padding(start = 20.dp, end = 20.dp, top = 2.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_qless_blanco),
                     contentDescription = null,
                     tint = Color.Unspecified,
-                    modifier = Modifier.size(76.dp)
+                    modifier = Modifier.size(66.dp)
                 )
                 Spacer(Modifier.width(10.dp))
                 Column {
                     Text(
                         "QLess",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineMedium,
                         color = Color.White
                     )
                     Text(
                         "Tu comida, sin filas.",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = Color.White.copy(alpha = 0.65f)
                     )
                 }
@@ -194,8 +195,11 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .clickable { onNavigateToTracking() },
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFFE8F5EE),
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFB8DEC8))
+                    color = if (isDarkTheme) Albahaca else Color(0xFFE8F5EE),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.5.dp,
+                        if (isDarkTheme) Albahaca else Color(0xFFB8DEC8)
+                    )
                 ) {
                     Row(
                         modifier = Modifier.padding(14.dp),
@@ -206,7 +210,7 @@ fun HomeScreen(
                                 .size(44.dp)
                                 .scale(pulseScale)
                                 .clip(CircleShape)
-                                .background(QLessStatusColors.disponible),
+                                .background(if (isDarkTheme) Color.Black else QLessStatusColors.disponible),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -222,21 +226,26 @@ fun HomeScreen(
                                 "PEDIDO EN CURSO",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = QLessStatusColors.disponible,
+                                color = if (isDarkTheme) Color.White else QLessStatusColors.disponible,
                                 letterSpacing = 0.8.sp
                             )
                             Text(
                                 "Big Pons · #4521",
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 "En preparación · ~12 min",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isDarkTheme) Color.White.copy(alpha = 0.75f) else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Text("Ver →", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text(
+                            "Ver →",
+                            color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp
+                        )
                     }
                 }
 
