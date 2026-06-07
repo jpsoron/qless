@@ -54,7 +54,7 @@ fun LocationDetectedScreen(
                 modifier = Modifier
                     .size(110.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f))
+                    .background(Pimentón.copy(alpha = 0.18f))
             )
             Box(
                 modifier = Modifier
@@ -67,7 +67,7 @@ fun LocationDetectedScreen(
                             bottomStart = 31.dp
                         )
                     )
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(Pimentón),
                 contentAlignment = Alignment.Center
             ) {
                 Text("🍔", fontSize = 28.sp)
@@ -131,18 +131,20 @@ fun LocationDetectedScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedButton(
+                Button(
                     onClick = onRejectLocation,
                     modifier = Modifier
                         .weight(0.9f)
                         .height(72.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Pimentón,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text(
                         "No,\ngracias",
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = Color.White,
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
@@ -156,7 +158,7 @@ fun LocationDetectedScreen(
                         .weight(1.55f)
                         .height(72.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 10.dp)
                 ) {
                     Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))

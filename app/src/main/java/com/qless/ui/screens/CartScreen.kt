@@ -24,6 +24,7 @@ import com.qless.ui.theme.*
 @Composable
 fun CartScreen(
     cartViewModel: CartViewModel,
+    isDarkTheme: Boolean = false,
     onConfirm: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -76,7 +77,10 @@ fun CartScreen(
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                         .height(52.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDarkTheme) Pimentón else MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text(
                         "Confirmar pedido — $${"%,d".format(total)}",
