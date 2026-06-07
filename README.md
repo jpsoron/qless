@@ -14,14 +14,15 @@ app/src/main/java/com/qless/
 ├── data/
 │   ├── CartItem.kt / CartRepository.kt
 │   ├── Local.kt / LocalesRepository.kt
+│   ├── MenuItem.kt / MenuRepository.kt  # Menú real desde Supabase
 │   ├── PaymentMethod.kt / PaymentMethodRepository.kt
 │   ├── SessionStorage.kt            # Persistencia de sesión (DataStore)
 │   ├── ThemeRepository.kt           # Dark mode + onboarding (DataStore)
 │   ├── UserRepository.kt            # Auth + perfil + sesión persistente
-│   └── local/                       # Room: QLessDatabase, DAOs y Entities
-│   └── remote/                      # Supabase: Auth, Locales, Profile DataSources + DTOs
+│   └── local/                       # Room: QLessDatabase (v4), DAOs y Entities
+│   └── remote/                      # Supabase: Auth, Locales, Menu, Profile DataSources + DTOs
 └── ui/
-    ├── viewmodel/                   # AuthViewModel, HomeViewModel, MisLocalesViewModel, ...
+    ├── viewmodel/                   # AuthViewModel, HomeViewModel, MenuViewModel, ...
     ├── components/                  # QLessBottomNav
     ├── screens/                     # Todas las pantallas de la app
     └── theme/                       # Colores, tipografía y tema
@@ -61,10 +62,13 @@ Cuenta de prueba lista para usar:
    - Si es la primera vez: pasás por el Onboarding antes del Login.
    - Registrate o iniciá sesión con las credenciales de la tabla de arriba.
    - Activá el checkbox **"Mantener sesión abierta"** para no tener que volver a loguearte en próximas aperturas.
-2. **Detección de ubicación**
-   - Confirmá la ubicación sugerida para ir directo al menú, o buscá otro local manualmente.
+2. **Selección de local**
+   - Desde **Home**: tocá un local favorito para ir directo a su menú.
+   - Desde **Mis Locales**: tocá cualquier local de la lista. Si el banner "¿Estás en Big Pons?" aparece, podés tocar **"Sí"** para ir directo a ese menú, o **"No"** para cerrarlo.
 3. **Menú → Carrito → Pago**
-   - Agregá ítems al carrito, revisá el resumen y confirmá el pago.
+   - El menú muestra los productos reales del local desde Supabase.
+   - Si intentás entrar al menú de un local distinto teniendo ítems en el carrito, la app te avisa y te pregunta si querés limpiar el pedido actual o volver.
+   - Agregá ítems, revisá el resumen y confirmá el pago.
 4. **Seguimiento del pedido**
    - En la pantalla de Tracking aparece el botón **"Simular: Pedido Listo"** — usalo para avanzar al estado de retiro.
 5. **Retiro**
@@ -92,8 +96,10 @@ Cuenta de prueba lista para usar:
 - **Autenticación:** conectada a Supabase Auth. Requiere conexión a internet para login y registro.
 - **Perfil:** nombre, rol y favoritos se leen desde la tabla `perfiles` en Supabase Postgres.
 - **Locales:** cargados en tiempo real desde la tabla `locales` en Supabase Postgres.
-- **Favoritos:** la sección "Tus favoritos" en Home muestra los locales guardados en el perfil del usuario.
+- **Favoritos:** la sección "Tus favoritos" en Home muestra los locales guardados en el perfil del usuario. Tocar uno navega directamente a su menú.
+- **Menú:** cargado en tiempo real desde la tabla `menu_items` en Supabase Postgres. Cada local tiene su propia carta con categorías, precios y productos.
+- **Carrito por local:** solo se pueden agregar productos de un mismo local. Al intentar entrar al menú de otro local con ítems en el carrito, aparece un diálogo de confirmación.
 - **Sesión persistente:** si iniciás sesión con "Mantener sesión abierta", la app te reconoce automáticamente en próximas aperturas (hasta que cerrés sesión explícitamente).
 - El carrito y los métodos de pago persisten entre sesiones (Room local).
-- Los datos de menú y pedidos son estáticos/simulados (sin backend todavía).
+- Los pedidos activos son simulados (sin backend todavía).
 - La navegación con el botón físico de atrás de Android está soportada en todas las pantallas.

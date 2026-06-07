@@ -18,7 +18,7 @@ Dos actores principales:
 1. Onboarding inicial con presentación de la propuesta de valor y descuento de bienvenida del 10 %.
 2. Registro e inicio de sesión con email/contraseña. Login federado con Google (simulado).
 3. Detección de local por GPS o escaneo de QR de mesa.
-4. Navegación del menú del local y armado del carrito.
+4. Navegación del menú real del local (cargado desde Supabase) y armado del carrito.
 5. Confirmación del pedido y selección del método de pago.
 6. Seguimiento del estado del pedido (beeper virtual) con timeline en tiempo real.
 7. Confirmación de retiro y pantalla de éxito.
@@ -58,7 +58,7 @@ Tipografía: **Lora** (Display, Headline) + **Plus Jakarta Sans** (UI funcional:
 
 ## Descripción General
 
-QLess es una aplicación Android nativa orientada al pedido anticipado en locales gastronómicos. El usuario escanea un código QR o selecciona un local, arma su pedido desde el menú, lo confirma y realiza el pago desde la aplicación, evitando filas en el punto de venta. El local recibe el pedido y notifica cuando está listo para retirar.
+QLess es una aplicación Android nativa orientada al pedido anticipado en locales gastronómicos. El usuario escanea un código QR o selecciona un local, arma su pedido desde el menú real del local (cargado en tiempo real desde Supabase), lo confirma y realiza el pago desde la aplicación, evitando filas en el punto de venta. El local recibe el pedido y notifica cuando está listo para retirar.
 
 ---
 
@@ -91,40 +91,44 @@ com.qless
 ├── navigation/
 │   └── AppNavigation.kt             — NavHost con 29 rutas (sealed class Screen)
 ├── data/
-│   ├── CartItem.kt                  — modelo de dominio
+│   ├── CartItem.kt                  — modelo de dominio (incluye localId)
 │   ├── CartRepository.kt
 │   ├── Local.kt                     — modelo de dominio (local gastronómico)
 │   ├── LocalesRepository.kt         — getLocales() + getFavoritos(ids)
+│   ├── MenuItem.kt                  — modelo de dominio (ítem de menú)
+│   ├── MenuRepository.kt            — getMenu(localId)
 │   ├── PaymentMethod.kt             — modelo de dominio
 │   ├── PaymentMethodRepository.kt
 │   ├── SessionStorage.kt            — persistencia de sesión en DataStore (qless_session)
 │   ├── ThemeRepository.kt           — dark mode + onboarding en DataStore (qless_settings)
 │   ├── UserRepository.kt            — auth + perfil + sesión persistente
 │   ├── local/
-│   │   ├── QLessDatabase.kt         — singleton RoomDatabase (v3)
+│   │   ├── QLessDatabase.kt         — singleton RoomDatabase (v4)
 │   │   ├── dao/
 │   │   │   ├── CartItemDao.kt
 │   │   │   ├── PaymentMethodDao.kt
 │   │   │   └── UserDao.kt
 │   │   └── entity/
-│   │       ├── CartItemEntity.kt
+│   │       ├── CartItemEntity.kt    — incluye campo localId
 │   │       ├── PaymentMethodEntity.kt
 │   │       └── UserEntity.kt
 │   └── remote/
 │       ├── SupabaseClient.kt              — singleton (URL + anon key desde BuildConfig)
 │       ├── AuthRemoteDataSource.kt        — signIn, signUp, signOut, getCurrentSessionJson, tryImportSession
 │       ├── LocalesRemoteDataSource.kt     — fetchLocales(), fetchLocalesByIds(ids)
+│       ├── MenuRemoteDataSource.kt        — fetchMenuForLocal(localId)
 │       ├── ProfileRemoteDataSource.kt     — fetchProfile() desde tabla `perfiles`
 │       └── dto/
 │           ├── LocalDto.kt               — DTO @Serializable + toDomain()
+│           ├── MenuItemDto.kt            — DTO @Serializable + toDomain()
 │           └── Perfil.kt                 — DTO @Serializable (id, nombre, email, rol, favoritos)
 └── ui/
     ├── viewmodel/
     │   ├── AuthViewModel.kt           — AuthUiState + AuthNavEvent + checkExistingSession()
-    │   ├── CartViewModel.kt
+    │   ├── CartViewModel.kt           — incluye cartLocalId y addItem con localId
     │   ├── HomeViewModel.kt           — HomeUiState (favoritos) + loadFavoritos(ids)
     │   ├── MisLocalesViewModel.kt     — MisLocalesUiState (locales desde Supabase)
-    │   ├── MenuViewModel.kt
+    │   ├── MenuViewModel.kt           — carga menú real desde Supabase por localId
     │   ├── PaymentMethodViewModel.kt
     │   └── ThemeViewModel.kt          — dark mode + onboarding
     ├── components/
@@ -135,12 +139,12 @@ com.qless
     │   ├── LoginScreen.kt             — checkbox "Mantener sesión" funcional
     │   ├── RegisterScreen.kt
     │   ├── GoogleLoginScreen.kt
-    │   ├── HomeScreen.kt              — favoritos reales desde Supabase (HomeViewModel)
+    │   ├── HomeScreen.kt              — favoritos reales; tap navega directo al menú del local
     │   ├── LocationDetectedScreen.kt
-    │   ├── MisLocalesScreen.kt        — locales reales desde Supabase (MisLocalesViewModel)
+    │   ├── MisLocalesScreen.kt        — locales reales; banner geo con dismiss funcional
     │   ├── ScanearQrScreen.kt
     │   ├── QrNoReconocidoScreen.kt
-    │   ├── MenuScreen.kt
+    │   ├── MenuScreen.kt              — menú real desde Supabase; header dinámico por local
     │   ├── CartScreen.kt
     │   ├── PaymentScreen.kt
     │   ├── AgregarMetodoDePagoScreen.kt
@@ -176,7 +180,7 @@ La aplicación implementa MVVM con patrón Repository sobre tres capas.
 
 **Entidades Room (persistencia local):**
 
-- `CartItemEntity`: producto en carrito. PK: `name`.
+- `CartItemEntity`: producto en carrito. PK: `name`. Incluye `localId: String` para rastrear a qué local pertenece cada ítem del carrito.
 - `PaymentMethodEntity`: método de pago. PK: `id` (UUID).
 - `UserEntity`: disponible para caché de perfil (actualmente no usado para auth).
 
@@ -189,25 +193,29 @@ La aplicación implementa MVVM con patrón Repository sobre tres capas.
 **Modelos de dominio:**
 
 - `Local`: representa un local gastronómico. Campos: `id`, `emoji`, `nombre`, `categoria`, `barrio`, `rating`, `tiempoEntrega`, `abierto`, `tienePromo`, `destacado`.
+- `MenuItem`: ítem del menú de un local. Campos: `id`, `localId`, `emoji`, `nombre`, `descripcion`, `precio`, `categoria`, `esPopular`, `disponible`.
 - `RemoteUser`: usuario autenticado. Campos: `name`, `email`, `role`, `favoritos: List<String>`.
 
 **Repositorios:**
 
-- `CartRepository`: expone un `Flow` del carrito. `addItem()` hace upsert.
+- `CartRepository`: expone un `Flow` del carrito. `addItem(emoji, name, detail, unitPrice, currentQuantity, localId)` hace upsert guardando el `localId` de procedencia.
 - `PaymentMethodRepository`: expone un `Flow` de métodos de pago.
 - `LocalesRepository`: `getLocales()` trae todos los locales desde Supabase. `getFavoritos(ids)` trae solo los locales cuyas UUIDs coinciden con la lista provista.
+- `MenuRepository`: `getMenu(localId)` trae todos los ítems del menú del local indicado desde Supabase, ordenados por `orden`.
 - `UserRepository`: orquesta auth + perfil + persistencia de sesión. `login(email, password, rememberMe)` encadena sign-in + fetch de perfil; si `rememberMe=true`, guarda el JSON de sesión en `SessionStorage`. `logout()` hace sign-out y borra la sesión guardada. `tryRestoreSession()` carga el JSON de sesión desde `SessionStorage`, importa la sesión en supabase-kt (con auto-refresh del token) y retorna `RemoteUser?`.
 
 **RemoteDataSources:**
 
 - `AuthRemoteDataSource`: wrappea Supabase Auth SDK. `signIn()` y `signUp()` retornan `Result<Unit>`. `getCurrentSessionJson()` serializa la sesión activa a JSON. `tryImportSession(json)` deserializa e importa la sesión con `auth.importSession(session, autoRefresh = true)`, que renueva el access token si expiró.
 - `LocalesRemoteDataSource`: `fetchLocales()` trae todos los registros de la tabla `locales` vía PostgREST. `fetchLocalesByIds(ids)` filtra por `id IN (...)` usando el DSL de filtros de supabase-kt.
+- `MenuRemoteDataSource`: `fetchMenuForLocal(localId)` filtra `menu_items` por `local_id = localId` y ordena por `orden`.
 - `ProfileRemoteDataSource`: `fetchProfile()` retorna el perfil del usuario autenticado desde la tabla `perfiles` (RLS garantiza que solo se retorna el propio perfil).
 
 **DTOs:**
 
 - `Perfil`: `id`, `nombre`, `email`, `rol`, `favoritos: List<String>` — mapea la tabla `perfiles` incluyendo el array de UUIDs favoritos.
 - `LocalDto`: mapea la tabla `locales`. `toDomain()` convierte al modelo `Local`.
+- `MenuItemDto`: mapea la tabla `menu_items`. Campos: `id`, `local_id`, `emoji`, `nombre`, `descripcion`, `precio`, `categoria`, `es_popular`, `disponible`, `orden`. `toDomain()` convierte al modelo `MenuItem`.
 
 **Persistencia de sesión (`SessionStorage`):**
 
@@ -216,7 +224,8 @@ Guarda el JSON de la sesión de Supabase en un DataStore propio (`qless_session`
 **Supabase (Postgres):**
 
 - Tabla `perfiles`: `id` (uuid FK → `auth.users`), `nombre`, `email`, `rol` (`USER` | `BACK_OFFICE`), `favoritos` (`uuid[]`, default `{}`). RLS habilitado: SELECT con `using(true)`, UPDATE con `auth.uid() = id`. Trigger `on_auth_user_created` inserta automáticamente al registrarse.
-- Tabla `locales`: `id` (uuid PK), `nombre`, `emoji`, `categoria`, `barrio`, `direccion`, `rating`, `tiempo_entrega`, `abierto`, `tiene_promo`, `destacado`. RLS con `using(true)`. Setup en `SUPABASE_LOCALES.md`.
+- Tabla `locales`: `id` (uuid PK), `nombre`, `emoji`, `categoria`, `barrio`, `direccion`, `rating`, `tiempo_entrega`, `abierto`, `tiene_promo`, `destacado`. RLS con `using(true)`.
+- Tabla `menu_items`: `id` (uuid PK), `local_id` (uuid FK → `locales(id)` ON DELETE CASCADE), `nombre`, `descripcion`, `emoji`, `precio` (integer), `categoria`, `es_popular` (boolean), `disponible` (boolean), `orden` (integer). RLS con `using(true)`. Cada local tiene su propia carta; los ítems se filtran por `local_id`.
 
 ---
 
@@ -251,9 +260,9 @@ Las pantallas colectan eventos en un `LaunchedEffect(Unit)`.
 | `AuthViewModel` | `AuthUiState` | Login, registro, logout, deleteAccount. Restaura sesión en `init {}`. Mapea errores de Supabase a mensajes en español. |
 | `HomeViewModel` | `HomeUiState` | Carga los locales favoritos del usuario por ID desde Supabase. `loadFavoritos(ids)` es llamado desde AppNavigation con `LaunchedEffect`. |
 | `MisLocalesViewModel` | `MisLocalesUiState` | Carga la lista completa de locales desde Supabase en `init {}`. |
-| `CartViewModel` | `CartUiState` | Colecciona el Flow del repositorio de carrito. |
+| `CartViewModel` | `CartUiState` | Colecciona el Flow del repositorio de carrito. Expone `cartLocalId: String` (id del local del carrito activo). `addItem` incluye `localId` para asociar cada ítem a su local. |
 | `PaymentMethodViewModel` | `PaymentMethodUiState` | Siembra métodos por defecto si la tabla está vacía. |
-| `MenuViewModel` | `MenuUiState` | Gestiona `isLoading` y `selectedCategory`. |
+| `MenuViewModel` | `MenuUiState` | Carga el menú real del local desde Supabase con `loadMenu(localId)`. Deriva categorías y `selectedCategory` inicial de los ítems recibidos. Scoped por backstack entry. |
 | `ThemeViewModel` | — | Dark mode + onboarding completado (DataStore). |
 
 **UiState relevantes:**
@@ -281,6 +290,13 @@ data class MisLocalesUiState(
     val locales: List<Local> = emptyList(),
     val error: String? = null,
 )
+
+data class MenuUiState(
+    val isLoading: Boolean = true,
+    val items: List<MenuItem> = emptyList(),
+    val selectedCategory: String = "",
+    val error: String? = null,
+)
 ```
 
 **AuthNavEvent:**
@@ -297,13 +313,14 @@ sealed interface AuthNavEvent {
 #### Pantallas con estado real
 
 - `LoginScreen`: colecta `AuthUiState` y el SharedFlow de nav events. El checkbox "Mantener sesión" pasa el flag `rememberMe` a `authViewModel.login()`.
-- `HomeScreen`: recibe `HomeViewModel`. Muestra los locales favoritos del usuario cargados desde Supabase, con shimmer skeleton durante la carga y mensaje vacío si no hay favoritos.
-- `MisLocalesScreen`: recibe `MisLocalesViewModel`. Muestra la lista completa de locales desde Supabase con skeleton de carga.
+- `HomeScreen`: recibe `HomeViewModel` y `onLocalSelected: (localId: String) -> Unit`. Muestra los locales favoritos cargados desde Supabase; tocar una card navega directamente al menú de ese local (no a la lista de locales).
+- `MisLocalesScreen`: recibe `MisLocalesViewModel`. Lista de locales desde Supabase con skeleton de carga. Banner de geolocalización con botón "No" funcional que oculta el banner mediante estado local (`var showGeoBanner`). Tocar "Sí" navega directo al menú del local detectado.
+- `MenuScreen`: recibe `local: Local?` y `menuViewModel`. El header muestra `emoji`, `nombre`, `categoria`, `barrio`, `rating` y `tiempoEntrega` del local real. El chip de promo solo aparece si `tienePromo == true`. Los ítems y categorías provienen de `MenuUiState.items` cargados desde Supabase; el filtro por categoría está completamente conectado.
 - `CerrarSesionScreen` / `EliminarCuentaScreen`: muestran nombre y email del usuario activo desde `AuthUiState`.
 
 ### Navegación
 
-`AppNavigation.kt` define un `NavHost` con 29 rutas. Los ViewModels se instancian una única vez y se pasan como parámetros.
+`AppNavigation.kt` define un `NavHost` con 29 rutas. La mayoría de ViewModels se instancian una única vez a nivel de `AppNavigation`; `MenuViewModel` es la excepción — se instancia dentro del composable de `Screen.Menu` para que quede scoped al backstack entry.
 
 **ViewModels instanciados en AppNavigation:**
 
@@ -311,9 +328,47 @@ sealed interface AuthNavEvent {
 val authViewModel: AuthViewModel = viewModel()
 val cartViewModel: CartViewModel = viewModel()
 val paymentViewModel: PaymentMethodViewModel = viewModel()
-val menuViewModel: MenuViewModel = viewModel()
 val misLocalesViewModel: MisLocalesViewModel = viewModel()
 val homeViewModel: HomeViewModel = viewModel()
+// MenuViewModel se crea dentro del composable Screen.Menu (scoped por entry)
+```
+
+**Ruta del menú con argumento:**
+
+```kotlin
+object Menu : Screen("menu/{localId}") {
+    fun route(localId: String) = "menu/$localId"
+}
+
+composable(
+    route = Screen.Menu.route,
+    arguments = listOf(navArgument("localId") { type = NavType.StringType })
+) { backStackEntry ->
+    val localId = backStackEntry.arguments?.getString("localId") ?: ""
+    val local = misLocalesViewModel.uiState.value.locales.firstOrNull { it.id == localId }
+    val menuViewModel: MenuViewModel = viewModel()
+    LaunchedEffect(Unit) { menuViewModel.loadMenu(localId) }
+    MenuScreen(cartViewModel, menuViewModel, local, ...)
+}
+```
+
+**Protección de carrito por local (conflicto de pedido):**
+
+Toda navegación al menú pasa por la función `navigateToMenu(localId, popUpRoute?)` definida en `AppNavigation`. Si el carrito ya contiene ítems de un local diferente, se muestra un `AlertDialog` con dos opciones:
+
+- **"Nuevo pedido"**: limpia el carrito y navega al menú del nuevo local.
+- **"Mantener pedido"**: cancela la navegación y preserva el carrito actual.
+
+```kotlin
+fun navigateToMenu(localId: String, popUpRoute: String? = null) {
+    val cartLocalId = cartViewModel.cartLocalId
+    if (cartLocalId.isNotEmpty() && cartLocalId != localId && items.isNotEmpty()) {
+        pendingLocalId = localId   // dispara el AlertDialog
+        pendingPopUpRoute = popUpRoute
+    } else {
+        // navegación directa
+    }
+}
 ```
 
 **Flujo de Splash con verificación de sesión:**
@@ -343,7 +398,11 @@ composable(Screen.Home.route) {
     LaunchedEffect(authState.currentUserFavoritos) {
         homeViewModel.loadFavoritos(authState.currentUserFavoritos)
     }
-    HomeScreen(homeViewModel = homeViewModel, ...)
+    HomeScreen(
+        homeViewModel = homeViewModel,
+        onLocalSelected = { localId -> navigateToMenu(localId) },
+        ...
+    )
 }
 ```
 
@@ -360,7 +419,9 @@ Splash (verificación de sesión en paralelo)
   ├── sesión activa → Home / BackOffice (sin pasar por Login)
   └── sin sesión → Onboarding (primera vez) / Login
         └── Login con "Mantener sesión" ✓ → guarda tokens en DataStore
-              → LocationDetected → Menú → Carrito → Pago
+              → Selección de local (GPS / QR / lista)
+              → Menú (cargado desde Supabase para ese local)
+              → Carrito → Pago
               → OrderConfirmed → Tracking → OrderReady → PickupSuccess
 ```
 
@@ -374,10 +435,11 @@ Splash (verificación de sesión en paralelo)
 | Perfil (`nombre`, `email`, `rol`) | Supabase `perfiles` | En memoria (leído en cada login/restore) |
 | Favoritos del usuario (`favoritos uuid[]`) | Supabase `perfiles` | En `AuthUiState` durante la sesión |
 | Locales gastronómicos | Supabase `locales` | Sin caché local (siempre desde red) |
-| Carrito | Room | Sobrevive a reinicios |
+| Menú del local | Supabase `menu_items` | Sin caché local (siempre desde red) |
+| Carrito | Room (con `localId` por ítem) | Sobrevive a reinicios |
 | Métodos de pago | Room | Sobrevive a reinicios |
 | Tema oscuro / onboarding | DataStore (`qless_settings`) | Permanente |
-| Menú y pedidos activos | Hardcodeado / simulado | Sin persistencia |
+| Pedidos activos | Simulado | Sin persistencia |
 
 ---
 
@@ -404,7 +466,8 @@ ktor                                 = "3.1.3"   # ktor-client-okhttp
 
 - ~~Conectar locales a Supabase PostgREST~~ ✓ (tabla `locales` + RLS)
 - ~~Favoritos del usuario desde Supabase~~ ✓ (columna `favoritos uuid[]` en `perfiles`)
-- Conectar menú y pedidos a Supabase PostgREST.
+- ~~Conectar menú a Supabase PostgREST~~ ✓ (tabla `menu_items` + RLS + FK a `locales`)
+- Conectar pedidos a Supabase PostgREST.
 - Manejar errores de conectividad y modo offline básico (RF4): cachear el último menú y locales en Room.
 
 ### Autenticación

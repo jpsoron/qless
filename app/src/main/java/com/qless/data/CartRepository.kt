@@ -12,7 +12,7 @@ class CartRepository(private val dao: CartItemDao) {
     fun getItems(): Flow<List<CartItem>> =
         dao.getAll().map { list -> list.map { it.toDomain() } }
 
-    suspend fun addItem(emoji: String, name: String, detail: String, unitPrice: Int, currentQuantity: Int) {
+    suspend fun addItem(emoji: String, name: String, detail: String, unitPrice: Int, currentQuantity: Int, localId: String) {
         dao.upsert(
             CartItemEntity(
                 name = name,
@@ -20,6 +20,7 @@ class CartRepository(private val dao: CartItemDao) {
                 detail = detail,
                 unitPrice = unitPrice,
                 quantity = currentQuantity + 1,
+                localId = localId,
             )
         )
     }

@@ -35,7 +35,7 @@ import com.qless.ui.theme.*
 fun MisLocalesScreen(
     misLocalesViewModel: MisLocalesViewModel,
     isDarkTheme: Boolean = false,
-    onLocalSelected: () -> Unit,
+    onLocalSelected: (localId: String) -> Unit,
     onBack: () -> Unit,
     onNavigateToInicio: () -> Unit,
     onNavigateToLocationDetected: () -> Unit,
@@ -46,6 +46,7 @@ fun MisLocalesScreen(
     val uiState by misLocalesViewModel.uiState.collectAsState()
     val isLoading = uiState.isLoading
     var selectedTab by remember { mutableIntStateOf(1) }
+    var showGeoBanner by remember { mutableStateOf(true) }
     val shimmerBrush = shimmerBrush()
 
     Scaffold(
@@ -89,7 +90,7 @@ fun MisLocalesScreen(
                 Spacer(Modifier.height(14.dp))
 
                 // Geo banner
-                Surface(
+                if (showGeoBanner) Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     color = if (isDarkTheme) Albahaca else Color(0xFFE8F5EE),
@@ -139,7 +140,7 @@ fun MisLocalesScreen(
                         }
                         Spacer(Modifier.width(6.dp))
                         Button(
-                            onClick = {},
+                            onClick = { showGeoBanner = false },
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             modifier = Modifier.height(32.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -201,7 +202,7 @@ fun MisLocalesScreen(
                     }
                 } else {
                     uiState.locales.forEach { local ->
-                        LocalCard(local = local, onClick = onLocalSelected)
+                        LocalCard(local = local, onClick = { onLocalSelected(local.id) })
                         Spacer(Modifier.height(10.dp))
                     }
                     // DEBUG — borrar antes de entregar
@@ -384,5 +385,5 @@ private fun LocalCard(local: Local, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun MisLocalesPreview() {
-    QLessTheme { MisLocalesScreen(misLocalesViewModel = MisLocalesViewModel(), onLocalSelected = {}, onBack = {}, onNavigateToInicio = {}, onNavigateToLocationDetected = {}, onNavigateToScanQr = {}, onNavigateToMisPedidos = {}, onNavigateToAjustes = {}) }
+    QLessTheme { MisLocalesScreen(misLocalesViewModel = MisLocalesViewModel(), onLocalSelected = { _ -> }, onBack = {}, onNavigateToInicio = {}, onNavigateToLocationDetected = {}, onNavigateToScanQr = {}, onNavigateToMisPedidos = {}, onNavigateToAjustes = {}) }
 }
