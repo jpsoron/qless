@@ -37,6 +37,7 @@ fun HomeScreen(
     userName: String,
     isDarkTheme: Boolean = false,
     onNavigateToMisLocales: () -> Unit,
+    onLocalSelected: (localId: String) -> Unit,
     onNavigateToTracking: () -> Unit,
     onNavigateToMisPedidos: () -> Unit,
     onNavigateToScanQr: () -> Unit,
@@ -275,7 +276,7 @@ fun HomeScreen(
                     }
                     else -> {
                         homeUiState.favoritos.forEach { local ->
-                            RestaurantCard(local = local, onClick = onNavigateToMisLocales)
+                            RestaurantCard(local = local, onClick = { onLocalSelected(local.id) })
                             Spacer(Modifier.height(10.dp))
                         }
                     }
@@ -412,5 +413,5 @@ private fun FavoritoSkeletonCard() {
 @Preview(showBackground = true)
 @Composable
 private fun HomePreview() {
-    QLessTheme { HomeScreen(homeViewModel = HomeViewModel(), userName = "María González", onNavigateToMisLocales = {}, onNavigateToTracking = {}, onNavigateToMisPedidos = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
+    QLessTheme { HomeScreen(homeViewModel = HomeViewModel(), userName = "María González", onNavigateToMisLocales = {}, onLocalSelected = { _ -> }, onNavigateToTracking = {}, onNavigateToMisPedidos = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
 }

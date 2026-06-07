@@ -24,33 +24,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.data.Local
+import com.qless.data.MenuItem
 import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.viewmodel.MenuViewModel
 import com.qless.ui.theme.*
-
-private data class MenuItem(
-    val emoji: String,
-    val name: String,
-    val description: String,
-    val price: Int,
-    val isPopular: Boolean = false,
-    val category: String,
-)
-
-private val menuItems = listOf(
-    MenuItem("🍔", "Combo Big Classic", "Hamburguesa doble, papas y bebida a elección", 4500, true, "Popular"),
-    MenuItem("🧀", "Combo Doble Cheddar", "2 hamburguesas con cheddar, papas y bebida", 5800, false, "Popular"),
-    MenuItem("🥩", "Hamburguesa Simple", "Carne, lechuga, tomate y aderezo de la casa", 3200, false, "Hamburguesas"),
-    MenuItem("🍟", "Papas Fritas Grandes", "Crocantes con salsa a elección", 1200, false, "Papas"),
-    MenuItem("🥤", "Gaseosa 500 ml", "Coca-Cola, Sprite o Fanta", 700, false, "Bebidas"),
-)
-
-private val categories = listOf("🔥 Popular", "Combos", "Hamburguesas", "Papas", "Bebidas", "Postres")
 
 @Composable
 fun MenuScreen(
     cartViewModel: CartViewModel,
     menuViewModel: MenuViewModel,
+    local: Local? = null,
     isDarkTheme: Boolean = false,
     onViewCart: () -> Unit,
     onBack: () -> Unit,
@@ -61,6 +45,16 @@ fun MenuScreen(
     val cartTotal = cartUiState.items.sumOf { it.unitPrice * it.quantity }
     val selectedCategory = menuUiState.selectedCategory
     val isLoading = menuUiState.isLoading
+    val items = menuUiState.items
+    val categories = buildList {
+        if (items.any { it.esPopular }) add("🔥 Popular")
+        addAll(items.map { it.categoria }.distinct())
+    }
+    val filteredItems = when {
+        selectedCategory == "🔥 Popular" -> items.filter { it.esPopular }
+        selectedCategory.isEmpty() -> items
+        else -> items.filter { it.categoria == selectedCategory }
+    }
     val shimmerBrush = shimmerBrush()
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -179,17 +173,18 @@ fun MenuScreen(
                                     .padding(bottom = 20.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("🍔", fontSize = 56.sp)
+                                Text(local?.emoji ?: "🍽️", fontSize = 56.sp)
                                 Spacer(Modifier.height(8.dp))
-                                Text("Big Pons", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                                Text("Hamburguesas & Snacks · San Isidro", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(local?.nombre ?: "", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("${local?.categoria ?: ""} · ${local?.barrio ?: ""}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(Modifier.height(10.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Chip("⭐ 4.8", isDarkTheme)
-                                    Chip("⏱ 15–25 min", isDarkTheme)
-                                    Chip("Mín. $1.500", isDarkTheme)
-                                    Surface(shape = RoundedCornerShape(999.dp), color = if (isDarkTheme) Albahaca else MaterialTheme.colorScheme.primary) {
-                                        Text("10% OFF 1.er pedido", modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.SemiBold)
+                                    local?.rating?.let { Chip("⭐ $it", isDarkTheme) }
+                                    local?.tiempoEntrega?.let { Chip("⏱ $it", isDarkTheme) }
+                                    if (local?.tienePromo == true) {
+                                        Surface(shape = RoundedCornerShape(999.dp), color = if (isDarkTheme) Albahaca else MaterialTheme.colorScheme.primary) {
+                                            Text("10% OFF 1.er pedido", modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.SemiBold)
+                                        }
                                     }
                                 }
                             }
@@ -226,43 +221,40 @@ fun MenuScreen(
                     HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer)
                 }
 
-                // Sección Popular
-                item {
-                    Text(
-                        "🔥 Popular",
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                if (selectedCategory.isNotEmpty()) {
+                    item {
+                        Text(
+                            selectedCategory,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
 
-                items(menuItems.filter { it.isPopular }) { item ->
+                items(filteredItems) { item ->
                     MenuItemCard(
                         item = item,
-                        quantity = cartViewModel.getQuantity(item.name),
-                        onAdd = { cartViewModel.addItem(item.emoji, item.name, item.description, item.price) },
-                        onRemove = { cartViewModel.removeItem(item.name) }
+                        quantity = cartViewModel.getQuantity(item.nombre),
+                        onAdd = { cartViewModel.addItem(item.emoji, item.nombre, item.descripcion, item.precio, local?.id ?: "") },
+                        onRemove = { cartViewModel.removeItem(item.nombre) }
                     )
                 }
 
-                item {
-                    Text(
-                        "🍔 Hamburguesas",
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                items(menuItems.filter { !it.isPopular }) { item ->
-                    MenuItemCard(
-                        item = item,
-                        quantity = cartViewModel.getQuantity(item.name),
-                        onAdd = { cartViewModel.addItem(item.emoji, item.name, item.description, item.price) },
-                        onRemove = { cartViewModel.removeItem(item.name) }
-                    )
+                if (filteredItems.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "Sin ítems en esta categoría",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -395,14 +387,14 @@ private fun MenuItemCard(
             }
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                if (item.isPopular) {
+                if (item.esPopular) {
                     Surface(shape = RoundedCornerShape(999.dp), color = QLessStatusColors.enPreparacion) {
                         Text("Más pedido", modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.SemiBold)
                     }
                     Spacer(Modifier.height(4.dp))
                 }
-                Text(item.name, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium)
-                Text(item.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 16.sp)
+                Text(item.nombre, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium)
+                Text(item.descripcion, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 16.sp)
                 Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -410,7 +402,7 @@ private fun MenuItemCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "$${"%,d".format(item.price)}",
+                        "$${"%,d".format(item.precio)}",
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleMedium

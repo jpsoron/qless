@@ -1,5 +1,9 @@
 package com.qless.navigation
 
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,10 +11,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.compose.runtime.LaunchedEffect
 import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.viewmodel.CartViewModel
@@ -34,7 +40,9 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object MisLocales : Screen("mis_locales")
     object LocationDetected : Screen("location_detected")
-    object Menu : Screen("menu")
+    object Menu : Screen("menu/{localId}") {
+        fun route(localId: String) = "menu/$localId"
+    }
     object Cart : Screen("cart")
     object Payment : Screen("payment")
     object OrderConfirmed : Screen("order_confirmed")
@@ -65,11 +73,60 @@ fun AppNavigation(
     val authViewModel: AuthViewModel = viewModel()
     val cartViewModel: CartViewModel = viewModel()
     val paymentViewModel: PaymentMethodViewModel = viewModel()
-    val menuViewModel: MenuViewModel = viewModel()
     val misLocalesViewModel: MisLocalesViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
+    var currentLocalId by remember { mutableStateOf("") }
+    var pendingLocalId by remember { mutableStateOf<String?>(null) }
+    var pendingPopUpRoute by remember { mutableStateOf<String?>(null) }
+
+    fun navigateToMenu(localId: String, popUpRoute: String? = null) {
+        val cartLocalId = cartViewModel.cartLocalId
+        if (cartLocalId.isNotEmpty() && cartLocalId != localId && cartViewModel.uiState.value.items.isNotEmpty()) {
+            pendingLocalId = localId
+            pendingPopUpRoute = popUpRoute
+        } else {
+            currentLocalId = localId
+            if (popUpRoute != null) {
+                navController.navigate(Screen.Menu.route(localId)) {
+                    popUpTo(popUpRoute) { inclusive = true }
+                }
+            } else {
+                navController.navigate(Screen.Menu.route(localId))
+            }
+        }
+    }
 
     val onboardingCompleted by themeViewModel.isOnboardingCompleted.collectAsStateWithLifecycle()
+
+    if (pendingLocalId != null) {
+        AlertDialog(
+            onDismissRequest = { pendingLocalId = null; pendingPopUpRoute = null },
+            title = { Text("Ya tenés un pedido activo") },
+            text = { Text("Tenés ítems en el carrito de otro local. ¿Querés limpiar ese pedido y empezar uno nuevo acá?") },
+            confirmButton = {
+                Button(onClick = {
+                    cartViewModel.clearCart()
+                    val localId = pendingLocalId!!
+                    val popUp = pendingPopUpRoute
+                    pendingLocalId = null
+                    pendingPopUpRoute = null
+                    currentLocalId = localId
+                    if (popUp != null) {
+                        navController.navigate(Screen.Menu.route(localId)) {
+                            popUpTo(popUp) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Screen.Menu.route(localId))
+                    }
+                }) { Text("Nuevo pedido") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { pendingLocalId = null; pendingPopUpRoute = null }) {
+                    Text("Mantener pedido")
+                }
+            }
+        )
+    }
 
     NavHost(
         navController = navController,
@@ -244,6 +301,7 @@ fun AppNavigation(
                 userName = authState.currentUserName,
                 isDarkTheme = isDarkTheme,
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onLocalSelected = { localId -> navigateToMenu(localId) },
                 onNavigateToTracking = { navController.navigate(Screen.Tracking.route) },
                 onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
@@ -256,14 +314,19 @@ fun AppNavigation(
             MisLocalesScreen(
                 misLocalesViewModel = misLocalesViewModel,
                 isDarkTheme = isDarkTheme,
-                onLocalSelected = { navController.navigate(Screen.Menu.route) },
+                onLocalSelected = { localId -> navigateToMenu(localId) },
                 onBack = { navController.popBackStack() },
                 onNavigateToInicio = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 },
-                onNavigateToLocationDetected = { navController.navigate(Screen.LocationDetected.route) },
+                onNavigateToLocationDetected = {
+                    val localId = misLocalesViewModel.uiState.value.locales
+                        .firstOrNull { it.nombre.contains("Big Pons", ignoreCase = true) }?.id
+                        ?: misLocalesViewModel.uiState.value.locales.firstOrNull()?.id ?: ""
+                    navigateToMenu(localId)
+                },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
                 onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) }
@@ -273,9 +336,7 @@ fun AppNavigation(
         composable(Screen.LocationDetected.route) {
             LocationDetectedScreen(
                 onConfirmLocation = {
-                    navController.navigate(Screen.Menu.route) {
-                        popUpTo(Screen.LocationDetected.route) { inclusive = true }
-                    }
+                    navigateToMenu(currentLocalId, Screen.LocationDetected.route)
                 },
                 onRejectLocation = {
                     navController.navigate(Screen.Home.route) {
@@ -298,9 +359,8 @@ fun AppNavigation(
                     if (qrData == "error") {
                         navController.navigate(Screen.QrNoReconocido.route)
                     } else {
-                        navController.navigate(Screen.Menu.route) {
-                            popUpTo(Screen.ScanQr.route) { inclusive = true }
-                        }
+                        if (qrData.length == 36) currentLocalId = qrData
+                        navigateToMenu(currentLocalId, Screen.ScanQr.route)
                     }
                 }
             )
@@ -448,11 +508,21 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Menu.route) {
+        composable(
+            route = Screen.Menu.route,
+            arguments = listOf(navArgument("localId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val localId = backStackEntry.arguments?.getString("localId") ?: ""
+            val local = misLocalesViewModel.uiState.value.locales.firstOrNull { it.id == localId }
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val menuViewModel: MenuViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                menuViewModel.loadMenu(localId)
+            }
             MenuScreen(
                 cartViewModel = cartViewModel,
                 menuViewModel = menuViewModel,
+                local = local,
                 isDarkTheme = isDarkTheme,
                 onViewCart = { navController.navigate(Screen.Cart.route) },
                 onBack = {

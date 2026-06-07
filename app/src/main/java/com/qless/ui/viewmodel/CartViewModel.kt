@@ -33,10 +33,12 @@ class CartViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun addItem(emoji: String, name: String, detail: String, unitPrice: Int) {
+    fun addItem(emoji: String, name: String, detail: String, unitPrice: Int, localId: String = "") {
         val current = _uiState.value.items.find { it.name == name }?.quantity ?: 0
-        viewModelScope.launch { repository.addItem(emoji, name, detail, unitPrice, current) }
+        viewModelScope.launch { repository.addItem(emoji, name, detail, unitPrice, current, localId) }
     }
+
+    val cartLocalId: String get() = _uiState.value.items.firstOrNull()?.localId ?: ""
 
     fun removeItem(name: String) {
         val item = _uiState.value.items.find { it.name == name } ?: return

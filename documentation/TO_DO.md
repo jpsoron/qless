@@ -11,7 +11,7 @@
 
 ### Menú
 
-- [ ] **Filtro por categoría que realmente filtra** — la barra de categorías ya tiene estado (`selectedCategory` en `MenuViewModel`) pero los `items(menuItems.filter { ... })` ignoran ese estado y muestran siempre las mismas secciones. Conectar `selectedCategory` al filtrado de la lista.
+- [x] **Filtro por categoría que realmente filtra** — implementado con datos reales desde Supabase (`menu_items`). Las categorías se derivan dinámicamente de los ítems cargados y el filtrado está conectado a `selectedCategory` en `MenuViewModel`.
 
 ### Mis Pedidos
 
@@ -45,7 +45,7 @@ Todas las pantallas existen y están ruteadas en `AppNavigation`. Estas necesita
 | `MisPedidosScreen` | UI hecha, datos hardcodeados | Tabs no funcionan, no hay estado vacío, las órdenes son datos fijos |
 | `AjustesScreen` | UI hecha | "Mi perfil" no navega a ningún lado (`onClick = {}`) |
 | `NotificacionesScreen` | UI hecha con toggles funcionales | Las notificaciones son datos hardcodeados (sin backend) |
-| `MenuScreen` | UI hecha, categorías con estado | El filtro por categoría no se conecta con la lista de ítems |
+| `MenuScreen` | Datos reales desde Supabase | Header aún hardcodeado a "Big Pons" (sin pasar datos del local al screen) |
 | `MisLocalesScreen` | Datos reales desde Supabase | Buscador y chips de filtro son solo decorativos |
 | `GoogleLoginScreen` | UI hecha | Los botones no hacen nada real (Google Auth no implementado) |
 | `OrderSummaryScreen` | UI hecha | Datos hardcodeados (número de pedido, ítems, totales) |
