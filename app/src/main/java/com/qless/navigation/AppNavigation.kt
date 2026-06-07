@@ -449,9 +449,11 @@ fun AppNavigation(
         }
 
         composable(Screen.Menu.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             MenuScreen(
                 cartViewModel = cartViewModel,
                 menuViewModel = menuViewModel,
+                isDarkTheme = isDarkTheme,
                 onViewCart = { navController.navigate(Screen.Cart.route) },
                 onBack = {
                     if (!navController.popBackStack()) {
@@ -465,16 +467,20 @@ fun AppNavigation(
         }
 
         composable(Screen.Cart.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             CartScreen(
                 cartViewModel = cartViewModel,
+                isDarkTheme = isDarkTheme,
                 onConfirm = { navController.navigate(Screen.Payment.route) },
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable(Screen.Payment.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             PaymentScreen(
                 cartViewModel = cartViewModel,
+                isDarkTheme = isDarkTheme,
                 onPaymentSuccess = {
                     navController.navigate(Screen.OrderConfirmed.route) {
                         popUpTo(Screen.Menu.route) { inclusive = false }
@@ -486,7 +492,9 @@ fun AppNavigation(
         }
 
         composable(Screen.OrderConfirmed.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             OrderConfirmedScreen(
+                isDarkTheme = isDarkTheme,
                 onViewTracking = {
                     navController.navigate(Screen.Tracking.route) {
                         popUpTo(Screen.OrderConfirmed.route) { inclusive = true }
@@ -553,7 +561,9 @@ fun AppNavigation(
         }
 
         composable(Screen.OrderSummary.route) {
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             OrderSummaryScreen(
+                isDarkTheme = isDarkTheme,
                 onBack = {
                     if (!navController.popBackStack(Screen.MisPedidos.route, inclusive = false)) {
                         navController.navigate(Screen.MisPedidos.route)

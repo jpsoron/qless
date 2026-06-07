@@ -86,7 +86,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .background(Pimentón)
                     .statusBarsPadding()
-                    .padding(start = 20.dp, end = 20.dp, top = 2.dp, bottom = 6.dp),
+                    .padding(start = 20.dp, end = 20.dp, top = 0.dp, bottom = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
 import com.qless.R
+import com.qless.ui.theme.Pimentón
 import com.qless.ui.theme.QLessTheme
 import kotlinx.coroutines.delay
 
@@ -41,7 +42,7 @@ fun SplashScreen(onSplashComplete: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primary),
+            .background(Pimentón),
         contentAlignment = Alignment.Center
     ) {
         Column(

@@ -24,6 +24,7 @@ import com.qless.ui.theme.*
 
 @Composable
 fun OrderSummaryScreen(
+    isDarkTheme: Boolean = false,
     onBack: () -> Unit,
 ) {
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
@@ -76,7 +77,7 @@ fun OrderSummaryScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            SummaryHeaderCard()
+            SummaryHeaderCard(isDarkTheme)
 
             Spacer(Modifier.height(22.dp))
 
@@ -84,7 +85,7 @@ fun OrderSummaryScreen(
 
             Spacer(Modifier.height(22.dp))
 
-            SummaryTrackingCard()
+            SummaryTrackingCard(isDarkTheme)
 
             Spacer(Modifier.height(22.dp))
 
@@ -101,11 +102,11 @@ fun OrderSummaryScreen(
 }
 
 @Composable
-private fun SummaryHeaderCard() {
+private fun SummaryHeaderCard(isDarkTheme: Boolean = false) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        color = Color.White.copy(alpha = 0.4f),
+        color = if (isDarkTheme) MaderaOscura else Color.White.copy(alpha = 0.4f),
         border = BorderStroke(1.dp, Color(0xFFE4CDBB))
     ) {
         Row(
@@ -165,11 +166,11 @@ private fun ItemsCard() {
 }
 
 @Composable
-private fun SummaryTrackingCard() {
+private fun SummaryTrackingCard(isDarkTheme: Boolean = false) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        color = Color.White.copy(alpha = 0.42f),
+        color = if (isDarkTheme) MaderaOscura else Color.White.copy(alpha = 0.42f),
         border = BorderStroke(1.dp, Color(0xFFE4CDBB))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

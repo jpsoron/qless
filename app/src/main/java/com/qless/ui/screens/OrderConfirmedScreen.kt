@@ -25,6 +25,7 @@ import com.qless.ui.theme.*
 
 @Composable
 fun OrderConfirmedScreen(
+    isDarkTheme: Boolean = false,
     onViewTracking: () -> Unit,
     onGoHome: () -> Unit,
 ) {
@@ -113,7 +114,10 @@ fun OrderConfirmedScreen(
                 onClick = onViewTracking,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isDarkTheme) Pimentón else MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White
+                )
             ) {
                 Text("Ver seguimiento", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
@@ -122,10 +126,10 @@ fun OrderConfirmedScreen(
                 onClick = onGoHome,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = if (isDarkTheme) Pimentón else MaterialTheme.colorScheme.primaryContainer),
                 border = androidx.compose.foundation.BorderStroke(0.dp, Color.Transparent)
             ) {
-                Text("Volver al inicio", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary, fontSize = 16.sp)
+                Text("Volver al inicio", fontWeight = FontWeight.SemiBold, color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.primary, fontSize = 16.sp)
             }
         }
 

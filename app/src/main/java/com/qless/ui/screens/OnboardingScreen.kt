@@ -71,6 +71,9 @@ fun OnboardingScreen(onFinish: () -> Unit) {
     val scope = rememberCoroutineScope()
     val currentPage = pagerState.currentPage
 
+    // El onboarding usa fondos de color fijo (CremaCálida / Espresso)
+    // diseñados para modo claro — forzamos siempre light theme.
+    QLessTheme(darkTheme = false) {
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
             state = pagerState,
@@ -137,6 +140,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
             }
         }
     }
+    } // QLessTheme(darkTheme = false)
 }
 
 @Composable
