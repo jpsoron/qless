@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.backoffice
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,11 +19,10 @@ import com.qless.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -118,7 +118,7 @@ fun BackOfficeScreen(
                     Surface(
                         shape = RoundedCornerShape(999.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Text(
                             "12 pedidos activos",
@@ -199,7 +199,7 @@ fun BackOfficeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
                         modifier = Modifier.padding(20.dp),
@@ -245,7 +245,7 @@ private fun FilterChip(selected: Boolean, text: String) {
     Surface(
         shape = RoundedCornerShape(999.dp),
         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        border = if (selected) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Text(
             text = text,
@@ -275,7 +275,7 @@ private fun BackOfficeOrderCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -389,7 +389,7 @@ private fun BackOfficeBottomNav(
 
 @Composable
 private fun NavItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit

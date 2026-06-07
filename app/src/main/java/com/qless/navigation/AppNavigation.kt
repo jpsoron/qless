@@ -15,6 +15,10 @@ import com.qless.ui.viewmodel.MisLocalesViewModel
 import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.viewmodel.ThemeViewModel
 import com.qless.ui.screens.*
+import com.qless.ui.screens.backoffice.BackOfficeAjustesScreen
+import com.qless.ui.screens.backoffice.BackOfficeHistoryScreen
+import com.qless.ui.screens.backoffice.BackOfficeScreen
+import com.qless.ui.screens.backoffice.BackOfficeUpdateOrderScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")

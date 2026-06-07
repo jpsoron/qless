@@ -1,4 +1,4 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.backoffice
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.qless.ui.theme.*
 
 @Composable
@@ -204,7 +205,7 @@ private fun BackOfficeAjustesBottomNav(
 
 @Composable
 private fun AjustesNavItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit
