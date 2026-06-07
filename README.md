@@ -10,17 +10,21 @@ Desarrollo De Aplicaciones 1 — Demo APK
 app/src/main/java/com/qless/
 ├── MainActivity.kt
 ├── navigation/
-│   └── AppNavigation.kt          # Rutas y navegación (Jetpack Navigation Compose)
+│   └── AppNavigation.kt             # Rutas y navegación (Jetpack Navigation Compose)
 ├── data/
 │   ├── CartItem.kt / CartRepository.kt
+│   ├── Local.kt / LocalesRepository.kt
 │   ├── PaymentMethod.kt / PaymentMethodRepository.kt
-│   ├── User.kt / UserRepository.kt
-│   └── local/                    # Room: QLessDatabase, DAOs y Entities
+│   ├── SessionStorage.kt            # Persistencia de sesión (DataStore)
+│   ├── ThemeRepository.kt           # Dark mode + onboarding (DataStore)
+│   ├── UserRepository.kt            # Auth + perfil + sesión persistente
+│   └── local/                       # Room: QLessDatabase, DAOs y Entities
+│   └── remote/                      # Supabase: Auth, Locales, Profile DataSources + DTOs
 └── ui/
-    ├── viewmodel/                # AuthViewModel, CartViewModel, PaymentMethodViewModel
-    ├── components/               # QLessBottomNav
-    ├── screens/                  # Todas las pantallas de la app
-    └── theme/                    # Colores, tipografía y tema
+    ├── viewmodel/                   # AuthViewModel, HomeViewModel, MisLocalesViewModel, ...
+    ├── components/                  # QLessBottomNav
+    ├── screens/                     # Todas las pantallas de la app
+    └── theme/                       # Colores, tipografía y tema
 ```
 
 ---
@@ -53,8 +57,10 @@ Cuenta de prueba lista para usar:
 
 ### Flujo principal (cliente)
 
-1. **Splash → Onboarding → Login**
+1. **Splash → Login** (o directo a Home si hay sesión guardada)
+   - Si es la primera vez: pasás por el Onboarding antes del Login.
    - Registrate o iniciá sesión con las credenciales de la tabla de arriba.
+   - Activá el checkbox **"Mantener sesión abierta"** para no tener que volver a loguearte en próximas aperturas.
 2. **Detección de ubicación**
    - Confirmá la ubicación sugerida para ir directo al menú, o buscá otro local manualmente.
 3. **Menú → Carrito → Pago**
@@ -84,8 +90,10 @@ Cuenta de prueba lista para usar:
 ## Notas
 
 - **Autenticación:** conectada a Supabase Auth. Requiere conexión a internet para login y registro.
-- **Perfil:** nombre y rol se leen desde la tabla `perfiles` en Supabase Postgres.
-- Los datos de menú, locales y pedidos son estáticos/simulados (sin backend todavía).
+- **Perfil:** nombre, rol y favoritos se leen desde la tabla `perfiles` en Supabase Postgres.
+- **Locales:** cargados en tiempo real desde la tabla `locales` en Supabase Postgres.
+- **Favoritos:** la sección "Tus favoritos" en Home muestra los locales guardados en el perfil del usuario.
+- **Sesión persistente:** si iniciás sesión con "Mantener sesión abierta", la app te reconoce automáticamente en próximas aperturas (hasta que cerrés sesión explícitamente).
 - El carrito y los métodos de pago persisten entre sesiones (Room local).
-- La sesión sobrevive a reinicios del proceso mientras el JWT de Supabase no expire.
+- Los datos de menú y pedidos son estáticos/simulados (sin backend todavía).
 - La navegación con el botón físico de atrás de Android está soportada en todas las pantallas.

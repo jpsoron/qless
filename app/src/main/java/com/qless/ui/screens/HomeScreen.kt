@@ -26,27 +26,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.R
+import com.qless.data.Local
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
-
-private data class RestaurantItem(
-    val emoji: String,
-    val name: String,
-    val category: String,
-    val location: String,
-    val rating: String,
-    val isOpen: Boolean,
-    val hasPromo: Boolean = false,
-)
-
-private val featured = listOf(
-    RestaurantItem("🍔", "Big Pons", "Hamburguesas & Snacks", "San Isidro", "4.8", true, hasPromo = true),
-    RestaurantItem("🍱", "Sushi Nori", "Japonesa · Rolls & Pokés", "Palermo", "4.9", true),
-    RestaurantItem("🥗", "Green Bowl", "Saludable · Bowls", "Núñez", "4.6", false),
-)
+import com.qless.ui.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(
+    homeViewModel: HomeViewModel,
     userName: String,
     isDarkTheme: Boolean = false,
     onNavigateToMisLocales: () -> Unit,
@@ -55,6 +42,7 @@ fun HomeScreen(
     onNavigateToScanQr: () -> Unit,
     onNavigateToAjustes: () -> Unit,
 ) {
+    val homeUiState by homeViewModel.uiState.collectAsState()
     val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -270,9 +258,27 @@ fun HomeScreen(
 
                 Spacer(Modifier.height(8.dp))
 
-                featured.forEach { resto ->
-                    RestaurantCard(resto = resto, onClick = onNavigateToMisLocales)
-                    Spacer(Modifier.height(10.dp))
+                when {
+                    homeUiState.isLoading -> {
+                        repeat(2) {
+                            FavoritoSkeletonCard()
+                            Spacer(Modifier.height(10.dp))
+                        }
+                    }
+                    homeUiState.favoritos.isEmpty() -> {
+                        Text(
+                            "Aún no tenés favoritos",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                    else -> {
+                        homeUiState.favoritos.forEach { local ->
+                            RestaurantCard(local = local, onClick = onNavigateToMisLocales)
+                            Spacer(Modifier.height(10.dp))
+                        }
+                    }
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -282,7 +288,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
+private fun RestaurantCard(local: Local, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -302,7 +308,7 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(resto.emoji, fontSize = 28.sp)
+                Text(local.emoji, fontSize = 28.sp)
             }
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -312,36 +318,36 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        resto.name,
+                        local.nombre,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = if (resto.isOpen) QLessStatusColors.disponibleSurface else MaterialTheme.colorScheme.errorContainer
+                        color = if (local.abierto) QLessStatusColors.disponibleSurface else MaterialTheme.colorScheme.errorContainer
                     ) {
                         Text(
-                            if (resto.isOpen) "Abierto" else "Cerrado",
+                            if (local.abierto) "Abierto" else "Cerrado",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (resto.isOpen) QLessStatusColors.disponible else MaterialTheme.colorScheme.error
+                            color = if (local.abierto) QLessStatusColors.disponible else MaterialTheme.colorScheme.error
                         )
                     }
                 }
-                Text(resto.category, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(local.categoria, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         Icon(Icons.Default.Star, contentDescription = null, tint = QLessStatusColors.enPreparacion, modifier = Modifier.size(12.dp))
-                        Text(resto.rating, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                        Text(local.rating, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
-                        Text(resto.location, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(local.barrio, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (resto.hasPromo) {
+                    if (local.tienePromo) {
                         Surface(
                             shape = RoundedCornerShape(999.dp),
                             color = MaterialTheme.colorScheme.primaryContainer
@@ -361,8 +367,50 @@ private fun RestaurantCard(resto: RestaurantItem, onClick: () -> Unit) {
     }
 }
 
+@Composable
+private fun FavoritoSkeletonCard() {
+    val shimmerColors = listOf(
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+        MaterialTheme.colorScheme.surfaceVariant,
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+    )
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim by transition.animateFloat(
+        initialValue = 0f, targetValue = 1000f,
+        animationSpec = infiniteRepeatable(animation = tween(1200, easing = LinearEasing), repeatMode = RepeatMode.Restart),
+        label = "shimmerTranslate"
+    )
+    val brush = androidx.compose.ui.graphics.Brush.linearGradient(
+        colors = shimmerColors,
+        start = androidx.compose.ui.geometry.Offset(translateAnim - 400f, 0f),
+        end = androidx.compose.ui.geometry.Offset(translateAnim, 0f)
+    )
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(brush))
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Box(Modifier.fillMaxWidth(0.45f).height(14.dp).clip(RoundedCornerShape(4.dp)).background(brush))
+                    Box(Modifier.size(55.dp, 18.dp).clip(RoundedCornerShape(999.dp)).background(brush))
+                }
+                Box(Modifier.fillMaxWidth(0.65f).height(10.dp).clip(RoundedCornerShape(4.dp)).background(brush))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(Modifier.size(40.dp, 18.dp).clip(RoundedCornerShape(999.dp)).background(brush))
+                    Box(Modifier.size(60.dp, 18.dp).clip(RoundedCornerShape(999.dp)).background(brush))
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun HomePreview() {
-    QLessTheme { HomeScreen(userName = "María González", onNavigateToMisLocales = {}, onNavigateToTracking = {}, onNavigateToMisPedidos = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
+    QLessTheme { HomeScreen(homeViewModel = HomeViewModel(), userName = "María González", onNavigateToMisLocales = {}, onNavigateToTracking = {}, onNavigateToMisPedidos = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
 }

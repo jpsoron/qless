@@ -6,4 +6,5 @@ class LocalesRepository(
     private val remoteDataSource: LocalesRemoteDataSource = LocalesRemoteDataSource()
 ) {
     suspend fun getLocales(): Result<List<Local>> = remoteDataSource.fetchLocales()
+    suspend fun getFavoritos(ids: List<String>): Result<List<Local>> = remoteDataSource.fetchLocalesByIds(ids)
 }
