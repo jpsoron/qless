@@ -63,6 +63,8 @@ fun AppNavigation(
     val menuViewModel: MenuViewModel = viewModel()
     val misLocalesViewModel: MisLocalesViewModel = viewModel()
 
+    val onboardingCompleted by themeViewModel.isOnboardingCompleted.collectAsStateWithLifecycle()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route
@@ -71,7 +73,8 @@ fun AppNavigation(
         composable(Screen.Splash.route) {
             SplashScreen(
                 onSplashComplete = {
-                    navController.navigate(Screen.Onboarding.route) {
+                    val destination = if (onboardingCompleted) Screen.Login.route else Screen.Onboarding.route
+                    navController.navigate(destination) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 }
@@ -92,11 +95,13 @@ fun AppNavigation(
             LoginScreen(
                 authViewModel = authViewModel,
                 onLoginSuccess = {
+                    themeViewModel.setOnboardingCompleted()
                     navController.navigate(Screen.LocationDetected.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
                 onNavigateToBackOffice = {
+                    themeViewModel.setOnboardingCompleted()
                     navController.navigate(Screen.BackOffice.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }

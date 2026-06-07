@@ -27,24 +27,25 @@ app/src/main/java/com/qless/
 
 ## Credenciales de prueba
 
+La autenticación usa **Supabase Auth** — las cuentas viven en la nube y son compartidas.
+
 ### Cliente
 
-Registrate desde la pantalla de Login con cualquier email y contraseña (mínimo 8 caracteres). El usuario queda guardado en la base de datos local.
+Registrate desde la pantalla de Login con cualquier email y contraseña (mínimo 8 caracteres).
 
-Si no querés registrarte, podés crear una cuenta de prueba directamente:
+Cuenta de prueba lista para usar:
 
 | Campo | Valor |
 |-------|-------|
-| Nombre | Test User |
-| Email | test@qless.com |
-| Contraseña | test1234 |
+| Email | juampi@qless.com |
+| Contraseña | juampi1234 |
 
 ### BackOffice
 
 | Campo | Valor |
 |-------|-------|
-| Email | backoffice@gmail.com |
-| Contraseña | back office (con espacio) |
+| Email | backoffice@qless.com |
+| Contraseña | backoffice |
 
 ---
 
@@ -72,8 +73,8 @@ Si no querés registrarte, podés crear una cuenta de prueba directamente:
 ### Flujo BackOffice (gestión del local)
 
 - En la pantalla de Login ingresá:
-  - **Email:** `backoffice@gmail.com`
-  - **Contraseña:** `back office`
+  - **Email:** `backoffice@qless.com`
+  - **Contraseña:** `backoffice`
 - Accedés al panel de BackOffice con:
   - **Pedidos activos** y actualización de estado
   - **Historial** de pedidos
@@ -82,7 +83,9 @@ Si no querés registrarte, podés crear una cuenta de prueba directamente:
 
 ## Notas
 
-- No hay backend real. Los datos de menú, locales y pedidos son estáticos/simulados.
-- El carrito y los métodos de pago persisten entre sesiones (Room).
-- La sesión de usuario se mantiene mientras el proceso de la app esté activo. Un force-close requiere volver a iniciar sesión.
+- **Autenticación:** conectada a Supabase Auth. Requiere conexión a internet para login y registro.
+- **Perfil:** nombre y rol se leen desde la tabla `perfiles` en Supabase Postgres.
+- Los datos de menú, locales y pedidos son estáticos/simulados (sin backend todavía).
+- El carrito y los métodos de pago persisten entre sesiones (Room local).
+- La sesión sobrevive a reinicios del proceso mientras el JWT de Supabase no expire.
 - La navegación con el botón físico de atrás de Android está soportada en todas las pantallas.

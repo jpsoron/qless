@@ -71,6 +71,10 @@ QLess es una aplicación Android nativa orientada al pedido anticipado en locale
 | Navegación | Navigation Compose 2.9.0 |
 | Estado y ciclo de vida | ViewModel (AndroidViewModel / ViewModel), StateFlow, SharedFlow |
 | Persistencia local | Room 2.7.1 (entidades + DAOs + Flow) |
+| Backend / Auth | Supabase Auth 3.1.4 (email + password) |
+| Backend / Base de datos | Supabase PostgREST (postgrest-kt 3.1.4) sobre PostgreSQL |
+| Cliente HTTP | Ktor OkHttp Engine 3.1.3 |
+| Serialización | Kotlin Serialization (plugin + kotlinx-serialization-json) |
 | Build system | Gradle con Version Catalogs (libs.versions.toml) |
 | Generación de código | KSP 2.2.10-2.0.2 |
 | Compose BOM | 2026.05.01 |
@@ -91,18 +95,24 @@ com.qless
 │   ├── CartRepository.kt         — acceso a datos del carrito
 │   ├── PaymentMethod.kt          — modelo de dominio
 │   ├── PaymentMethodRepository.kt
-│   ├── User.kt                   — modelo de dominio
-│   ├── UserRepository.kt         — registro, login, SHA-256
-│   └── local/
-│       ├── QLessDatabase.kt      — singleton RoomDatabase (v3)
-│       ├── dao/
-│       │   ├── CartItemDao.kt
-│       │   ├── PaymentMethodDao.kt
-│       │   └── UserDao.kt
-│       └── entity/
-│           ├── CartItemEntity.kt      — + extensiones toDomain / toEntity
-│           ├── PaymentMethodEntity.kt — + extensiones toDomain / toEntity
-│           └── UserEntity.kt          — + extensión toDomain
+│   ├── RemoteUser.kt             — modelo de usuario autenticado (nombre, email, rol)
+│   ├── UserRepository.kt         — delega auth a Supabase vía RemoteDataSources
+│   ├── local/
+│   │   ├── QLessDatabase.kt      — singleton RoomDatabase (v3)
+│   │   ├── dao/
+│   │   │   ├── CartItemDao.kt
+│   │   │   ├── PaymentMethodDao.kt
+│   │   │   └── UserDao.kt
+│   │   └── entity/
+│   │       ├── CartItemEntity.kt      — + extensiones toDomain / toEntity
+│   │       ├── PaymentMethodEntity.kt — + extensiones toDomain / toEntity
+│   │       └── UserEntity.kt          — + extensión toDomain
+│   └── remote/
+│       ├── SupabaseClient.kt          — singleton (URL + anon key desde BuildConfig)
+│       ├── AuthRemoteDataSource.kt    — signIn, signUp, signOut vía Supabase Auth
+│       ├── ProfileRemoteDataSource.kt — fetchProfile() desde tabla `perfiles` (PostgREST)
+│       └── dto/
+│           └── Perfil.kt              — DTO @Serializable que mapea la tabla perfiles
 └── ui/
     ├── viewmodel/
     │   ├── AuthViewModel.kt          — AuthUiState + AuthNavEvent (SharedFlow)
@@ -174,11 +184,20 @@ La aplicación implementa MVVM con patrón Repository sobre tres capas.
 
 - `CartRepository`: expone un `Flow` del carrito. `addItem()` hace upsert (incrementa cantidad). `updateQuantity()` elimina la fila si la nueva cantidad es 0.
 - `PaymentMethodRepository`: expone un `Flow` de métodos. `add()` infiere el tipo de tarjeta por el primer dígito. `seedDefaults()` siembra tres métodos por defecto en la primera instalación.
-- `UserRepository`: `register()` valida email único y hashea la contraseña con SHA-256. `login()` compara hash. `seedBackOffice()` crea el usuario de backoffice si no existe.
+- `UserRepository`: delega autenticación a `AuthRemoteDataSource` (Supabase Auth) y lectura de perfil a `ProfileRemoteDataSource` (PostgREST). `login()` encadena sign-in + fetch de perfil y devuelve `RemoteUser`. `register()` llama a `signUp` con nombre en metadata; el trigger de Postgres inserta automáticamente en `perfiles`. Room (UserDao) queda disponible para cacheo de perfil en entregas futuras.
+
+**RemoteDataSources:**
+
+- `AuthRemoteDataSource`: wrappea Supabase Auth SDK. `signIn()` y `signUp()` devuelven `Result<Unit>`; todos los errores se propagan como excepciones capturadas con `runCatching`. `signUp` incluye `name` y `role` en `raw_user_meta_data` para que el trigger de Postgres los lea al crear el perfil.
+- `ProfileRemoteDataSource`: hace `SELECT` a la tabla `perfiles` vía PostgREST. Gracias a la política RLS `perfil_select_own`, la query siempre retorna el perfil del usuario autenticado. Devuelve `Result<Perfil>`.
 
 **Base de datos:**
 
 `QLessDatabase` es un singleton con `@Volatile` + `synchronized`. Versión 3, `fallbackToDestructiveMigration()` activo (aceptable en dev, requiere reemplazarse por migraciones explícitas antes de producción).
+
+**Supabase (Postgres):**
+
+Tabla `perfiles` en el proyecto Supabase con columnas `id` (uuid, FK a `auth.users`), `nombre`, `email`, `rol` (`USER` | `BACK_OFFICE`). RLS habilitado con policy `perfil_select_own`. Un trigger `on_auth_user_created` inserta automáticamente en `perfiles` en cada signup, leyendo `nombre` y `rol` desde `raw_user_meta_data`. El script completo de setup está en `SUPABASE_SETUP.md`.
 
 ### Capa de Presentación (`ui/`)
 
@@ -228,7 +247,7 @@ Esto elimina el acoplamiento entre el ViewModel y la lógica de navegación, sig
 
 | ViewModel | UiState | Eventos (SharedFlow) | Descripción |
 |---|---|---|---|
-| `AuthViewModel` | `AuthUiState` | `AuthNavEvent` | Login, registro, logout, deleteAccount. Siembra el usuario backoffice en `init`. |
+| `AuthViewModel` | `AuthUiState` | `AuthNavEvent` | Login, registro, logout, deleteAccount. Mapea errores de Supabase Auth a mensajes en español. |
 | `CartViewModel` | `CartUiState` | — | Colecciona el Flow del repositorio. Expone addItem, removeItem, getQuantity, clearCart. |
 | `PaymentMethodViewModel` | `PaymentMethodUiState` | — | Siembra métodos por defecto si la tabla está vacía. Expone addMethod, removeMethod. |
 | `MenuViewModel` | `MenuUiState` | — | Gestiona isLoading (simulado con delay de 1.5s en init) y selectedCategory. |
@@ -319,8 +338,9 @@ Splash → Onboarding → Login / Registro
 
 ## Estado de los Datos (actual)
 
+- **Credenciales y sesión**: Supabase Auth (email + password). El JWT lo gestiona el SDK; la sesión sobrevive a reinicios del proceso mientras el token no expire.
+- **Perfil de usuario** (`nombre`, `email`, `rol`): Supabase Postgres, tabla `perfiles`. Se lee en cada login vía PostgREST. Sin caché local por ahora.
 - **Carrito y métodos de pago**: persistidos en Room. Sobreviven a reinicios de la app.
-- **Sesión de usuario**: en memoria (`AuthUiState` en el ViewModel). Se pierde si el proceso es eliminado.
 - **Menú y locales**: hardcodeados en las pantallas. Sin backend.
 - **Pedidos activos**: sin persistencia. Simulados con estado local en la sesión.
 
@@ -337,6 +357,8 @@ composeBom                           = "2026.05.01"
 lifecycleRuntimeKtx                  = "2.10.0"
 navigationCompose                    = "2.9.0"
 room                                 = "2.7.1"
+supabase                             = "3.1.4"   # BOM: auth-kt + postgrest-kt
+ktor                                 = "3.1.3"   # ktor-client-okhttp
 ```
 
 ---
@@ -345,14 +367,16 @@ room                                 = "2.7.1"
 
 ### Backend e integración de red
 
-- Implementar capa de red con Retrofit2 + Gson (o Ktor).
-- Conectar menú, locales y pedidos a una API REST.
+- Conectar menú, locales y pedidos a Supabase PostgREST (ya integrado para `perfiles`).
 - Manejar errores de conectividad y modo offline básico (RF4): cachear el último menú en Room.
 
-### Autenticación real
+### Autenticación (parcialmente completo)
 
-- Integrar Firebase Auth o similar para email/password y Google Sign-In real (RF3).
-- Persistir sesión entre process deaths con DataStore (actualmente se pierde al forzar cierre).
+- ~~Integrar autenticación real con email/password~~ ✓ (Supabase Auth)
+- ~~Leer perfil de usuario desde Postgres~~ ✓ (tabla `perfiles` + RLS + trigger)
+- Google Sign-In real (RF3): pendiente.
+- Cachear perfil en Room para lectura offline.
+- Eliminar cuenta: requiere Supabase Edge Function con service role (actualmente solo hace sign-out).
 
 ### Clean Architecture
 
