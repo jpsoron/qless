@@ -12,8 +12,11 @@ val localProperties = Properties().also { props ->
 }
 
 // Prefiere variable de entorno (CI) y cae a local.properties (desarrollo local).
+// Escapa el valor para que sea un string literal de Java válido en BuildConfig.
 fun secret(envKey: String, propKey: String): String =
-    System.getenv(envKey) ?: localProperties[propKey]?.toString() ?: ""
+    (System.getenv(envKey) ?: localProperties[propKey]?.toString() ?: "")
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
 
 android {
     namespace = "com.qless"
