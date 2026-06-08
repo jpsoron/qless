@@ -384,6 +384,7 @@ private fun LocalCard(local: Local, onClick: () -> Unit) {
 
 @Preview(showBackground = true)
 @Composable
+@Suppress("ViewModelConstructorInComposable") // Solo preview; VM construido a mano a propósito.
 private fun MisLocalesPreview() {
     QLessTheme { MisLocalesScreen(misLocalesViewModel = MisLocalesViewModel(), onLocalSelected = { _ -> }, onBack = {}, onNavigateToInicio = {}, onNavigateToLocationDetected = {}, onNavigateToScanQr = {}, onNavigateToMisPedidos = {}, onNavigateToAjustes = {}) }
 }

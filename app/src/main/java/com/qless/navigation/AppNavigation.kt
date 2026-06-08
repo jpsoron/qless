@@ -235,9 +235,10 @@ fun AppNavigation(
         }
 
         composable(Screen.BackOfficeAjustes.route) {
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
             BackOfficeAjustesScreen(
-                userName = authViewModel.uiState.value.currentUserName,
-                userEmail = authViewModel.uiState.value.currentUserEmail,
+                userName = authState.currentUserName,
+                userEmail = authState.currentUserEmail,
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate(Screen.Login.route) {
@@ -381,9 +382,10 @@ fun AppNavigation(
 
         composable(Screen.Ajustes.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
             AjustesScreen(
-                userName = authViewModel.uiState.value.currentUserName,
-                userEmail = authViewModel.uiState.value.currentUserEmail,
+                userName = authState.currentUserName,
+                userEmail = authState.currentUserEmail,
                 isDarkTheme = isDarkTheme,
                 onDarkModeToggle = themeViewModel::setDarkMode,
                 onNavigateToInicio = {
@@ -513,7 +515,8 @@ fun AppNavigation(
             arguments = listOf(navArgument("localId") { type = NavType.StringType })
         ) { backStackEntry ->
             val localId = backStackEntry.arguments?.getString("localId") ?: ""
-            val local = misLocalesViewModel.uiState.value.locales.firstOrNull { it.id == localId }
+            val misLocalesState by misLocalesViewModel.uiState.collectAsStateWithLifecycle()
+            val local = misLocalesState.locales.firstOrNull { it.id == localId }
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             val menuViewModel: MenuViewModel = viewModel()
             LaunchedEffect(Unit) {

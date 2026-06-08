@@ -412,6 +412,7 @@ private fun FavoritoSkeletonCard() {
 
 @Preview(showBackground = true)
 @Composable
+@Suppress("ViewModelConstructorInComposable") // Solo preview; VM construido a mano a propósito.
 private fun HomePreview() {
     QLessTheme { HomeScreen(homeViewModel = HomeViewModel(), userName = "María González", onNavigateToMisLocales = {}, onLocalSelected = { _ -> }, onNavigateToTracking = {}, onNavigateToMisPedidos = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
 }
