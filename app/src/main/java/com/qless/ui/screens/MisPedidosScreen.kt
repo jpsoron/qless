@@ -11,7 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,24 +21,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qless.data.Order
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
-
-private data class RecentOrder(
-    val emoji: String,
-    val number: String,
-    val local: String,
-    val date: String,
-    val amount: String,
-)
-
-private val recentOrders = listOf(
-    RecentOrder("🍕", "#4462", "Pizza Mía · Recoleta", "Ayer · 21:10", "$6.200"),
-    RecentOrder("🍔", "#4415", "Big Pons · San Isidro", "Lun 12/05 · 13:40", "$9.000"),
-)
+import com.qless.ui.viewmodel.OrderFilter
+import com.qless.ui.viewmodel.OrderViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun MisPedidosScreen(
+    orderViewModel: OrderViewModel,
     onNavigateToInicio: () -> Unit,
     onNavigateToMisLocales: () -> Unit,
     onNavigateToScanQr: () -> Unit,
@@ -46,6 +40,13 @@ fun MisPedidosScreen(
     onViewActiveOrder: () -> Unit,
     onViewOrderSummary: () -> Unit,
 ) {
+    val state by orderViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) { orderViewModel.loadUserOrders() }
+
+    val filtered = orderViewModel.filteredUserOrders()
+    val activeOrder = state.userOrders.firstOrNull { it.status in setOf("pending", "preparing", "ready") }
+
     Scaffold(
         bottomBar = {
             QLessBottomNav(
@@ -85,27 +86,52 @@ fun MisPedidosScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            OrderFilterTabs()
+            OrderFilterTabs(
+                selected = state.userFilter,
+                onSelect = { orderViewModel.setUserFilter(it) }
+            )
 
             Spacer(Modifier.height(24.dp))
 
-            ActiveOrderCard(onClick = onViewActiveOrder)
+            if (state.isLoadingUser) {
+                Box(Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                if (activeOrder != null && state.userFilter == OrderFilter.ACTIVE) {
+                    ActiveOrderCard(order = activeOrder, onClick = onViewActiveOrder)
+                    Spacer(Modifier.height(28.dp))
+                }
 
-            Spacer(Modifier.height(28.dp))
-
-            Text(
-                "RECIENTES",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f),
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 1.2.sp
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            recentOrders.forEach { order ->
-                RecentOrderCard(order = order, onClick = onViewOrderSummary)
-                Spacer(Modifier.height(12.dp))
+                if (filtered.isNotEmpty()) {
+                    Text(
+                        "RECIENTES",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f),
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.2.sp
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    filtered.forEach { order ->
+                        RecentOrderCard(order = order, onClick = onViewOrderSummary)
+                        Spacer(Modifier.height(12.dp))
+                    }
+                } else if (!state.isLoadingUser) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            when (state.userFilter) {
+                                OrderFilter.ACTIVE -> "No tenés pedidos activos"
+                                OrderFilter.COMPLETED -> "No tenés pedidos finalizados"
+                                OrderFilter.CANCELLED -> "No tenés pedidos cancelados"
+                            },
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(20.dp))
@@ -114,20 +140,21 @@ fun MisPedidosScreen(
 }
 
 @Composable
-private fun OrderFilterTabs() {
+private fun OrderFilterTabs(selected: OrderFilter, onSelect: (OrderFilter) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        FilterChip(text = "Activos", selected = true)
-        FilterChip(text = "Finalizados", selected = false)
-        FilterChip(text = "Cancelados", selected = false)
+        FilterChip("Activos", selected == OrderFilter.ACTIVE) { onSelect(OrderFilter.ACTIVE) }
+        FilterChip("Finalizados", selected == OrderFilter.COMPLETED) { onSelect(OrderFilter.COMPLETED) }
+        FilterChip("Cancelados", selected == OrderFilter.CANCELLED) { onSelect(OrderFilter.CANCELLED) }
     }
 }
 
 @Composable
-private fun FilterChip(text: String, selected: Boolean) {
+private fun FilterChip(text: String, selected: Boolean, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(999.dp),
         color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceVariant,
-        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.clickable { onClick() }
     ) {
         Text(
             text,
@@ -140,7 +167,13 @@ private fun FilterChip(text: String, selected: Boolean) {
 }
 
 @Composable
-private fun ActiveOrderCard(onClick: () -> Unit) {
+private fun ActiveOrderCard(order: Order, onClick: () -> Unit) {
+    val statusLabel = when (order.status) {
+        "pending" -> "PAGO CONFIRMADO"
+        "preparing" -> "EN PREPARACIÓN"
+        "ready" -> "¡TU PEDIDO ESTÁ LISTO!"
+        else -> "PEDIDO ACTIVO"
+    }
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -151,11 +184,7 @@ private fun ActiveOrderCard(onClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.linearGradient(
-                        listOf(Color(0xFF0D5A31), Color(0xFF218B52))
-                    )
-                )
+                .background(Brush.linearGradient(listOf(Color(0xFF0D5A31), Color(0xFF218B52))))
                 .padding(18.dp)
         ) {
             Box(
@@ -165,7 +194,6 @@ private fun ActiveOrderCard(onClick: () -> Unit) {
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.08f))
             )
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -178,26 +206,22 @@ private fun ActiveOrderCard(onClick: () -> Unit) {
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        "¡TU PEDIDO ESTÁ LISTO!",
-                        color = Color.White.copy(alpha = 0.58f),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 1.1.sp
-                    )
-                    Text("Sushi Nori ·", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
-                    Text("#4498", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
+                    Text(statusLabel, color = Color.White.copy(alpha = 0.58f), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, letterSpacing = 1.1.sp)
+                    Text(order.localNombre, color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Pedido #${order.numero}", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(4.dp))
-                    Text("Acercate al mostrador a\nretirar", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        when (order.status) {
+                            "pending"   -> "El local está por empezar tu pedido"
+                            "preparing" -> "La cocina está armando tu pedido"
+                            else        -> "Acercate al mostrador a retirar"
+                        },
+                        color = Color.White.copy(alpha = 0.72f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
                 Surface(shape = RoundedCornerShape(999.dp), color = Color.White) {
-                    Text(
-                        "Ver →",
-                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
-                        color = QLessStatusColors.disponible,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
-                    )
+                    Text("Ver →", modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp), color = QLessStatusColors.disponible, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                 }
             }
         }
@@ -205,7 +229,8 @@ private fun ActiveOrderCard(onClick: () -> Unit) {
 }
 
 @Composable
-private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
+private fun RecentOrderCard(order: Order, onClick: () -> Unit) {
+    val formatted = NumberFormat.getNumberInstance(Locale("es", "AR")).format(order.totalAmount)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -214,10 +239,7 @@ private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
         color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.4.dp, Color(0xFFEAD5C5))
     ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -225,25 +247,25 @@ private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(order.emoji, fontSize = 28.sp)
+                Text(order.localEmoji.ifEmpty { "🛍️" }, fontSize = 28.sp)
             }
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Pedido ${order.number}", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    Text("Pedido #${order.numero}", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                     Spacer(Modifier.weight(1f))
-                    DeliveredBadge()
+                    StatusBadge(order.status)
                 }
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(order.local, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
+                        Text(order.localNombre, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.height(8.dp))
-                        Text(order.date, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f), style = MaterialTheme.typography.bodySmall)
+                        Text(order.createdAt.take(10), color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
                         Text("Ver resumen →", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
-                    Text(order.amount, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    Text("$$formatted", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
             }
         }
@@ -251,15 +273,17 @@ private fun RecentOrderCard(order: RecentOrder, onClick: () -> Unit) {
 }
 
 @Composable
-private fun DeliveredBadge() {
-    Surface(shape = RoundedCornerShape(999.dp), color = QLessStatusColors.disponibleSurface) {
-        Text(
-            "Entregado",
-            modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
-            color = QLessStatusColors.disponible,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 11.sp
-        )
+private fun StatusBadge(status: String) {
+    val (label, color, bg) = when (status) {
+        "pending" -> Triple("Confirmado", QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+        "preparing" -> Triple("En preparación", QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+        "ready" -> Triple("Listo", QLessStatusColors.disponible, QLessStatusColors.disponibleSurface)
+        "picked_up" -> Triple("Entregado", QLessStatusColors.disponible, QLessStatusColors.disponibleSurface)
+        "cancelled" -> Triple("Cancelado", MaterialTheme.colorScheme.error, MaterialTheme.colorScheme.errorContainer)
+        else -> Triple(status, MaterialTheme.colorScheme.onSurfaceVariant, MaterialTheme.colorScheme.surfaceVariant)
+    }
+    Surface(shape = RoundedCornerShape(999.dp), color = bg) {
+        Text(label, modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp), color = color, fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
     }
 }
 
@@ -267,6 +291,6 @@ private fun DeliveredBadge() {
 @Composable
 private fun MisPedidosPreview() {
     QLessTheme {
-        MisPedidosScreen({}, {}, {}, {}, {}, {})
+        // Preview requires OrderViewModel — skipped
     }
 }

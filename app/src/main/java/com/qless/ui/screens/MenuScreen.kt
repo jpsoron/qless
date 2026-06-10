@@ -237,7 +237,7 @@ fun MenuScreen(
                     MenuItemCard(
                         item = item,
                         quantity = cartViewModel.getQuantity(item.nombre),
-                        onAdd = { cartViewModel.addItem(item.emoji, item.nombre, item.descripcion, item.precio, local?.id ?: "") },
+                        onAdd = { cartViewModel.addItem(item.emoji, item.nombre, item.descripcion, item.precio, item.id, local?.id ?: "") },
                         onRemove = { cartViewModel.removeItem(item.nombre) }
                     )
                 }

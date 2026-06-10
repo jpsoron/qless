@@ -40,13 +40,31 @@ private enum class StepStatus { DONE, ACTIVE, PENDING }
 
 @Composable
 fun TrackingScreen(
+    orderCode: String = "----",
+    localNombre: String = "",
+    status: String = "preparing",
     onGoHome: () -> Unit,
-    onNavigateToOrderReady: () -> Unit,
 ) {
     val steps = listOf(
-        TrackingStep(Icons.Default.CheckCircle, "Pedido recibido", "Tu compra fue confirmada", StepStatus.DONE, "13:08"),
-        TrackingStep(Icons.Default.Schedule, "En preparación", "La cocina está armando tu pedido", StepStatus.ACTIVE, "13:11"),
-        TrackingStep(Icons.Default.Notifications, "Listo para retirar", "Te avisamos cuando esté listo", StepStatus.PENDING),
+        TrackingStep(
+            Icons.Default.CheckCircle, "Pedido recibido", "Tu compra fue confirmada",
+            StepStatus.DONE
+        ),
+        TrackingStep(
+            Icons.Default.Schedule, "En preparación", "La cocina está armando tu pedido",
+            when (status) {
+                "pending" -> StepStatus.PENDING
+                "preparing" -> StepStatus.ACTIVE
+                else -> StepStatus.DONE
+            }
+        ),
+        TrackingStep(
+            Icons.Default.Notifications, "Listo para retirar", "Te avisamos cuando esté listo",
+            when (status) {
+                "ready" -> StepStatus.ACTIVE
+                else -> StepStatus.PENDING
+            }
+        ),
     )
 
     // Animación del indicador circular
@@ -90,7 +108,7 @@ fun TrackingScreen(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text("Pedido #4521 · Big Pons", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                    Text("Pedido #$orderCode${if (localNombre.isNotEmpty()) " · $localNombre" else ""}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 }
                 Surface(
                     shape = RoundedCornerShape(999.dp),
@@ -207,7 +225,7 @@ fun TrackingScreen(
                     Column {
                         Text("Mostrá este código al retirar", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f))
                         Text(
-                            "#4521",
+                            "#$orderCode",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -230,23 +248,6 @@ fun TrackingScreen(
                             textAlign = TextAlign.Center
                         )
                     }
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            OutlinedButton(
-                onClick = onNavigateToOrderReady,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .height(48.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Default.Notifications, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
-                    Text("Simular: Pedido Listo", color = MaterialTheme.colorScheme.onSurface)
                 }
             }
 
@@ -305,5 +306,5 @@ private fun TrackingStepRow(step: TrackingStep) {
 @Preview(showBackground = true)
 @Composable
 private fun TrackingPreview() {
-    QLessTheme { TrackingScreen(onGoHome = {}, onNavigateToOrderReady = {}) }
+    QLessTheme { TrackingScreen(onGoHome = {}) }
 }
