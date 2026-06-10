@@ -9,8 +9,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -20,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,14 +30,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.R
 import com.qless.data.Local
+import com.qless.data.Order
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.HomeViewModel
+
+private data class BannerConfig(
+    val eyebrow: String,
+    val subtitle: String,
+    val icon: ImageVector,
+    val color: Color,
+    val bg: Color,
+    val border: Color,
+)
 
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel,
     userName: String,
+    activeOrder: Order? = null,
     isDarkTheme: Boolean = false,
     onNavigateToMisLocales: () -> Unit,
     onLocalSelected: (localId: String) -> Unit,
@@ -178,67 +192,104 @@ fun HomeScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Banner pedido en curso
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigateToTracking() },
-                    shape = RoundedCornerShape(16.dp),
-                    color = if (isDarkTheme) Albahaca else Color(0xFFE8F5EE),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.5.dp,
-                        if (isDarkTheme) Albahaca else Color(0xFFB8DEC8)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .scale(pulseScale)
-                                .clip(CircleShape)
-                                .background(if (isDarkTheme) Color.Black else QLessStatusColors.disponible),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                "PEDIDO EN CURSO",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (isDarkTheme) Color.White else QLessStatusColors.disponible,
-                                letterSpacing = 0.8.sp
-                            )
-                            Text(
-                                "Big Pons · #4521",
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                "En preparación · ~12 min",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (isDarkTheme) Color.White.copy(alpha = 0.75f) else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Text(
-                            "Ver →",
-                            color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp
+                // Banner pedido en curso — solo visible cuando hay un pedido activo
+                if (activeOrder != null) {
+                    val bannerConfig = when (activeOrder.status) {
+                        "pending" -> BannerConfig(
+                            eyebrow   = "PEDIDO RECIBIDO",
+                            subtitle  = "Pago confirmado, esperando al local",
+                            icon      = Icons.Default.CheckCircle,
+                            color     = MaterialTheme.colorScheme.primary,
+                            bg        = if (isDarkTheme) Color(0xFF1A2340) else Color(0xFFEEF2FF),
+                            border    = if (isDarkTheme) Color(0xFF3A4F8A) else Color(0xFFBFCCF8),
+                        )
+                        "preparing" -> BannerConfig(
+                            eyebrow   = "EN PREPARACIÓN",
+                            subtitle  = "La cocina está armando tu pedido",
+                            icon      = Icons.Default.Schedule,
+                            color     = QLessStatusColors.enPreparacion,
+                            bg        = if (isDarkTheme) Albahaca else Color(0xFFFFF8E1),
+                            border    = if (isDarkTheme) Albahaca else Color(0xFFFFE082),
+                        )
+                        "ready" -> BannerConfig(
+                            eyebrow   = "¡LISTO PARA RETIRAR!",
+                            subtitle  = "Acercate al mostrador con tu código",
+                            icon      = Icons.Default.Notifications,
+                            color     = QLessStatusColors.disponible,
+                            bg        = if (isDarkTheme) Albahaca else Color(0xFFE8F5EE),
+                            border    = if (isDarkTheme) Albahaca else Color(0xFF9BCFB0),
+                        )
+                        else -> BannerConfig(
+                            eyebrow   = "PEDIDO EN CURSO",
+                            subtitle  = "Estado desconocido",
+                            icon      = Icons.Default.Schedule,
+                            color     = MaterialTheme.colorScheme.primary,
+                            bg        = MaterialTheme.colorScheme.surfaceVariant,
+                            border    = MaterialTheme.colorScheme.primaryContainer,
                         )
                     }
-                }
 
-                Spacer(Modifier.height(24.dp))
+                    // Solo pulsa el ícono cuando está listo para retirar
+                    val iconScale = if (activeOrder.status == "ready") pulseScale else 1f
+
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigateToTracking() },
+                        shape = RoundedCornerShape(16.dp),
+                        color = bannerConfig.bg,
+                        border = androidx.compose.foundation.BorderStroke(1.5.dp, bannerConfig.border)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .scale(iconScale)
+                                    .clip(CircleShape)
+                                    .background(bannerConfig.color),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = bannerConfig.icon,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    bannerConfig.eyebrow,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = bannerConfig.color,
+                                    letterSpacing = 0.8.sp
+                                )
+                                Text(
+                                    "${activeOrder.localNombre} · #${activeOrder.numero}",
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    bannerConfig.subtitle,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (isDarkTheme) Color.White.copy(alpha = 0.75f) else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Text(
+                                "Ver →",
+                                color = bannerConfig.color,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+                }
 
                 // Sección favoritos
                 Row(
@@ -412,6 +463,7 @@ private fun FavoritoSkeletonCard() {
 
 @Preview(showBackground = true)
 @Composable
+@Suppress("ViewModelConstructorInComposable") // Solo preview; VM construido a mano a propósito.
 private fun HomePreview() {
     QLessTheme { HomeScreen(homeViewModel = HomeViewModel(), userName = "María González", onNavigateToMisLocales = {}, onLocalSelected = { _ -> }, onNavigateToTracking = {}, onNavigateToMisPedidos = {}, onNavigateToScanQr = {}, onNavigateToAjustes = {}) }
 }

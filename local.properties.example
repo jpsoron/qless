@@ -1,0 +1,11 @@
+# Copiá este archivo como `local.properties` y completá los valores.
+# `local.properties` está gitignoreado: NO lo subas al repo.
+#
+# sdk.dir lo genera Android Studio automáticamente al abrir el proyecto.
+# Si compilás por línea de comandos, apuntalo a tu Android SDK:
+# sdk.dir=/ruta/a/tu/Android/sdk
+
+# Credenciales de Supabase (en CI se inyectan como variables de entorno
+# SUPABASE_URL / SUPABASE_ANON_KEY, ver .github/workflows/ci.yml)
+supabase.url=https://TU-PROYECTO.supabase.co/
+supabase.anon.key=TU_ANON_KEY

@@ -1,7 +1,6 @@
 package com.qless.ui.screens.backoffice
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -9,25 +8,37 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qless.data.Order
 import com.qless.ui.components.BackOfficeBottomNav
 import com.qless.ui.theme.*
+import com.qless.ui.viewmodel.OrderViewModel
 
 @Composable
 fun BackOfficeHistoryScreen(
+    orderViewModel: OrderViewModel,
     onBack: () -> Unit,
     onNavigateToOrders: () -> Unit,
-    onNavigateToAjustes: () -> Unit
+    onNavigateToAjustes: () -> Unit,
 ) {
+    val state by orderViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) { orderViewModel.loadOrderHistory() }
+
+    val completedOrders = state.historyOrders
+    val activeCount     = state.localOrders.count { it.status in setOf("pending", "preparing", "ready") }
+    val totalCount      = state.localOrders.size + completedOrders.size
+
     Scaffold(
         bottomBar = {
             BackOfficeBottomNav(
@@ -54,7 +65,11 @@ fun BackOfficeHistoryScreen(
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = MaterialTheme.colorScheme.primary)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
                 Text(
                     "Historial de pedidos",
@@ -63,44 +78,14 @@ fun BackOfficeHistoryScreen(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            
-            Row(
-                modifier = Modifier.padding(start = 48.dp, end = 0.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Big Pons · San Isidro", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-                Spacer(Modifier.weight(1f))
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = if (QLessTheme.isDark) MaderaOscura else Color.White,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
-                ) {
-                    Text(
-                        "Últimos 7 días",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
 
             Spacer(Modifier.height(16.dp))
 
-            // Filters
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = true, text = "Todos")
-                FilterChip(selected = false, text = "Completados")
-                FilterChip(selected = false, text = "Retirados")
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            // Summary Stats Card
+            // Stats
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                color = if (QLessTheme.isDark) MaderaOscura else Color.White,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
@@ -108,114 +93,95 @@ fun BackOfficeHistoryScreen(
                     horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    StatItem("28", "pedidos totales", MaterialTheme.colorScheme.primary)
-                    VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.primaryContainer)
-                    StatItem("22", "entregados", QLessStatusColors.disponible)
-                    VerticalDivider(modifier = Modifier.height(40.dp), color = MaterialTheme.colorScheme.primaryContainer)
-                    StatItem("6", "aún activos", QLessStatusColors.enPreparacion)
+                    HistoryStatItem(
+                        value = "$totalCount",
+                        label = "total",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    VerticalDivider(
+                        modifier = Modifier.height(40.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    )
+                    HistoryStatItem(
+                        value = "${completedOrders.size}",
+                        label = "entregados",
+                        color = QLessStatusColors.disponible
+                    )
+                    VerticalDivider(
+                        modifier = Modifier.height(40.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    )
+                    HistoryStatItem(
+                        value = "$activeCount",
+                        label = "activos",
+                        color = QLessStatusColors.enPreparacion
+                    )
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // List (Sincronizada con BackOffice + Historial)
-            HistoryOrderCard(
-                initials = "MG",
-                orderNum = "#5930",
-                customer = "Mateo Gómez",
-                details = "En curso · hoy 12:45 · $14.200",
-                status = "En curso",
-                statusColor = QLessStatusColors.enPreparacion,
-                statusBg = QLessStatusColors.enPreparacionSurface
-            )
+            if (state.isLoadingHistory) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (completedOrders.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Todavía no hay pedidos entregados",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                Text(
+                    "${completedOrders.size} pedidos entregados",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp
+                )
+                Spacer(Modifier.height(12.dp))
+                completedOrders.forEach { order ->
+                    HistoryOrderCard(order = order)
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
 
-            HistoryOrderCard(
-                initials = "LM",
-                orderNum = "#5928",
-                customer = "Lucía Méndez",
-                details = "En curso · hoy 12:40 · $21.500",
-                status = "En curso",
-                statusColor = QLessStatusColors.enPreparacion,
-                statusBg = QLessStatusColors.enPreparacionSurface
-            )
-
-            HistoryOrderCard(
-                initials = "JP",
-                orderNum = "#5924",
-                customer = "Juan Pérez",
-                details = "En curso · hoy 12:38 · $8.900",
-                status = "En curso",
-                statusColor = QLessStatusColors.enPreparacion,
-                statusBg = QLessStatusColors.enPreparacionSurface
-            )
-
-            HistoryOrderCard(
-                initials = "CR",
-                orderNum = "#5921",
-                customer = "Camila Ruiz",
-                details = "En curso · hoy 12:35 · $12.400",
-                status = "En curso",
-                statusColor = QLessStatusColors.enPreparacion,
-                statusBg = QLessStatusColors.enPreparacionSurface
-            )
-
-            HistoryOrderCard(
-                initials = "AG",
-                orderNum = "#5801",
-                customer = "Agustina López",
-                details = "Retirado · hoy 12:06 · $18.900",
-                status = "Retirado",
-                statusColor = QLessStatusColors.disponible,
-                statusBg = QLessStatusColors.disponibleSurface
-            )
-
-            HistoryOrderCard(
-                initials = "SM",
-                orderNum = "#5798",
-                customer = "Sofía Martínez",
-                details = "Completado · hoy 11:42 · $12.500",
-                status = "Completado",
-                statusColor = MaterialTheme.colorScheme.primary,
-                statusBg = MaterialTheme.colorScheme.primaryContainer
-            )
-
-            Spacer(Modifier.height(16.dp))
-            Text(
-                "Los pedidos activos siguen disponibles también en la pantalla operativa.",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
-            
             Spacer(Modifier.height(32.dp))
         }
     }
 }
 
 @Composable
-private fun StatItem(value: String, label: String, color: Color) {
+private fun HistoryStatItem(value: String, label: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = color)
+        Text(value, fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = color)
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun HistoryOrderCard(
-    initials: String,
-    orderNum: String,
-    customer: String,
-    details: String,
-    status: String,
-    statusColor: Color,
-    statusBg: Color
-) {
+private fun HistoryOrderCard(order: Order) {
+    val itemCount = order.items.sumOf { it.quantity }
+    val formattedTotal = "$${"%,d".format(order.totalAmount)}"
+    val formattedDate = order.createdAt.take(16).replace("T", " · ")
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = 2.dp),
         shape = RoundedCornerShape(16.dp),
-        color = if (QLessTheme.isDark) MaderaOscura else Color.White,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
     ) {
         Row(
@@ -225,86 +191,67 @@ private fun HistoryOrderCard(
             Surface(
                 modifier = Modifier.size(44.dp),
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = QLessStatusColors.disponibleSurface
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(initials, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "#${order.numero}",
+                        color = QLessStatusColors.disponible,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp
+                    )
                 }
             }
-            
+
             Spacer(Modifier.width(12.dp))
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Top
                 ) {
-                    Column {
-                        Text(
-                            "Pedido $orderNum",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(customer, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+                    Text(
+                        "Pedido #${order.numero}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Surface(
                         shape = RoundedCornerShape(999.dp),
-                        color = statusBg
+                        color = QLessStatusColors.disponibleSurface
                     ) {
                         Text(
-                            status,
+                            "Entregado",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = statusColor,
+                            color = QLessStatusColors.disponible,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
-                
-                Spacer(Modifier.height(8.dp))
-                
+
+                Spacer(Modifier.height(4.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "Ver resumen",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
+                    Text(
+                        "$itemCount ${if (itemCount == 1) "ítem" else "ítems"} · $formattedDate",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                    Text(
+                        formattedTotal,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun FilterChip(selected: Boolean, text: String) {
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        color = if (selected) MaterialTheme.colorScheme.primary else if (QLessTheme.isDark) MaderaOscura else Color.White,
-        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-        )
     }
 }
 
@@ -312,6 +259,6 @@ private fun FilterChip(selected: Boolean, text: String) {
 @Composable
 private fun BackOfficeHistoryPreview() {
     QLessTheme {
-        BackOfficeHistoryScreen(onBack = {}, onNavigateToOrders = {}, onNavigateToAjustes = {})
+        // Preview requires OrderViewModel — skipped
     }
 }

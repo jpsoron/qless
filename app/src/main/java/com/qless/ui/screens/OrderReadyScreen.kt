@@ -27,6 +27,8 @@ import com.qless.ui.theme.*
 
 @Composable
 fun OrderReadyScreen(
+    orderCode: String = "------",
+    localNombre: String = "",
     onConfirmPickup: () -> Unit,
 ) {
     Scaffold(
@@ -84,7 +86,7 @@ fun OrderReadyScreen(
                 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "PEDIDO #4521",
+                        "PEDIDO #$orderCode",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.sp
@@ -123,7 +125,7 @@ fun OrderReadyScreen(
                             color = Color.White.copy(alpha = 0.9f)
                         )
                         Text(
-                            "#4521",
+                            "#$orderCode",
                             style = MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White
@@ -133,7 +135,7 @@ fun OrderReadyScreen(
                         
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             InfoTag(text = "📍 Caja 1")
-                            InfoTag(text = "🍔 Big Pons")
+                            InfoTag(text = "🍔 ${localNombre.ifEmpty { "Local" }}")
                         }
                         Spacer(Modifier.height(6.dp))
                         InfoTag(text = "⏱ Listo 13:24")

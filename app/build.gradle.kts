@@ -11,6 +11,13 @@ val localProperties = Properties().also { props ->
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { props.load(it) }
 }
 
+// Prefiere variable de entorno (CI) y cae a local.properties (desarrollo local).
+// Escapa el valor para que sea un string literal de Java válido en BuildConfig.
+fun secret(envKey: String, propKey: String): String =
+    (System.getenv(envKey) ?: localProperties[propKey]?.toString() ?: "")
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+
 android {
     namespace = "com.qless"
     compileSdk = 36
@@ -24,8 +31,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "SUPABASE_URL", "\"${localProperties["supabase.url"] ?: ""}\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProperties["supabase.anon.key"] ?: ""}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${secret("SUPABASE_URL", "supabase.url")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secret("SUPABASE_ANON_KEY", "supabase.anon.key")}\"")
     }
 
     buildTypes {
