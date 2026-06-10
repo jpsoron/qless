@@ -4,10 +4,10 @@
 
 ### Mis Locales
 
-- [ ] **Buscador funcional** — el `TextField` "Buscar local..." existe visualmente pero no filtra. Agregar `var query by remember { mutableStateOf("") }` y `.filter { it.nombre.contains(query, ignoreCase = true) }` sobre `uiState.locales`.
-- [ ] **Chips de categoría** — filtrar la lista por `local.categoria` con chips derivados de los datos reales. Estado: `var selectedCategory by remember { mutableStateOf<String?>(null) }`.
-- [ ] **Ordenar locales** — dropdown con opciones (rating ↓, nombre A-Z, primero los abiertos). Solo `.sortedBy { }` sobre la lista.
-- [ ] **Cerrar banner de geolocalización** — el botón "No" tiene `onClick = {}`. Ocultar el banner con `var showGeoBanner by remember { mutableStateOf(true) }`.
+- [x] **Buscador funcional** — el `TextField` "Buscar local..." existe visualmente pero no filtra. Agregar `var query by remember { mutableStateOf("") }` y `.filter { it.nombre.contains(query, ignoreCase = true) }` sobre `uiState.locales`.
+- [x] **Chips de categoría** — filtrar la lista por `local.categoria` con chips derivados de los datos reales. Estado: `var selectedCategory by remember { mutableStateOf<String?>(null) }`.
+- [x] **Ordenar locales** — dropdown con opciones (rating ↓, nombre A-Z, primero los abiertos). Solo `.sortedBy { }` sobre la lista.
+- [x] **Cerrar banner de geolocalización** — el botón "No" tiene `onClick = {}`. Ocultar el banner con `var showGeoBanner by remember { mutableStateOf(true) }`.
 
 ### Menú
 

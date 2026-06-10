@@ -3,11 +3,14 @@ package com.qless.ui.screens
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.LocationOn
@@ -28,8 +31,17 @@ import androidx.compose.ui.unit.sp
 import com.qless.data.Local
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.viewmodel.MisLocalesViewModel
-import com.qless.ui.theme.*
+import com.qless.ui.theme.Albahaca
+import com.qless.ui.theme.Pimentón
+import com.qless.ui.theme.QLessStatusColors
+import com.qless.ui.theme.QLessTheme
 
+
+private enum class LocalSortOption(val label: String) {
+    RatingDesc("Rating ↓"),
+    NameAsc("Nombre A-Z"),
+    OpenFirst("Abiertos primero"),
+}
 
 @Composable
 fun MisLocalesScreen(
@@ -46,8 +58,46 @@ fun MisLocalesScreen(
     val uiState by misLocalesViewModel.uiState.collectAsState()
     val isLoading = uiState.isLoading
     var selectedTab by remember { mutableIntStateOf(1) }
+    var query by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
+    var selectedSort by remember { mutableStateOf(LocalSortOption.OpenFirst) }
+    var sortExpanded by remember { mutableStateOf(false) }
     var showGeoBanner by remember { mutableStateOf(true) }
     val shimmerBrush = shimmerBrush()
+    val categories = remember(uiState.locales) {
+        uiState.locales
+            .map { it.categoria }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+    }
+    val visibleLocales = remember(uiState.locales, query, selectedCategory, selectedSort) {
+        uiState.locales
+            .asSequence()
+            .filter { local ->
+                query.isBlank() || local.nombre.contains(query.trim(), ignoreCase = true)
+            }
+            .filter { local ->
+                selectedCategory == null || local.categoria == selectedCategory
+            }
+            .let { locales ->
+                when (selectedSort) {
+                    LocalSortOption.RatingDesc -> locales.sortedByDescending { it.ratingValue() }
+                    LocalSortOption.NameAsc -> locales.sortedBy { it.nombre.lowercase() }
+                    LocalSortOption.OpenFirst -> locales.sortedWith(
+                        compareByDescending<Local> { it.abierto }
+                            .thenBy { it.nombre.lowercase() }
+                    )
+                }
+            }
+            .toList()
+    }
+
+    LaunchedEffect(categories) {
+        if (selectedCategory != null && selectedCategory !in categories) {
+            selectedCategory = null
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -170,7 +220,92 @@ fun MisLocalesScreen(
                     ) {
                         Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Buscar local...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                        BasicTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
+                            modifier = Modifier.weight(1f),
+                            decorationBox = { innerTextField ->
+                                Box(contentAlignment = Alignment.CenterStart) {
+                                    if (query.isBlank()) {
+                                        Text(
+                                            "Buscar local...",
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CategoryChip(
+                        text = "Todos",
+                        selected = selectedCategory == null,
+                        onClick = { selectedCategory = null }
+                    )
+                    categories.forEach { category ->
+                        CategoryChip(
+                            text = category,
+                            selected = selectedCategory == category,
+                            onClick = { selectedCategory = category }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                Box {
+                    Surface(
+                        modifier = Modifier.clickable { sortExpanded = true },
+                        shape = RoundedCornerShape(999.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                "Orden: ${selectedSort.label}",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Icon(
+                                Icons.Default.ArrowDropDown,
+                                contentDescription = "Ordenar locales",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = sortExpanded,
+                        onDismissRequest = { sortExpanded = false }
+                    ) {
+                        LocalSortOption.values().forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.label) },
+                                onClick = {
+                                    selectedSort = option
+                                    sortExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -185,7 +320,7 @@ fun MisLocalesScreen(
                     )
                 } else {
                     Text(
-                        "${uiState.locales.count { it.abierto }} LOCALES DISPONIBLES",
+                        "${visibleLocales.count { it.abierto }} LOCALES DISPONIBLES",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -201,17 +336,24 @@ fun MisLocalesScreen(
                         Spacer(Modifier.height(10.dp))
                     }
                 } else {
-                    uiState.locales.forEach { local ->
+                    visibleLocales.forEach { local ->
                         LocalCard(local = local, onClick = { onLocalSelected(local.id) })
                         Spacer(Modifier.height(10.dp))
                     }
-                    // DEBUG — borrar antes de entregar
-                    if (uiState.error != null) {
+                    if (visibleLocales.isEmpty() && uiState.error == null) {
                         Text(
-                            "Error: ${uiState.error}",
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall
+                            "No encontramos locales con esos filtros.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(Modifier.height(10.dp))
+                    }
+                    if (uiState.error != null) {
+                        LoadLocalesError(
+                            message = uiState.error,
+                            onRetry = { misLocalesViewModel.loadLocales() }
+                        )
+                        Spacer(Modifier.height(10.dp))
                     }
                 }
 
@@ -250,6 +392,70 @@ fun MisLocalesScreen(
         }
     }
 }
+
+@Composable
+private fun LoadLocalesError(
+    message: String?,
+    onRetry: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.errorContainer,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.25f))
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                "No pudimos cargar los locales.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                message ?: "Revisá tu conexión e intentá de nuevo.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+            )
+            TextButton(
+                onClick = onRetry,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text("Reintentar")
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryChip(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.clickable { onClick() },
+        shape = RoundedCornerShape(999.dp),
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+private fun Local.ratingValue(): Float =
+    rating.replace(",", ".").toFloatOrNull() ?: 0f
 
 @Composable
 private fun shimmerBrush(): Brush {
@@ -313,6 +519,8 @@ private fun SkeletonLocalCard(brush: Brush) {
 
 @Composable
 private fun LocalCard(local: Local, onClick: () -> Unit) {
+    val tiempoEntrega = local.tiempoEntrega
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -363,12 +571,12 @@ private fun LocalCard(local: Local, onClick: () -> Unit) {
                         Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
                         Text(local.barrio, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    if (local.tiempoEntrega != null) {
+                    if (tiempoEntrega != null) {
                         Surface(
                             shape = RoundedCornerShape(999.dp),
                             color = QLessStatusColors.enPreparacionSurface
                         ) {
-                            Text(local.tiempoEntrega, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.enPreparacion, fontWeight = FontWeight.SemiBold)
+                            Text(tiempoEntrega, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.enPreparacion, fontWeight = FontWeight.SemiBold)
                         }
                     }
                     if (local.tienePromo) {
