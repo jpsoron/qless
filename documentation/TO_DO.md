@@ -15,8 +15,8 @@
 
 ### Mis Pedidos
 
-- [ ] **Tabs funcionales (Activos / Finalizados / Cancelados)** — los chips están renderizados con `selected = true/false` hardcodeado. Necesitan `var selectedTab by remember { mutableStateOf("Activos") }` y que cada tab muestre su lista correspondiente.
-- [ ] **Estado vacío por tab** — cuando un tab no tiene pedidos, mostrar un mensaje del tipo "No tenés pedidos finalizados".
+- [X] **Tabs funcionales (Activos / Finalizados / Cancelados)** — los chips están renderizados con `selected = true/false` hardcodeado. Necesitan `var selectedTab by remember { mutableStateOf("Activos") }` y que cada tab muestre su lista correspondiente.
+- [X] **Estado vacío por tab** — cuando un tab no tiene pedidos, mostrar un mensaje del tipo "No tenés pedidos finalizados".
 
 ### Login
 
@@ -24,15 +24,15 @@
 
 ### Ajustes
 
-- [ ] **"Mi perfil" navega a algún lado** — el ítem tiene `onClick = {}` sin destino. Puede navegar a una pantalla nueva o abrir un `BottomSheet` con los datos del usuario (nombre, email) y opción de editar nombre.
+- [X] **"Mi perfil" navega a algún lado** — el ítem tiene `onClick = {}` sin destino. Puede navegar a una pantalla nueva o abrir un `BottomSheet` con los datos del usuario (nombre, email) y opción de editar nombre.
 
 ### Carrito
 
-- [ ] **Vaciar carrito** — no hay botón de "Vaciar todo". Agregar un `AlertDialog` de confirmación + `cartViewModel.clearCart()`.
+- [X] **Vaciar carrito** — no hay botón de "Vaciar todo". Agregar un `AlertDialog` de confirmación + `cartViewModel.clearCart()`.
 
 ### Order Ready
 
-- [ ] **Placeholder de QR visual** — hay un comentario `// QR Code Placeholder`. Reemplazar con un recuadro decorativo que simule un QR (cuadrados anidados con colores del design system).
+- [X] **Placeholder de QR visual** — hay un comentario `// QR Code Placeholder`. Reemplazar con un recuadro decorativo que simule un QR (cuadrados anidados con colores del design system).
 
 ---
 

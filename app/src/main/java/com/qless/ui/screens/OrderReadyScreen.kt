@@ -23,7 +23,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qless.ui.theme.*
+import com.qless.ui.theme.Espresso
+import com.qless.ui.theme.EspressoDark
+import com.qless.ui.theme.MaderaOscura
+import com.qless.ui.theme.Pimentón
+import com.qless.ui.theme.QLessStatusColors
+import com.qless.ui.theme.QLessTheme
 
 @Composable
 fun OrderReadyScreen(
@@ -141,22 +146,7 @@ fun OrderReadyScreen(
                         InfoTag(text = "⏱ Listo 13:24")
                     }
                     
-                    // QR Code Placeholder
-                    Surface(
-                        modifier = Modifier.size(70.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color.White
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                "▦▦\n▦▦",
-                                color = Espresso,
-                                fontSize = 36.sp,
-                                lineHeight = 30.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
+                    DecorativeQrCode()
                 }
             }
 
@@ -206,6 +196,58 @@ fun OrderReadyScreen(
             }
             
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun DecorativeQrCode() {
+    Surface(
+        modifier = Modifier.size(76.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = Color.White
+    ) {
+        Box(
+            modifier = Modifier.padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            QrFinder(modifier = Modifier.align(Alignment.TopStart))
+            QrFinder(modifier = Modifier.align(Alignment.TopEnd))
+            QrFinder(modifier = Modifier.align(Alignment.BottomStart))
+
+            val moduleColor = Espresso
+            Box(Modifier.size(7.dp).offset(x = 27.dp, y = 3.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 3.dp, y = 27.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 27.dp, y = 27.dp).align(Alignment.TopStart).background(Pimentón, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 39.dp, y = 27.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 27.dp, y = 39.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 39.dp, y = 39.dp).align(Alignment.TopStart).background(Pimentón, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 51.dp, y = 39.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 39.dp, y = 51.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 51.dp, y = 51.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+        }
+    }
+}
+
+@Composable
+private fun QrFinder(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(20.dp)
+            .background(Espresso, RoundedCornerShape(4.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(13.dp)
+                .background(Color.White, RoundedCornerShape(3.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .background(Pimentón, RoundedCornerShape(2.dp))
+            )
         }
     }
 }
