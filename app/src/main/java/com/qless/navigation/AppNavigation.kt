@@ -17,12 +17,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.viewmodel.HomeViewModel
 import com.qless.ui.viewmodel.MenuViewModel
 import com.qless.ui.viewmodel.MisLocalesViewModel
+import com.qless.ui.viewmodel.OrderNavEvent
+import com.qless.ui.viewmodel.OrderViewModel
 import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.viewmodel.ThemeViewModel
 import com.qless.ui.screens.*
@@ -61,7 +64,9 @@ sealed class Screen(val route: String) {
     object EliminarCuenta : Screen("eliminar_cuenta")
     object BackOffice : Screen("back_office")
     object BackOfficeHistory : Screen("back_office_history")
-    object BackOfficeUpdateOrder : Screen("back_office_update_order")
+    object BackOfficeUpdateOrder : Screen("back_office_update_order/{orderId}") {
+        fun route(orderId: String) = "back_office_update_order/$orderId"
+    }
     object BackOfficeAjustes : Screen("back_office_ajustes")
 }
 
@@ -72,6 +77,7 @@ fun AppNavigation(
 ) {
     val authViewModel: AuthViewModel = viewModel()
     val cartViewModel: CartViewModel = viewModel()
+    val orderViewModel: OrderViewModel = viewModel()
     val paymentViewModel: PaymentMethodViewModel = viewModel()
     val misLocalesViewModel: MisLocalesViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
@@ -189,11 +195,12 @@ fun AppNavigation(
 
         composable(Screen.BackOffice.route) {
             BackOfficeScreen(
+                orderViewModel = orderViewModel,
                 onNavigateToHistory = {
                     navController.navigate(Screen.BackOfficeHistory.route)
                 },
-                onUpdateOrder = {
-                    navController.navigate(Screen.BackOfficeUpdateOrder.route)
+                onUpdateOrder = { orderId ->
+                    navController.navigate(Screen.BackOfficeUpdateOrder.route(orderId))
                 },
                 onNavigateToAjustes = {
                     navController.navigate(Screen.BackOfficeAjustes.route)
@@ -201,8 +208,14 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.BackOfficeUpdateOrder.route) {
+        composable(
+            route = Screen.BackOfficeUpdateOrder.route,
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
             BackOfficeUpdateOrderScreen(
+                orderId = orderId,
+                orderViewModel = orderViewModel,
                 onBack = { navController.popBackStack() },
                 onNavigateToOrders = {
                     navController.navigate(Screen.BackOffice.route) {
@@ -222,6 +235,7 @@ fun AppNavigation(
 
         composable(Screen.BackOfficeHistory.route) {
             BackOfficeHistoryScreen(
+                orderViewModel = orderViewModel,
                 onBack = { navController.popBackStack() },
                 onNavigateToOrders = {
                     navController.navigate(Screen.BackOffice.route) {
@@ -294,12 +308,23 @@ fun AppNavigation(
         composable(Screen.Home.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+            val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
+
             LaunchedEffect(authState.currentUserFavoritos) {
                 homeViewModel.loadFavoritos(authState.currentUserFavoritos)
             }
+            LaunchedEffect(Unit) {
+                orderViewModel.loadUserOrders()
+            }
+
+            val activeOrder = orderState.userOrders.firstOrNull {
+                it.status in setOf("pending", "preparing", "ready")
+            }
+
             HomeScreen(
                 homeViewModel = homeViewModel,
                 userName = authState.currentUserName,
+                activeOrder = activeOrder,
                 isDarkTheme = isDarkTheme,
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onLocalSelected = { localId -> navigateToMenu(localId) },
@@ -551,13 +576,29 @@ fun AppNavigation(
 
         composable(Screen.Payment.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                orderViewModel.navEvent.collect { event ->
+                    when (event) {
+                        is OrderNavEvent.CheckoutSuccess -> {
+                            cartViewModel.clearCart()
+                            navController.navigate(Screen.OrderConfirmed.route) {
+                                popUpTo(Screen.Menu.route) { inclusive = false }
+                            }
+                        }
+                        is OrderNavEvent.CheckoutError -> Unit
+                    }
+                }
+            }
+
             PaymentScreen(
                 cartViewModel = cartViewModel,
                 isDarkTheme = isDarkTheme,
                 onPaymentSuccess = {
-                    navController.navigate(Screen.OrderConfirmed.route) {
-                        popUpTo(Screen.Menu.route) { inclusive = false }
-                    }
+                    orderViewModel.placeOrder(
+                        items = cartViewModel.uiState.value.items,
+                        localId = cartViewModel.cartLocalId,
+                    )
                 },
                 onNavigateToAgregarMetodo = { navController.navigate(Screen.AgregarMetodoDePago.route) },
                 onBack = { navController.popBackStack() }
@@ -566,7 +607,11 @@ fun AppNavigation(
 
         composable(Screen.OrderConfirmed.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
+            val lastOrder = orderState.lastCreatedOrder
             OrderConfirmedScreen(
+                orderCode = lastOrder?.numero?.toString() ?: "----",
+                localNombre = lastOrder?.localNombre ?: "",
                 isDarkTheme = isDarkTheme,
                 onViewTracking = {
                     navController.navigate(Screen.Tracking.route) {
@@ -582,21 +627,50 @@ fun AppNavigation(
         }
 
         composable(Screen.Tracking.route) {
+            val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
+            val lastOrder = orderState.lastCreatedOrder
+
+            // Pedido activo: preferimos el de userOrders (actualizado por polling),
+            // fallback a lastCreatedOrder (disponible incluso antes del primer poll)
+            val activeOrder = orderState.userOrders.firstOrNull {
+                it.status in setOf("pending", "preparing", "ready")
+            } ?: lastOrder
+
+            // Arranca polling al entrar a la pantalla; lo detiene al salir
+            DisposableEffect(Unit) {
+                orderViewModel.startOrderPolling()
+                onDispose { orderViewModel.stopOrderPolling() }
+            }
+
+            // Navegación automática cuando el status pasa a "ready"
+            LaunchedEffect(activeOrder?.status) {
+                if (activeOrder?.status == "ready") {
+                    navController.navigate(Screen.OrderReady.route) {
+                        popUpTo(Screen.Tracking.route) { inclusive = true }
+                    }
+                }
+            }
+
             TrackingScreen(
+                orderCode = activeOrder?.numero?.toString() ?: "----",
+                localNombre = activeOrder?.localNombre ?: "",
+                status = activeOrder?.status ?: "preparing",
                 onGoHome = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
-                },
-                onNavigateToOrderReady = {
-                    navController.navigate(Screen.OrderReady.route)
                 }
             )
         }
 
         @Suppress("DEPRECATION")
         composable(Screen.OrderReady.route) {
+            val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
+            val activeOrder = orderState.userOrders.firstOrNull { it.status == "ready" }
+                ?: orderState.lastCreatedOrder
             OrderReadyScreen(
+                orderCode = activeOrder?.numero?.toString() ?: "----",
+                localNombre = activeOrder?.localNombre ?: "",
                 onConfirmPickup = {
                     navController.navigate(Screen.PickupSuccess.route) {
                         popUpTo(Screen.Tracking.route) { inclusive = true }
@@ -622,6 +696,7 @@ fun AppNavigation(
 
         composable(Screen.MisPedidos.route) {
             MisPedidosScreen(
+                orderViewModel = orderViewModel,
                 onNavigateToInicio = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }

@@ -25,6 +25,8 @@ import com.qless.ui.theme.*
 
 @Composable
 fun OrderConfirmedScreen(
+    orderCode: String = "----",
+    localNombre: String = "",
     isDarkTheme: Boolean = false,
     onViewTracking: () -> Unit,
     onGoHome: () -> Unit,
@@ -96,8 +98,8 @@ fun OrderConfirmedScreen(
             border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Pedido #4521", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
-                Text("Big Pons – San Isidro", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Text("Pedido #$orderCode", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
+                Text(localNombre, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(4.dp))
                 Text("Retiro estimado: 15 min", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodySmall)
             }

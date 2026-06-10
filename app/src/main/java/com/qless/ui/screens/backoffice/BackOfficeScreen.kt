@@ -13,24 +13,39 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.ui.res.painterResource
 import com.qless.R
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qless.data.Order
 import com.qless.ui.components.BackOfficeBottomNav
 import com.qless.ui.theme.*
+import com.qless.ui.viewmodel.BackOfficeFilter
+import com.qless.ui.viewmodel.OrderViewModel
 
 @Composable
 fun BackOfficeScreen(
+    orderViewModel: OrderViewModel,
     onNavigateToHistory: () -> Unit,
-    onUpdateOrder: () -> Unit,
+    onUpdateOrder: (orderId: String) -> Unit,
     onNavigateToAjustes: () -> Unit
 ) {
+    val state by orderViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) { orderViewModel.loadLocalOrders() }
+
+    // Derivado directamente del state observado para garantizar recomposición correcta
+    val filtered = when (state.localFilter) {
+        BackOfficeFilter.RECEIVED  -> state.localOrders.filter { it.status == "pending" }
+        BackOfficeFilter.PREPARING -> state.localOrders.filter { it.status == "preparing" }
+        BackOfficeFilter.READY     -> state.localOrders.filter { it.status == "ready" }
+    }
+
     Scaffold(
         bottomBar = {
             BackOfficeBottomNav(
@@ -51,7 +66,6 @@ fun BackOfficeScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -99,26 +113,22 @@ fun BackOfficeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
+                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                         Text(
-                            "Big Pons · San Isidro",
+                            "Pedidos activos",
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
-
                     Surface(
                         shape = RoundedCornerShape(999.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                     ) {
                         Text(
-                            "12 pedidos activos",
+                            "${state.localOrders.size} pedidos",
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -128,109 +138,103 @@ fun BackOfficeScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Filters
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = true, text = "Todos")
-                    FilterChip(selected = false, text = "En preparación")
-                    FilterChip(selected = false, text = "Listos")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    BackOfficeFilterChip(
+                        text = "Recibidos",
+                        count = state.localOrders.count { it.status == "pending" },
+                        selected = state.localFilter == BackOfficeFilter.RECEIVED
+                    ) { orderViewModel.setLocalFilter(BackOfficeFilter.RECEIVED) }
+                    BackOfficeFilterChip(
+                        text = "En prep.",
+                        count = state.localOrders.count { it.status == "preparing" },
+                        selected = state.localFilter == BackOfficeFilter.PREPARING
+                    ) { orderViewModel.setLocalFilter(BackOfficeFilter.PREPARING) }
+                    BackOfficeFilterChip(
+                        text = "Retirar",
+                        count = state.localOrders.count { it.status == "ready" },
+                        selected = state.localFilter == BackOfficeFilter.READY
+                    ) { orderViewModel.setLocalFilter(BackOfficeFilter.READY) }
                 }
 
                 Spacer(Modifier.height(12.dp))
-                Text(
-                    "Tocá un pedido para ver su detalle y actualizar el estado.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
 
-                Spacer(Modifier.height(16.dp))
-
-                // Orders List
-                BackOfficeOrderCard(
-                    initials = "MG",
-                    orderNum = "#5930",
-                    customer = "Mateo Gómez",
-                    details = "4 items · listo para empaquetar",
-                    status = "En preparación",
-                    statusColor = QLessStatusColors.enPreparacion,
-                    statusBg = QLessStatusColors.enPreparacionSurface,
-                    onClick = onUpdateOrder
-                )
-
-                BackOfficeOrderCard(
-                    initials = "LM",
-                    orderNum = "#5928",
-                    customer = "Lucía Méndez",
-                    details = "2 combos · recibido hace 11 min",
-                    status = "Pago confirmado",
-                    statusColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    statusBg = MaterialTheme.colorScheme.primaryContainer,
-                    onClick = onUpdateOrder
-                )
-
-                BackOfficeOrderCard(
-                    initials = "JP",
-                    orderNum = "#5924",
-                    customer = "Juan Pérez",
-                    details = "1 ítem · retiro inmediato",
-                    status = "Listo para retirar",
-                    statusColor = QLessStatusColors.disponible,
-                    statusBg = QLessStatusColors.disponibleSurface,
-                    onClick = onUpdateOrder
-                )
-
-                BackOfficeOrderCard(
-                    initials = "CR",
-                    orderNum = "#5921",
-                    customer = "Camila Ruiz",
-                    details = "3 items · recibido hace 4 min",
-                    status = "En preparación",
-                    statusColor = QLessStatusColors.enPreparacion,
-                    statusBg = QLessStatusColors.enPreparacionSurface,
-                    onClick = onUpdateOrder
-                )
+                if (state.isLoadingLocal) {
+                    Box(Modifier.fillMaxWidth().height(80.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else if (state.error != null) {
+                    val errorMsg = state.error ?: "Error desconocido"
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            errorMsg,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                } else if (filtered.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No hay pedidos en este estado",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                } else {
+                    Text(
+                        "Tocá un pedido para ver su detalle y actualizar el estado.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    filtered.forEach { order ->
+                        BackOfficeOrderCard(order = order, onClick = { onUpdateOrder(order.id) })
+                    }
+                }
 
                 Spacer(Modifier.height(24.dp))
 
-                // Shift Summary Card
+                val cntRecibidos = state.localOrders.count { it.status == "pending" }
+                val cntPrep      = state.localOrders.count { it.status == "preparing" }
+                val cntListos    = state.localOrders.count { it.status == "ready" }
+                val totalActivos = cntRecibidos + cntPrep + cntListos
+
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(20.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                "Resumen del turno",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Text("Resumen del turno", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                             Spacer(Modifier.height(8.dp))
-                            SummaryRow("4 en preparación")
-                            SummaryRow("3 listos para retirar")
-                            SummaryRow("5 pendientes de cocina")
+                            SummaryRow("$cntRecibidos recibidos")
+                            SummaryRow("$cntPrep en preparación")
+                            SummaryRow("$cntListos listos para retirar")
                         }
-                        
-                        VerticalDivider(
-                            modifier = Modifier.height(80.dp).padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer
-                        )
-                        
+                        VerticalDivider(modifier = Modifier.height(96.dp).padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.primaryContainer)
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Próximo retiro", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Row(verticalAlignment = Alignment.Bottom) {
-                                Text("7", fontSize = 36.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                                Text("min", modifier = Modifier.padding(bottom = 8.dp, start = 4.dp), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
-                            }
-                            Text("12:35", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            Text("Activos", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                "$totalActivos",
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                 }
-                
+
                 Spacer(Modifier.height(32.dp))
             }
         }
@@ -238,33 +242,53 @@ fun BackOfficeScreen(
 }
 
 @Composable
-private fun FilterChip(selected: Boolean, text: String) {
+private fun BackOfficeFilterChip(text: String, count: Int, selected: Boolean, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(999.dp),
         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.clickable { onClick() }
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+            )
+            if (count > 0) {
+                Surface(
+                    shape = CircleShape,
+                    color = if (selected) Color.White.copy(alpha = 0.25f) else MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Text(
+                        text = "$count",
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (selected) Color.White else MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun BackOfficeOrderCard(
-    initials: String,
-    orderNum: String,
-    customer: String,
-    details: String,
-    status: String,
-    statusColor: Color,
-    statusBg: Color,
-    onClick: () -> Unit
-) {
+private fun BackOfficeOrderCard(order: Order, onClick: () -> Unit) {
+    val (statusLabel, statusColor, statusBg) = when (order.status) {
+        "pending" -> Triple("Pago confirmado", MaterialTheme.colorScheme.onSurfaceVariant, MaterialTheme.colorScheme.primaryContainer)
+        "preparing" -> Triple("En preparación", QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+        "ready" -> Triple("Listo para retirar", QLessStatusColors.disponible, QLessStatusColors.disponibleSurface)
+        else -> Triple(order.status, MaterialTheme.colorScheme.onSurfaceVariant, MaterialTheme.colorScheme.surfaceVariant)
+    }
+    val initials = "#${order.numero}"
+    val itemCount = order.items.sumOf { it.quantity }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -274,22 +298,13 @@ private fun BackOfficeOrderCard(
         color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                modifier = Modifier.size(44.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(modifier = Modifier.size(44.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(initials, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 }
             }
-            
             Spacer(Modifier.width(12.dp))
-            
             Column(modifier = Modifier.weight(1f)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -297,49 +312,19 @@ private fun BackOfficeOrderCard(
                     verticalAlignment = Alignment.Top
                 ) {
                     Column {
-                        Text(
-                            "Pedido $orderNum",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(customer, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Pedido #${order.numero}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("$itemCount ${if (itemCount == 1) "ítem" else "ítems"}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Surface(
-                        shape = RoundedCornerShape(999.dp),
-                        color = statusBg
-                    ) {
-                        Text(
-                            status,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = statusColor,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                    Surface(shape = RoundedCornerShape(999.dp), color = statusBg) {
+                        Text(statusLabel, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = statusColor, fontWeight = FontWeight.SemiBold)
                     }
                 }
-                
                 Spacer(Modifier.height(4.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(details, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(order.createdAt.take(16).replace("T", " · "), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "Actualizar",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
-                        )
+                        Text("Actualizar", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -349,18 +334,13 @@ private fun BackOfficeOrderCard(
 
 @Composable
 private fun SummaryRow(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(vertical = 1.dp)
-    )
+    Text(text = text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 1.dp))
 }
 
 @Preview
 @Composable
 private fun BackOfficePreview() {
     QLessTheme {
-        BackOfficeScreen(onNavigateToHistory = {}, onUpdateOrder = {}, onNavigateToAjustes = {})
+        // Preview requires OrderViewModel — skipped
     }
 }

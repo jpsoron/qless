@@ -6,5 +6,6 @@ data class CartItem(
     val detail: String,
     val unitPrice: Int,
     val quantity: Int,
+    val menuItemId: String = "",
     val localId: String = "",
 )
