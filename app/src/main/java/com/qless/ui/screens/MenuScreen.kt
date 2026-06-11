@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -36,6 +38,8 @@ fun MenuScreen(
     menuViewModel: MenuViewModel,
     local: Local? = null,
     isDarkTheme: Boolean = false,
+    isFavorito: Boolean = false,
+    onToggleFavorito: () -> Unit = {},
     onViewCart: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -75,7 +79,8 @@ fun MenuScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 12.dp),
+                                .padding(horizontal = 20.dp, vertical = 12.dp)
+                                .statusBarsPadding(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Box(
@@ -160,10 +165,16 @@ fun MenuScreen(
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.7f)),
+                                        .background(Color.White.copy(alpha = 0.7f))
+                                        .clickable { onToggleFavorito() },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("···", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
+                                    Icon(
+                                        if (isFavorito) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                        contentDescription = if (isFavorito) "Quitar de favoritos" else "Agregar a favoritos",
+                                        tint = if (isFavorito) Pimentón else MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                 }
                             }
                             Column(

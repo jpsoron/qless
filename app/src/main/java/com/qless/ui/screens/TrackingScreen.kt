@@ -11,12 +11,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.RoomService
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.components.PulseRings
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
@@ -44,6 +47,10 @@ fun TrackingScreen(
     localNombre: String = "",
     status: String = "preparing",
     onGoHome: () -> Unit,
+    onNavigateToMisLocales: () -> Unit = {},
+    onNavigateToMisPedidos: () -> Unit = {},
+    onNavigateToAjustes: () -> Unit = {},
+    onNavigateToScanQr: () -> Unit = {},
 ) {
     val steps = listOf(
         TrackingStep(
@@ -67,21 +74,50 @@ fun TrackingScreen(
         ),
     )
 
-    // Animación del indicador circular
+    // Animación del indicador circular: una fracción base 0→1 que cada estado
+    // mapea a su propio tramo del borde.
     val infiniteTransition = rememberInfiniteTransition(label = "timer_pulse")
-    val progress by infiniteTransition.animateFloat(
-        initialValue = 0.2f,
-        targetValue = 0.75f,
+    val fraction by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(3000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "progress"
     )
+    // "Pedido recibido": el borde late de 0%→50%.
+    // "En preparación": late de 50%→100%.
+    val progress = when (status) {
+        "pending" -> fraction * 0.5f
+        "preparing" -> 0.5f + fraction * 0.5f
+        else -> 1f
+    }
+    // "Respiro" sutil del beeper para que se sienta vivo
+    val breathe by infiniteTransition.animateFloat(
+        initialValue = 0.97f,
+        targetValue = 1.03f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1600, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "breathe"
+    )
 
     Scaffold(
         bottomBar = {
-            QLessBottomNav(selectedTab = 0, onTabSelected = { if (it == 0) onGoHome() })
+            QLessBottomNav(
+                selectedTab = 0,
+                onTabSelected = { tab ->
+                    when (tab) {
+                        0 -> onGoHome()
+                        1 -> onNavigateToMisLocales()
+                        2 -> onNavigateToMisPedidos()
+                        3 -> onNavigateToAjustes()
+                        4 -> onNavigateToScanQr()
+                    }
+                }
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
@@ -110,9 +146,15 @@ fun TrackingScreen(
                     )
                     Text("Pedido #$orderCode${if (localNombre.isNotEmpty()) " · $localNombre" else ""}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 }
+                val (badgeLabel, badgeColor, badgeBg) = when (status) {
+                    "pending"   -> Triple("Pago confirmado",  QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+                    "preparing" -> Triple("En preparación",   QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+                    "ready"     -> Triple("Listo para retirar", QLessStatusColors.disponible,  QLessStatusColors.disponibleSurface)
+                    else        -> Triple("Pedido activo",    QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+                }
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = QLessStatusColors.enPreparacionSurface
+                    color = badgeBg
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -123,9 +165,9 @@ fun TrackingScreen(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(QLessStatusColors.enPreparacion)
+                                .background(badgeColor)
                         )
-                        Text("En preparación", style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.enPreparacion, fontWeight = FontWeight.SemiBold)
+                        Text(badgeLabel, style = MaterialTheme.typography.labelSmall, color = badgeColor, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -145,13 +187,25 @@ fun TrackingScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Timer circular
+            // Beeper "vivo": el círculo central late con pulsos ámbar que
+            // emanan hacia afuera mientras el pedido está en preparación.
             Box(
                 modifier = Modifier
-                    .size(200.dp)
+                    .size(300.dp)
                     .align(Alignment.CenterHorizontally),
                 contentAlignment = Alignment.Center
             ) {
+                PulseRings(
+                    color = QLessStatusColors.enPreparacion,
+                    modifier = Modifier.fillMaxSize(),
+                    startRadiusFraction = 0.66f
+                )
+                Box(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .scale(breathe),
+                    contentAlignment = Alignment.Center
+                ) {
                 CircularProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxSize(),
@@ -162,10 +216,10 @@ fun TrackingScreen(
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        imageVector = Icons.Default.Notifications,
+                        imageVector = Icons.Default.RoomService,
                         contentDescription = null,
                         tint = QLessStatusColors.enPreparacion,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(36.dp)
                     )
                     Text(
                         "12",
@@ -181,6 +235,7 @@ fun TrackingScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         letterSpacing = 1.sp
                     )
+                }
                 }
             }
 

@@ -91,42 +91,43 @@ fun HomeScreen(
     ) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding)
+                .padding(bottom = padding.calculateBottomPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Top bar con logo
+            // Top bar — el fondo cubre la status bar gracias a statusBarsPadding()
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Pimentón)
                     .statusBarsPadding()
-                    .padding(start = 20.dp, end = 20.dp, top = 0.dp, bottom = 2.dp),
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_qless_blanco),
                     contentDescription = null,
                     tint = Color.Unspecified,
-                    modifier = Modifier.size(66.dp)
+                    modifier = Modifier.size(84.dp)
                 )
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(8.dp))
                 Column {
                     Text(
                         "QLess",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                     Text(
                         "Tu comida, sin filas.",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White.copy(alpha = 0.65f)
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.70f)
                     )
                 }
                 Spacer(Modifier.weight(1f))
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(42.dp)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
