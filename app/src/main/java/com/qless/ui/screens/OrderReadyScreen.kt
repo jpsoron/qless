@@ -1,5 +1,7 @@
 package com.qless.ui.screens
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,12 +14,16 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import com.qless.ui.components.PulseRings
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +42,17 @@ fun OrderReadyScreen(
     localNombre: String = "",
     onConfirmPickup: () -> Unit,
 ) {
+    // Revelado de entrada: el beeper "se enciende" en verde con un pop elástico
+    // al llegar acá, dando la sensación de que la pantalla de seguimiento mutó
+    // al estado "listo".
+    val reveal = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        reveal.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(dampingRatio = 0.55f, stiffness = 220f)
+        )
+    }
+
     Scaffold(
         containerColor = EspressoDark
     ) { padding ->
@@ -76,11 +93,30 @@ fun OrderReadyScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // Central Visual - Segmented Circle (Compact)
+            // Central Visual: beeper "listo" con pulsos verdes que llaman la
+            // atención + revelado elástico de entrada.
             Box(
-                modifier = Modifier.size(200.dp),
+                modifier = Modifier.size(300.dp),
                 contentAlignment = Alignment.Center
             ) {
+                PulseRings(
+                    color = QLessStatusColors.disponible,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { alpha = reveal.value.coerceIn(0f, 1f) },
+                    startRadiusFraction = 0.66f
+                )
+                Box(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .graphicsLayer {
+                            val s = 0.6f + 0.4f * reveal.value
+                            scaleX = s
+                            scaleY = s
+                            alpha = reveal.value.coerceIn(0f, 1f)
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
                 SegmentedCircle(
                     segments = 4,
                     progress = 4,
@@ -88,7 +124,7 @@ fun OrderReadyScreen(
                     inactiveColor = MaderaOscura,
                     modifier = Modifier.fillMaxSize()
                 )
-                
+
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         "PEDIDO #$orderCode",
@@ -107,6 +143,7 @@ fun OrderReadyScreen(
                         textAlign = TextAlign.Center,
                         lineHeight = 28.sp
                     )
+                }
                 }
             }
 

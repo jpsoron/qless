@@ -207,6 +207,38 @@ fun MisLocalesScreen(
 
                 Spacer(Modifier.height(12.dp))
 
+                // QR CTA
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToScanQr() },
+                    shape = RoundedCornerShape(16.dp),
+                    color = Pimentón
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.Black),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Escanear código QR del local", fontWeight = FontWeight.SemiBold, color = Color.White)
+                            Text("Apuntá al QR en la mesa o caja", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
+                        }
+                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(22.dp))
+                    }
+                }
+
+                Spacer(Modifier.height(12.dp))
+
                 // Buscador
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -354,36 +386,6 @@ fun MisLocalesScreen(
                             onRetry = { misLocalesViewModel.loadLocales() }
                         )
                         Spacer(Modifier.height(10.dp))
-                    }
-                }
-
-                // QR CTA
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigateToScanQr() },
-                    shape = RoundedCornerShape(16.dp),
-                    color = Pimentón
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.Black),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
-                        }
-                        Spacer(Modifier.width(14.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Escanear código QR del local", fontWeight = FontWeight.SemiBold, color = Color.White)
-                            Text("Apuntá al QR en la mesa o caja", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
-                        }
-                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(22.dp))
                     }
                 }
 

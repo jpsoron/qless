@@ -543,6 +543,8 @@ fun AppNavigation(
             val misLocalesState by misLocalesViewModel.uiState.collectAsStateWithLifecycle()
             val local = misLocalesState.locales.firstOrNull { it.id == localId }
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+            val isFavorito = localId in authState.currentUserFavoritos
             val menuViewModel: MenuViewModel = viewModel()
             LaunchedEffect(Unit) {
                 menuViewModel.loadMenu(localId)
@@ -552,6 +554,8 @@ fun AppNavigation(
                 menuViewModel = menuViewModel,
                 local = local,
                 isDarkTheme = isDarkTheme,
+                isFavorito = isFavorito,
+                onToggleFavorito = { authViewModel.toggleFavorito(localId) },
                 onViewCart = { navController.navigate(Screen.Cart.route) },
                 onBack = {
                     if (!navController.popBackStack()) {
@@ -636,8 +640,9 @@ fun AppNavigation(
                 it.status in setOf("pending", "preparing", "ready")
             } ?: lastOrder
 
-            // Arranca polling al entrar a la pantalla; lo detiene al salir
+            // Carga inmediata al entrar + polling cada 10s; se detiene al salir
             DisposableEffect(Unit) {
+                orderViewModel.loadUserOrders()
                 orderViewModel.startOrderPolling()
                 onDispose { orderViewModel.stopOrderPolling() }
             }
@@ -659,7 +664,11 @@ fun AppNavigation(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
-                }
+                },
+                onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
+                onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) }
             )
         }
 
@@ -667,13 +676,15 @@ fun AppNavigation(
         composable(Screen.OrderReady.route) {
             val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
             val activeOrder = orderState.userOrders.firstOrNull { it.status == "ready" }
-                ?: orderState.lastCreatedOrder
+                ?: orderState.lastCreatedOrder?.takeIf { it.status == "ready" }
             OrderReadyScreen(
                 orderCode = activeOrder?.numero?.toString() ?: "----",
                 localNombre = activeOrder?.localNombre ?: "",
                 onConfirmPickup = {
+                    val orderId = activeOrder?.id
+                    if (orderId != null) orderViewModel.confirmPickup(orderId)
                     navController.navigate(Screen.PickupSuccess.route) {
-                        popUpTo(Screen.Tracking.route) { inclusive = true }
+                        popUpTo(Screen.Home.route) { inclusive = false }
                     }
                 }
             )
@@ -705,14 +716,24 @@ fun AppNavigation(
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
                 onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) },
-                onViewActiveOrder = { navController.navigate(Screen.OrderReady.route) },
+                onViewActiveOrder = {
+                    val order = orderViewModel.uiState.value.userOrders
+                        .firstOrNull { it.status in setOf("pending", "preparing", "ready") }
+                    if (order?.status == "ready") {
+                        navController.navigate(Screen.OrderReady.route)
+                    } else {
+                        navController.navigate(Screen.Tracking.route)
+                    }
+                },
                 onViewOrderSummary = { navController.navigate(Screen.OrderSummary.route) }
             )
         }
 
         composable(Screen.OrderSummary.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
             OrderSummaryScreen(
+                order = orderState.selectedOrder,
                 isDarkTheme = isDarkTheme,
                 onBack = {
                     if (!navController.popBackStack(Screen.MisPedidos.route, inclusive = false)) {

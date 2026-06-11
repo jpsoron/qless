@@ -144,6 +144,16 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun toggleFavorito(localId: String) {
+        val current = _uiState.value.currentUserFavoritos
+        viewModelScope.launch {
+            repository.toggleFavorito(localId, current)
+                .onSuccess { newFavoritos ->
+                    _uiState.update { it.copy(currentUserFavoritos = newFavoritos) }
+                }
+        }
+    }
+
     fun clearErrors() {
         _uiState.update { it.copy(loginError = null, registerError = null) }
     }

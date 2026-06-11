@@ -44,6 +44,11 @@ class UserRepository(
 
     suspend fun clearSession() = sessionStorage.clear()
 
+    suspend fun toggleFavorito(localId: String, currentFavoritos: List<String>): Result<List<String>> {
+        val newFavoritos = if (localId in currentFavoritos) currentFavoritos - localId else currentFavoritos + localId
+        return profileRemoteDataSource.updateFavoritos(newFavoritos).map { newFavoritos }
+    }
+
     // La eliminación real requiere service role key (solo backend).
     // Por ahora cierra sesión y limpia el estado local.
     suspend fun deleteAccount(@Suppress("UNUSED_PARAMETER") email: String): Result<Unit> = runCatching {
