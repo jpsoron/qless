@@ -1,11 +1,8 @@
 package com.qless.ui.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.qless.data.RemoteUser
-import com.qless.data.UserRepository
-import com.qless.data.local.QLessDatabase
+import com.qless.di.AppModule
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -34,12 +31,15 @@ sealed interface AuthNavEvent {
     data object AccountDeleted : AuthNavEvent
 }
 
-class AuthViewModel(app: Application) : AndroidViewModel(app) {
+class AuthViewModel : ViewModel() {
 
-    private val repository = UserRepository(
-        dao = QLessDatabase.getInstance(app).userDao(),
-        context = app
-    )
+    private val loginUseCase = AppModule.login
+    private val registerUseCase = AppModule.register
+    private val logoutUseCase = AppModule.logout
+    private val restoreSessionUseCase = AppModule.restoreSession
+    private val clearSessionUseCase = AppModule.clearSession
+    private val toggleFavoritoUseCase = AppModule.toggleFavorito
+    private val deleteAccountUseCase = AppModule.deleteAccount
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -53,7 +53,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun checkExistingSession() {
         viewModelScope.launch {
-            repository.tryRestoreSession()
+            restoreSessionUseCase()
                 .onSuccess { user ->
                     if (user != null) {
                         _uiState.update {
@@ -71,7 +71,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 }
                 .onFailure {
-                    viewModelScope.launch { repository.clearSession() }
+                    viewModelScope.launch { clearSessionUseCase() }
                     _uiState.update { it.copy(sessionCheckDone = true, sessionRestored = false) }
                 }
         }
@@ -84,7 +84,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         }
         _uiState.update { it.copy(isLoading = true, loginError = null) }
         viewModelScope.launch {
-            repository.login(email.trim(), password, rememberMe)
+            loginUseCase(email.trim(), password, rememberMe)
                 .onSuccess { user ->
                     _uiState.update {
                         it.copy(
@@ -117,7 +117,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         }
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            repository.register(name.trim(), email.trim(), password)
+            registerUseCase(name.trim(), email.trim(), password)
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
                     _navEvent.emit(AuthNavEvent.RegisterSuccess)
@@ -130,7 +130,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
 
     fun logout() {
         viewModelScope.launch {
-            repository.logout()
+            logoutUseCase()
             _uiState.update { AuthUiState(sessionCheckDone = true) }
         }
     }
@@ -138,7 +138,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
     fun deleteAccount() {
         val email = _uiState.value.currentUserEmail
         viewModelScope.launch {
-            repository.deleteAccount(email)
+            deleteAccountUseCase(email)
             _uiState.update { AuthUiState(sessionCheckDone = true) }
             _navEvent.emit(AuthNavEvent.AccountDeleted)
         }
@@ -147,7 +147,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
     fun toggleFavorito(localId: String) {
         val current = _uiState.value.currentUserFavoritos
         viewModelScope.launch {
-            repository.toggleFavorito(localId, current)
+            toggleFavoritoUseCase(localId, current)
                 .onSuccess { newFavoritos ->
                     _uiState.update { it.copy(currentUserFavoritos = newFavoritos) }
                 }

@@ -2,7 +2,7 @@ package com.qless.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.qless.data.User
+import com.qless.domain.model.User
 
 @Entity(tableName = "users")
 data class UserEntity(

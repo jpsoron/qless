@@ -2,8 +2,8 @@ package com.qless.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.qless.data.Local
-import com.qless.data.LocalesRepository
+import com.qless.di.AppModule
+import com.qless.domain.model.Local
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +18,7 @@ data class MisLocalesUiState(
 
 class MisLocalesViewModel : ViewModel() {
 
-    private val repository = LocalesRepository()
+    private val getLocalesUseCase = AppModule.getLocales
 
     private val _uiState = MutableStateFlow(MisLocalesUiState())
     val uiState: StateFlow<MisLocalesUiState> = _uiState.asStateFlow()
@@ -30,7 +30,7 @@ class MisLocalesViewModel : ViewModel() {
     fun loadLocales() {
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            repository.getLocales()
+            getLocalesUseCase()
                 .onSuccess { locales ->
                     _uiState.update { it.copy(isLoading = false, locales = locales) }
                 }

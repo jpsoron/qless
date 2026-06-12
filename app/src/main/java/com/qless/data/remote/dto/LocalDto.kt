@@ -1,6 +1,6 @@
 package com.qless.data.remote.dto
 
-import com.qless.data.Local
+import com.qless.domain.model.Local
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

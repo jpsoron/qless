@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qless.data.CartItem
+import com.qless.domain.model.CartItem
 import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.theme.Pimentón
 import com.qless.ui.theme.QLessStatusColors

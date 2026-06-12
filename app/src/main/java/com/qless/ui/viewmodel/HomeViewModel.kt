@@ -2,8 +2,8 @@ package com.qless.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.qless.data.Local
-import com.qless.data.LocalesRepository
+import com.qless.di.AppModule
+import com.qless.domain.model.Local
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +17,7 @@ data class HomeUiState(
 
 class HomeViewModel : ViewModel() {
 
-    private val repository = LocalesRepository()
+    private val getFavoritosUseCase = AppModule.getFavoritos
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -29,7 +29,7 @@ class HomeViewModel : ViewModel() {
         }
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            repository.getFavoritos(ids)
+            getFavoritosUseCase(ids)
                 .onSuccess { locales -> _uiState.update { it.copy(isLoading = false, favoritos = locales) } }
                 .onFailure { _uiState.update { it.copy(isLoading = false) } }
         }

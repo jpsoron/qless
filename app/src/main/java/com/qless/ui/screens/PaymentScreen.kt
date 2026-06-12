@@ -247,5 +247,5 @@ private fun StepDot(label: String, isActive: Boolean, isDone: Boolean) {
 @Preview(showBackground = true)
 @Composable
 private fun PaymentPreview() {
-    // Preview omitida: requiere CartViewModel con contexto de Application
+    // Preview omitida: la pantalla depende de ViewModels cableados por AppModule
 }

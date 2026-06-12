@@ -1,6 +1,6 @@
 package com.qless.data.remote
 
-import com.qless.data.Local
+import com.qless.domain.model.Local
 import com.qless.data.remote.dto.LocalDto
 import com.qless.data.remote.dto.toDomain
 import io.github.jan.supabase.postgrest.from

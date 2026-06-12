@@ -1,6 +1,6 @@
 package com.qless.data.remote.dto
 
-import com.qless.data.MenuItem
+import com.qless.domain.model.MenuItem
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

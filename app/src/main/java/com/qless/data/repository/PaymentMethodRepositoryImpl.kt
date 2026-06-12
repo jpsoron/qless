@@ -1,21 +1,23 @@
-package com.qless.data
+package com.qless.data.repository
 
 import com.qless.data.local.dao.PaymentMethodDao
 import com.qless.data.local.entity.PaymentMethodEntity
 import com.qless.data.local.entity.toDomain
 import com.qless.data.local.entity.toEntity
+import com.qless.domain.model.PaymentMethod
+import com.qless.domain.repository.PaymentMethodRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
-class PaymentMethodRepository(private val dao: PaymentMethodDao) {
+class PaymentMethodRepositoryImpl(private val dao: PaymentMethodDao) : PaymentMethodRepository {
 
-    fun getMethods(): Flow<List<PaymentMethod>> =
+    override fun getMethods(): Flow<List<PaymentMethod>> =
         dao.getAll().map { list -> list.map { it.toDomain() } }
 
-    suspend fun isEmpty(): Boolean = dao.count() == 0
+    override suspend fun isEmpty(): Boolean = dao.count() == 0
 
-    suspend fun add(
+    override suspend fun add(
         nombre: String,
         numero: String,
         vencimiento: String,
@@ -25,11 +27,11 @@ class PaymentMethodRepository(private val dao: PaymentMethodDao) {
         val sanitized = numero.filter { it.isDigit() }
         val ultimosDigitos = if (sanitized.length >= 4) sanitized.takeLast(4) else sanitized
         val tipo = when {
-            esBilletera          -> "MP"
+            esBilletera               -> "MP"
             sanitized.startsWith("4") -> "VISA"
             sanitized.startsWith("5") -> "MC"
             sanitized.startsWith("3") -> "AMEX"
-            else                 -> "CARD"
+            else                      -> "CARD"
         }
         if (esPrincipal) dao.clearPrincipal()
         dao.insert(
@@ -45,9 +47,9 @@ class PaymentMethodRepository(private val dao: PaymentMethodDao) {
         )
     }
 
-    suspend fun remove(id: String) = dao.deleteById(id)
+    override suspend fun remove(id: String) = dao.deleteById(id)
 
-    suspend fun seedDefaults() {
+    override suspend fun seedDefaults() {
         dao.insertAll(DEFAULT_METHODS.map { it.toEntity() })
     }
 
