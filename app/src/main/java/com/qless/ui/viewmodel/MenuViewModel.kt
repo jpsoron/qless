@@ -2,8 +2,8 @@ package com.qless.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.qless.data.MenuItem
-import com.qless.data.MenuRepository
+import com.qless.di.AppModule
+import com.qless.domain.model.MenuItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +19,7 @@ data class MenuUiState(
 
 class MenuViewModel : ViewModel() {
 
-    private val repository = MenuRepository()
+    private val getMenuUseCase = AppModule.getMenu
     private val _uiState = MutableStateFlow(MenuUiState())
     val uiState: StateFlow<MenuUiState> = _uiState.asStateFlow()
 
@@ -27,7 +27,7 @@ class MenuViewModel : ViewModel() {
         if (localId.isEmpty()) return
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            repository.getMenu(localId)
+            getMenuUseCase(localId)
                 .onSuccess { items ->
                     val initialCategory = if (items.any { it.esPopular }) "🔥 Popular"
                                           else items.map { it.categoria }.firstOrNull() ?: ""

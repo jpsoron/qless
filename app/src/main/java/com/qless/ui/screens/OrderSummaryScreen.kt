@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qless.data.Order
+import com.qless.domain.model.Order
 import com.qless.ui.theme.*
 import java.text.NumberFormat
 import java.util.Locale

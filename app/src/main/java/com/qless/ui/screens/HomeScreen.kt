@@ -29,8 +29,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.R
-import com.qless.data.Local
-import com.qless.data.Order
+import com.qless.domain.model.Local
+import com.qless.domain.model.Order
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.HomeViewModel

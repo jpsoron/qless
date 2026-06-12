@@ -26,8 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qless.data.Local
-import com.qless.data.MenuItem
+import com.qless.domain.model.Local
+import com.qless.domain.model.MenuItem
 import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.viewmodel.MenuViewModel
 import com.qless.ui.theme.*

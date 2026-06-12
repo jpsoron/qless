@@ -1,7 +1,7 @@
 package com.qless.data.remote
 
-import com.qless.data.CartItem
-import com.qless.data.Order
+import com.qless.domain.model.CartItem
+import com.qless.domain.model.Order
 import com.qless.data.remote.dto.NewOrderDto
 import io.github.jan.supabase.auth.auth
 import com.qless.data.remote.dto.NewOrderItemDto

@@ -480,15 +480,35 @@ ktor                                 = "3.1.3"   # ktor-client-okhttp
 - Eliminar cuenta: requiere Supabase Edge Function con service role (actualmente solo hace sign-out).
 - Agregar / quitar favoritos desde la UI (hoy solo se leen, la modificación se hace desde SQL).
 
-### Clean Architecture
+### Clean Architecture — IMPLEMENTADO
 
-- Introducir capa `domain/` con modelos puros y casos de uso.
-- Definir interfaces de repositorio en `domain/` e implementarlas en `data/`.
+La capa de dominio ya existe y el código respeta la regla de dependencias del
+diagrama de `ARCHITECTURE.md`:
+
+- `domain/model/` — modelos puros de negocio (`Order`, `MenuItem`, `Local`,
+  `CartItem`, `PaymentMethod`, `User`, `AuthUser`). Sin anotaciones de
+  serialización ni de Room.
+- `domain/repository/` — **contratos** (interfaces) de repositorio.
+- `domain/usecase/` — casos de uso agrupados por dominio (`OrderUseCases`,
+  `MenuUseCases`, `LocalesUseCases`, `CartUseCases`, `PaymentUseCases`,
+  `AuthUseCases`, `ThemeUseCases`). El dominio principal (pedidos) concentra la
+  orquestación de reglas (p. ej. `PlaceOrderUseCase` valida carrito no vacío).
+- `data/repository/` — `…RepositoryImpl` que **implementan** los contratos de
+  dominio, delegando en los data sources remotos (Supabase) y locales (Room).
+- `di/AppModule.kt` — composition root manual: arma el grafo
+  impl → contrato → caso de uso. Se inicializa en `MainActivity.onCreate`.
+
+Los ViewModels son `ViewModel` planos que dependen de casos de uso obtenidos de
+`AppModule`, no de clases concretas de la capa de datos.
+
+> Nota: el árbol de archivos de la sección "Estructura del proyecto" (más arriba)
+> todavía refleja el layout previo (todo bajo `data/`) y debe regenerarse.
 
 ### Inyección de dependencias (Hilt)
 
-- Incorporar Hilt para eliminar la instanciación manual de DAOs y repositorios dentro de los ViewModels.
-- Migrar de `AndroidViewModel` a `ViewModel` regular una vez que el contexto lo provea Hilt.
+- El cableado hoy es un composition root manual (`di/AppModule.kt`), suficiente
+  para invertir dependencias y testear con fakes. Migrar a Hilt es opcional:
+  reemplazaría `AppModule` por módulos `@Provides` y `@HiltViewModel`.
 
 ### Pruebas (RF5)
 

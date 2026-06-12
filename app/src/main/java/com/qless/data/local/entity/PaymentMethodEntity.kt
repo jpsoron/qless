@@ -2,7 +2,7 @@ package com.qless.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.qless.data.PaymentMethod
+import com.qless.domain.model.PaymentMethod
 
 @Entity(tableName = "payment_methods")
 data class PaymentMethodEntity(

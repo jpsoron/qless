@@ -24,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.qless.data.Order
+import com.qless.domain.model.Order
 import com.qless.ui.components.BackOfficeBottomNav
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.BackOfficeFilter
