@@ -28,6 +28,7 @@ import com.qless.ui.viewmodel.OrderNavEvent
 import com.qless.ui.viewmodel.OrderViewModel
 import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.viewmodel.ThemeViewModel
+import com.qless.ui.components.ActiveCartUi
 import com.qless.ui.screens.*
 import com.qless.ui.screens.backoffice.BackOfficeAjustesScreen
 import com.qless.ui.screens.backoffice.BackOfficeHistoryScreen
@@ -101,6 +102,27 @@ fun AppNavigation(
             }
         }
     }
+
+    // Carrito activo (resuelto contra la lista de locales). Se muestra en inicio,
+    // mis locales y mis pedidos; "Ver" lleva al menú de ese local.
+    val cartState by cartViewModel.uiState.collectAsStateWithLifecycle()
+    val localesStateForCart by misLocalesViewModel.uiState.collectAsStateWithLifecycle()
+    val activeCart: ActiveCartUi? = cartState.items.let { items ->
+        val first = items.firstOrNull()
+        if (first == null || first.localId.isEmpty()) {
+            null
+        } else {
+            val local = localesStateForCart.locales.firstOrNull { it.id == first.localId }
+            ActiveCartUi(
+                localId = first.localId,
+                localNombre = local?.nombre ?: "Tu pedido",
+                localEmoji = local?.emoji ?: first.emoji,
+                itemCount = items.sumOf { it.quantity },
+                totalAmount = items.sumOf { it.unitPrice * it.quantity },
+            )
+        }
+    }
+    val onViewCart: () -> Unit = { activeCart?.let { navigateToMenu(it.localId) } }
 
     val onboardingCompleted by themeViewModel.isOnboardingCompleted.collectAsStateWithLifecycle()
 
@@ -325,6 +347,8 @@ fun AppNavigation(
                 homeViewModel = homeViewModel,
                 userName = authState.currentUserName,
                 activeOrder = activeOrder,
+                activeCart = activeCart,
+                onViewCart = onViewCart,
                 isDarkTheme = isDarkTheme,
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onLocalSelected = { localId -> navigateToMenu(localId) },
@@ -340,6 +364,8 @@ fun AppNavigation(
             MisLocalesScreen(
                 misLocalesViewModel = misLocalesViewModel,
                 isDarkTheme = isDarkTheme,
+                activeCart = activeCart,
+                onViewCart = onViewCart,
                 onLocalSelected = { localId -> navigateToMenu(localId) },
                 onBack = { navController.popBackStack() },
                 onNavigateToInicio = {
@@ -708,6 +734,8 @@ fun AppNavigation(
         composable(Screen.MisPedidos.route) {
             MisPedidosScreen(
                 orderViewModel = orderViewModel,
+                activeCart = activeCart,
+                onViewCart = onViewCart,
                 onNavigateToInicio = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }

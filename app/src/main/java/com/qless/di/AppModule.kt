@@ -67,8 +67,8 @@ object AppModule {
 
     // --- Repositorios: contrato de dominio, implementación de data ---
     private val orderRepository: OrderRepository by lazy { OrderRepositoryImpl() }
-    private val menuRepository: MenuRepository by lazy { MenuRepositoryImpl() }
-    private val localesRepository: LocalesRepository by lazy { LocalesRepositoryImpl() }
+    private val menuRepository: MenuRepository by lazy { MenuRepositoryImpl(database.menuItemDao()) }
+    private val localesRepository: LocalesRepository by lazy { LocalesRepositoryImpl(database.localDao()) }
     private val cartRepository: CartRepository by lazy { CartRepositoryImpl(database.cartItemDao()) }
     private val paymentRepository: PaymentMethodRepository by lazy { PaymentMethodRepositoryImpl(database.paymentMethodDao()) }
     private val userRepository: UserRepository by lazy { UserRepositoryImpl(database.userDao(), appContext) }

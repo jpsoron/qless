@@ -15,6 +15,7 @@ data class MenuUiState(
     val items: List<MenuItem> = emptyList(),
     val selectedCategory: String = "",
     val error: String? = null,
+    val isOffline: Boolean = false,
 )
 
 class MenuViewModel : ViewModel() {
@@ -28,11 +29,17 @@ class MenuViewModel : ViewModel() {
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             getMenuUseCase(localId)
-                .onSuccess { items ->
+                .onSuccess { result ->
+                    val items = result.data
                     val initialCategory = if (items.any { it.esPopular }) "🔥 Popular"
                                           else items.map { it.categoria }.firstOrNull() ?: ""
                     _uiState.update {
-                        it.copy(isLoading = false, items = items, selectedCategory = initialCategory)
+                        it.copy(
+                            isLoading = false,
+                            items = items,
+                            selectedCategory = initialCategory,
+                            isOffline = result.fromCache,
+                        )
                     }
                 }
                 .onFailure { err ->

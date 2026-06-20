@@ -14,6 +14,7 @@ data class MisLocalesUiState(
     val isLoading: Boolean = true,
     val locales: List<Local> = emptyList(),
     val error: String? = null,
+    val isOffline: Boolean = false,
 )
 
 class MisLocalesViewModel : ViewModel() {
@@ -31,8 +32,10 @@ class MisLocalesViewModel : ViewModel() {
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             getLocalesUseCase()
-                .onSuccess { locales ->
-                    _uiState.update { it.copy(isLoading = false, locales = locales) }
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(isLoading = false, locales = result.data, isOffline = result.fromCache)
+                    }
                 }
                 .onFailure { err ->
                     _uiState.update { it.copy(isLoading = false, error = err.message) }
