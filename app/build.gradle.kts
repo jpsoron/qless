@@ -86,6 +86,9 @@ dependencies {
     // ML Kit Barcode Scanning
     implementation(libs.barcode.scanning)
 
+    // Location
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
     // Permissions
     implementation(libs.accompanist.permissions)
 

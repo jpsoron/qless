@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 data class MisLocalesUiState(
     val isLoading: Boolean = true,
     val locales: List<Local> = emptyList(),
+    val closestLocal: Local? = null,
     val error: String? = null,
 )
 
@@ -38,5 +39,26 @@ class MisLocalesViewModel : ViewModel() {
                     _uiState.update { it.copy(isLoading = false, error = err.message) }
                 }
         }
+    }
+
+    fun updateUserLocation(lat: Double, lng: Double) {
+        val currentLocales = _uiState.value.locales
+        if (currentLocales.isEmpty()) return
+
+        val updatedLocales = currentLocales.map { local ->
+            val distance = calculateDistance(lat, lng, local.latitud, local.longitud)
+            local.copy(distanciaMetros = distance)
+        }.sortedBy { it.distanciaMetros }
+
+        _uiState.update { it.copy(
+            locales = updatedLocales,
+            closestLocal = updatedLocales.firstOrNull()
+        )}
+    }
+
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(lat1, lon1, lat2, lon2, results)
+        return results[0].toDouble()
     }
 }

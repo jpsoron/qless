@@ -11,4 +11,7 @@ data class Local(
     val abierto: Boolean,
     val tienePromo: Boolean,
     val destacado: Boolean,
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0,
+    val distanciaMetros: Double? = null,
 )

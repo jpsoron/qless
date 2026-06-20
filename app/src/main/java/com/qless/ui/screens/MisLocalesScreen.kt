@@ -28,6 +28,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.permissions.*
+import com.google.android.gms.location.LocationServices
+import android.annotation.SuppressLint
+import androidx.compose.ui.platform.LocalContext
 import com.qless.domain.model.Local
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.viewmodel.MisLocalesViewModel
@@ -36,13 +40,15 @@ import com.qless.ui.theme.Pimentón
 import com.qless.ui.theme.QLessStatusColors
 import com.qless.ui.theme.QLessTheme
 
-
 private enum class LocalSortOption(val label: String) {
+    Distancia("Más cercano"),
     RatingDesc("Rating ↓"),
     NameAsc("Nombre A-Z"),
     OpenFirst("Abiertos primero"),
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
+@SuppressLint("MissingPermission")
 @Composable
 fun MisLocalesScreen(
     misLocalesViewModel: MisLocalesViewModel,
@@ -57,10 +63,27 @@ fun MisLocalesScreen(
 ) {
     val uiState by misLocalesViewModel.uiState.collectAsState()
     val isLoading = uiState.isLoading
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    
+    val locationPermissionState = rememberPermissionState(
+        android.Manifest.permission.ACCESS_FINE_LOCATION
+    )
+
+    LaunchedEffect(locationPermissionState.status) {
+        if (locationPermissionState.status.isGranted) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    misLocalesViewModel.updateUserLocation(it.latitude, it.longitude)
+                }
+            }
+        }
+    }
+
     var selectedTab by remember { mutableIntStateOf(1) }
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
-    var selectedSort by remember { mutableStateOf(LocalSortOption.OpenFirst) }
+    var selectedSort by remember { mutableStateOf(LocalSortOption.Distancia) }
     var sortExpanded by remember { mutableStateOf(false) }
     var showGeoBanner by remember { mutableStateOf(true) }
     val shimmerBrush = shimmerBrush()
@@ -82,6 +105,7 @@ fun MisLocalesScreen(
             }
             .let { locales ->
                 when (selectedSort) {
+                    LocalSortOption.Distancia -> locales.sortedBy { it.distanciaMetros ?: Double.MAX_VALUE }
                     LocalSortOption.RatingDesc -> locales.sortedByDescending { it.ratingValue() }
                     LocalSortOption.NameAsc -> locales.sortedBy { it.nombre.lowercase() }
                     LocalSortOption.OpenFirst -> locales.sortedWith(
@@ -139,105 +163,57 @@ fun MisLocalesScreen(
 
                 Spacer(Modifier.height(14.dp))
 
-                // Geo banner
-                if (showGeoBanner) Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isDarkTheme) Albahaca else Color(0xFFE8F5EE),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.5.dp,
-                        if (isDarkTheme) Albahaca else Color(0xFFB8DEC8)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                // Location detection prompt
+                if (!locationPermissionState.status.isGranted && showGeoBanner) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(if (isDarkTheme) Color.Black else QLessStatusColors.disponible),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Detectar locales cercanos", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                                Text("Permití el acceso a tu ubicación para ver distancias.", style = MaterialTheme.typography.labelSmall)
+                            }
+                            Button(
+                                onClick = { locationPermissionState.launchPermissionRequest() },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                modifier = Modifier.height(32.dp)
+                            ) {
+                                Text("Activar", fontSize = 12.sp)
+                            }
                         }
-                        Spacer(Modifier.width(10.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                "¿Estás en Big Pons - San Isidro?",
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                "Av. del Libertador 1420, San Isidro",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (isDarkTheme) Color.White.copy(alpha = 0.75f) else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Button(
-                            onClick = onNavigateToLocationDetected,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isDarkTheme) Color.Black else MaterialTheme.colorScheme.primary,
-                                contentColor = Color.White
-                            ),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                            modifier = Modifier.height(32.dp)
-                        ) {
-                            Text("Sí", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                        Spacer(Modifier.width(6.dp))
-                        Button(
-                            onClick = { showGeoBanner = false },
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                            modifier = Modifier.height(32.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isDarkTheme) Color.Black else Color.Transparent,
-                                contentColor = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            border = if (isDarkTheme) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
-                            elevation = ButtonDefaults.buttonElevation(0.dp)
-                        ) {
-                            Text("No", fontSize = 12.sp)
-                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
+
+                // Show closest local highlight if found
+                uiState.closestLocal?.let { closest ->
+                    if (locationPermissionState.status.isGranted) {
+                        Text(
+                            "EL MÁS CERCANO",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Pimentón,
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        LocalCard(local = closest, onClick = { onLocalSelected(closest.id) })
+                        Spacer(Modifier.height(20.dp))
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
-
-                // QR CTA
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigateToScanQr() },
-                    shape = RoundedCornerShape(16.dp),
-                    color = Pimentón
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.Black),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
-                        }
-                        Spacer(Modifier.width(14.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Escanear código QR del local", fontWeight = FontWeight.SemiBold, color = Color.White)
-                            Text("Apuntá al QR en la mesa o caja", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
-                        }
-                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White.copy(alpha = 0.4f), modifier = Modifier.size(22.dp))
-                    }
+                // Geo banner (the original one)
+                if (showGeoBanner && locationPermissionState.status.isGranted && uiState.closestLocal != null) {
+                   // Ya mostramos el card de arriba, quizás ocultar este o adaptarlo
                 }
-
-                Spacer(Modifier.height(12.dp))
 
                 // Buscador
                 Surface(
@@ -394,6 +370,7 @@ fun MisLocalesScreen(
         }
     }
 }
+
 
 @Composable
 private fun LoadLocalesError(
@@ -564,27 +541,54 @@ private fun LocalCard(local: Local, onClick: () -> Unit) {
                 }
                 Text(local.categoria, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(6.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Rating
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Icon(Icons.Default.Star, contentDescription = null, tint = QLessStatusColors.enPreparacion, modifier = Modifier.size(12.dp))
-                        Text(local.rating, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
+                        Icon(Icons.Default.Star, contentDescription = null, tint = QLessStatusColors.enPreparacion, modifier = Modifier.size(14.dp))
+                        Text(local.rating, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
-                        Text(local.barrio, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    
+                    // Barrio
+                    Text(local.barrio, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    
+                    // Distancia (Badge)
+                    local.distanciaMetros?.let { distance ->
+                        val distanceText = if (distance < 1000) "${distance.toInt()}m" else "%.1f km".format(distance / 1000)
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Icon(Icons.Default.LocationOn, null, modifier = Modifier.size(10.dp), tint = MaterialTheme.colorScheme.secondary)
+                                Text(distanceText, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
+                    
+                    Spacer(Modifier.weight(1f))
+                    
+                    // Tiempo
                     if (tiempoEntrega != null) {
                         Surface(
                             shape = RoundedCornerShape(999.dp),
                             color = QLessStatusColors.enPreparacionSurface
                         ) {
-                            Text(tiempoEntrega, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.enPreparacion, fontWeight = FontWeight.SemiBold)
+                            Text(tiempoEntrega, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.enPreparacion, fontWeight = FontWeight.Bold)
                         }
                     }
-                    if (local.tienePromo) {
-                        Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primaryContainer) {
-                            Text("10% OFF", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-                        }
+                }
+                if (local.tienePromo) {
+                    Spacer(Modifier.height(8.dp))
+                    Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                        Text("10% OFF", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

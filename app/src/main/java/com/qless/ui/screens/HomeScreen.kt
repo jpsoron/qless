@@ -28,6 +28,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.permissions.*
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import android.annotation.SuppressLint
+import androidx.compose.ui.platform.LocalContext
 import com.qless.R
 import com.qless.domain.model.Local
 import com.qless.domain.model.Order
@@ -44,6 +49,8 @@ private data class BannerConfig(
     val border: Color,
 )
 
+@OptIn(ExperimentalPermissionsApi::class)
+@SuppressLint("MissingPermission")
 @Composable
 fun HomeScreen(
     homeViewModel: HomeViewModel,
@@ -60,6 +67,23 @@ fun HomeScreen(
     val homeUiState by homeViewModel.uiState.collectAsState()
     val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     var selectedTab by remember { mutableIntStateOf(0) }
+    
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val locationPermissionState = rememberPermissionState(
+        android.Manifest.permission.ACCESS_FINE_LOCATION
+    )
+
+    LaunchedEffect(locationPermissionState.status) {
+        if (locationPermissionState.status.isGranted) {
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                .addOnSuccessListener { location ->
+                    location?.let {
+                        homeViewModel.updateUserLocation(it.latitude, it.longitude)
+                    }
+                }
+        }
+    }
 
     val pulseTransition = rememberInfiniteTransition(label = "pulse")
     val pulseScale by pulseTransition.animateFloat(
@@ -192,6 +216,61 @@ fun HomeScreen(
                 }
 
                 Spacer(Modifier.height(16.dp))
+
+                // Location detection prompt
+                if (!locationPermissionState.status.isGranted) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFFE8F5EE),
+                        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFB8DEC8))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(Albahaca),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White)
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Detectar cercanía", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = Espresso)
+                                Text("Encontrá el local más cercano a vos", style = MaterialTheme.typography.labelSmall, color = Madera)
+                            }
+                            Button(
+                                onClick = { locationPermissionState.launchPermissionRequest() },
+                                colors = ButtonDefaults.buttonColors(containerColor = Albahaca),
+                                contentPadding = PaddingValues(horizontal = 12.dp),
+                                modifier = Modifier.height(36.dp)
+                            ) {
+                                Text("Activar", fontSize = 12.sp)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                }
+
+                // Show closest local highlight
+                homeUiState.closestLocal?.let { closest ->
+                    if (locationPermissionState.status.isGranted) {
+                        Text(
+                            "EL MÁS CERCANO A VOS",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Pimentón,
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        RestaurantCard(local = closest, onClick = { onLocalSelected(closest.id) })
+                        Spacer(Modifier.height(24.dp))
+                    }
+                }
 
                 // Banner pedido en curso — solo visible cuando hay un pedido activo
                 if (activeOrder != null) {
@@ -399,6 +478,25 @@ private fun RestaurantCard(local: Local, onClick: () -> Unit) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(12.dp))
                         Text(local.barrio, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    local.distanciaMetros?.let { distance ->
+                        val distanceText = if (distance < 1000) {
+                            "${distance.toInt()}m"
+                        } else {
+                            "%.1f km".format(distance / 1000)
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = AlbahacaClaro
+                        ) {
+                            Text(
+                                distanceText,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Albahaca,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                     if (local.tienePromo) {
                         Surface(
