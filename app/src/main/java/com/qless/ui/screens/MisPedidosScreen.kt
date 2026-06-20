@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qless.domain.model.Order
+import com.qless.ui.components.ActiveCartCard
+import com.qless.ui.components.ActiveCartUi
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.OrderFilter
@@ -36,6 +38,8 @@ import java.util.Locale
 @Composable
 fun MisPedidosScreen(
     orderViewModel: OrderViewModel,
+    activeCart: ActiveCartUi? = null,
+    onViewCart: () -> Unit = {},
     onNavigateToInicio: () -> Unit,
     onNavigateToMisLocales: () -> Unit,
     onNavigateToScanQr: () -> Unit,
@@ -106,6 +110,11 @@ fun MisPedidosScreen(
             } else {
                 if (activeOrder != null && state.userFilter == OrderFilter.ACTIVE) {
                     ActiveOrderCard(order = activeOrder, onClick = onViewActiveOrder)
+                    Spacer(Modifier.height(28.dp))
+                }
+
+                if (activeCart != null) {
+                    ActiveCartCard(cart = activeCart, onVer = onViewCart)
                     Spacer(Modifier.height(28.dp))
                 }
 

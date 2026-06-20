@@ -29,6 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.domain.model.Local
+import com.qless.ui.components.ActiveCartCard
+import com.qless.ui.components.ActiveCartUi
+import com.qless.ui.components.OfflineBanner
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.viewmodel.MisLocalesViewModel
 import com.qless.ui.theme.Albahaca
@@ -47,6 +50,8 @@ private enum class LocalSortOption(val label: String) {
 fun MisLocalesScreen(
     misLocalesViewModel: MisLocalesViewModel,
     isDarkTheme: Boolean = false,
+    activeCart: ActiveCartUi? = null,
+    onViewCart: () -> Unit = {},
     onLocalSelected: (localId: String) -> Unit,
     onBack: () -> Unit,
     onNavigateToInicio: () -> Unit,
@@ -136,6 +141,16 @@ fun MisLocalesScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                if (uiState.isOffline) {
+                    Spacer(Modifier.height(14.dp))
+                    OfflineBanner()
+                }
+
+                if (activeCart != null) {
+                    Spacer(Modifier.height(14.dp))
+                    ActiveCartCard(cart = activeCart, onVer = onViewCart)
+                }
 
                 Spacer(Modifier.height(14.dp))
 

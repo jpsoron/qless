@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 data class HomeUiState(
     val isLoading: Boolean = false,
     val favoritos: List<Local> = emptyList(),
+    val isOffline: Boolean = false,
 )
 
 class HomeViewModel : ViewModel() {
@@ -24,13 +25,17 @@ class HomeViewModel : ViewModel() {
 
     fun loadFavoritos(ids: List<String>) {
         if (ids.isEmpty()) {
-            _uiState.update { it.copy(isLoading = false, favoritos = emptyList()) }
+            _uiState.update { it.copy(isLoading = false, favoritos = emptyList(), isOffline = false) }
             return
         }
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             getFavoritosUseCase(ids)
-                .onSuccess { locales -> _uiState.update { it.copy(isLoading = false, favoritos = locales) } }
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(isLoading = false, favoritos = result.data, isOffline = result.fromCache)
+                    }
+                }
                 .onFailure { _uiState.update { it.copy(isLoading = false) } }
         }
     }

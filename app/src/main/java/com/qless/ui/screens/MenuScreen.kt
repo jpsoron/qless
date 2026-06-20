@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.domain.model.Local
 import com.qless.domain.model.MenuItem
+import com.qless.ui.components.OfflineBanner
 import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.viewmodel.MenuViewModel
 import com.qless.ui.theme.*
@@ -230,6 +231,14 @@ fun MenuScreen(
                         }
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer)
+                }
+
+                if (menuUiState.isOffline) {
+                    item {
+                        OfflineBanner(
+                            Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                        )
+                    }
                 }
 
                 if (selectedCategory.isNotEmpty()) {
