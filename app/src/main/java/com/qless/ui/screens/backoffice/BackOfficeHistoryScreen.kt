@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qless.domain.model.Order
 import com.qless.ui.components.BackOfficeBottomNav
 import com.qless.ui.theme.*
+import com.qless.ui.viewmodel.ACTIVE_ORDER_STATUSES
 import com.qless.ui.viewmodel.OrderViewModel
 
 @Composable
@@ -36,7 +37,7 @@ fun BackOfficeHistoryScreen(
     LaunchedEffect(Unit) { orderViewModel.loadOrderHistory() }
 
     val completedOrders = state.historyOrders
-    val activeCount     = state.localOrders.count { it.status in setOf("pending", "preparing", "ready") }
+    val activeCount     = state.localOrders.count { it.status in ACTIVE_ORDER_STATUSES }
     val totalCount      = state.localOrders.size + completedOrders.size
 
     Scaffold(

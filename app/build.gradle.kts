@@ -38,6 +38,9 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            // Firma con la clave de debug solo para poder instalar una build
+            // NO-debuggable y medir métricas (cold start / fps). No es para distribución.
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -93,6 +96,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

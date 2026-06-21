@@ -5,6 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.qless.di.AppModule
 import com.qless.domain.model.CartItem
 import com.qless.domain.model.Order
+import com.qless.domain.usecase.GetActiveLocalOrdersUseCase
+import com.qless.domain.usecase.GetCompletedLocalOrdersUseCase
+import com.qless.domain.usecase.GetUserOrdersUseCase
+import com.qless.domain.usecase.PlaceOrderUseCase
+import com.qless.domain.usecase.UpdateOrderStatusUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -40,15 +45,29 @@ sealed interface OrderNavEvent {
     data class CheckoutError(val message: String) : OrderNavEvent
 }
 
-private val ACTIVE_STATUSES = setOf("pending", "preparing", "ready")
+/** Estados que cuentan como "pedido en curso" (no finalizado ni cancelado). */
+val ACTIVE_ORDER_STATUSES = setOf("pending", "preparing", "ready")
 
-class OrderViewModel : ViewModel() {
+/** Fuente única de verdad del pedido activo del usuario. */
+fun OrdersUiState.activeOrder(): Order? =
+    userOrders.firstOrNull { it.status in ACTIVE_ORDER_STATUSES }
 
-    private val getUserOrders = AppModule.getUserOrders
-    private val getActiveLocalOrders = AppModule.getActiveLocalOrders
-    private val getCompletedLocalOrders = AppModule.getCompletedLocalOrders
-    private val placeOrderUseCase = AppModule.placeOrder
-    private val updateOrderStatusUseCase = AppModule.updateOrderStatus
+class OrderViewModel(
+    private val getUserOrders: GetUserOrdersUseCase,
+    private val getActiveLocalOrders: GetActiveLocalOrdersUseCase,
+    private val getCompletedLocalOrders: GetCompletedLocalOrdersUseCase,
+    private val placeOrderUseCase: PlaceOrderUseCase,
+    private val updateOrderStatusUseCase: UpdateOrderStatusUseCase,
+) : ViewModel() {
+
+    /** Constructor sin args para `viewModel()` en producción: toma el grafo de [AppModule]. */
+    constructor() : this(
+        AppModule.getUserOrders,
+        AppModule.getActiveLocalOrders,
+        AppModule.getCompletedLocalOrders,
+        AppModule.placeOrder,
+        AppModule.updateOrderStatus,
+    )
 
     private var pollingJob: Job? = null
 
@@ -65,7 +84,7 @@ class OrderViewModel : ViewModel() {
     fun filteredUserOrders(): List<Order> {
         val orders = _uiState.value.userOrders
         return when (_uiState.value.userFilter) {
-            OrderFilter.ACTIVE -> orders.filter { it.status in ACTIVE_STATUSES }
+            OrderFilter.ACTIVE -> orders.filter { it.status in ACTIVE_ORDER_STATUSES }
             OrderFilter.COMPLETED -> orders.filter { it.status == "picked_up" }
             OrderFilter.CANCELLED -> orders.filter { it.status == "cancelled" }
         }

@@ -4,6 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.qless.di.AppModule
 import com.qless.domain.model.CartItem
+import com.qless.domain.usecase.AddCartItemUseCase
+import com.qless.domain.usecase.ClearCartUseCase
+import com.qless.domain.usecase.ObserveCartUseCase
+import com.qless.domain.usecase.UpdateCartItemQuantityUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,12 +18,20 @@ data class CartUiState(
     val items: List<CartItem> = emptyList(),
 )
 
-class CartViewModel : ViewModel() {
+class CartViewModel(
+    private val observeCartUseCase: ObserveCartUseCase,
+    private val addCartItemUseCase: AddCartItemUseCase,
+    private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
+    private val clearCartUseCase: ClearCartUseCase,
+) : ViewModel() {
 
-    private val observeCartUseCase = AppModule.observeCart
-    private val addCartItemUseCase = AppModule.addCartItem
-    private val updateCartItemQuantityUseCase = AppModule.updateCartItemQuantity
-    private val clearCartUseCase = AppModule.clearCart
+    /** Constructor sin args para `viewModel()` en producción: toma el grafo de [AppModule]. */
+    constructor() : this(
+        AppModule.observeCart,
+        AppModule.addCartItem,
+        AppModule.updateCartItemQuantity,
+        AppModule.clearCart,
+    )
 
     private val _uiState = MutableStateFlow(CartUiState())
     val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()

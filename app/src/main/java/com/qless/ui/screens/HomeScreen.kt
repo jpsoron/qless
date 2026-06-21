@@ -36,6 +36,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.qless.R
 import com.qless.domain.model.Local
 import com.qless.domain.model.Order
+import com.qless.ui.components.ActiveCartCard
+import com.qless.ui.components.ActiveCartUi
+import com.qless.ui.components.OfflineBanner
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.HomeViewModel
@@ -56,6 +59,8 @@ fun HomeScreen(
     homeViewModel: HomeViewModel,
     userName: String,
     activeOrder: Order? = null,
+    activeCart: ActiveCartUi? = null,
+    onViewCart: () -> Unit = {},
     isDarkTheme: Boolean = false,
     onNavigateToMisLocales: () -> Unit,
     onLocalSelected: (localId: String) -> Unit,
@@ -215,6 +220,11 @@ fun HomeScreen(
                     }
                 }
 
+                if (homeUiState.isOffline) {
+                    Spacer(Modifier.height(16.dp))
+                    OfflineBanner()
+                }
+
                 Spacer(Modifier.height(16.dp))
 
                 // Location detection prompt
@@ -368,6 +378,12 @@ fun HomeScreen(
                         }
                     }
 
+                    Spacer(Modifier.height(24.dp))
+                }
+
+                // Carrito activo — debajo del pedido en curso si lo hay
+                if (activeCart != null) {
+                    ActiveCartCard(cart = activeCart, onVer = onViewCart)
                     Spacer(Modifier.height(24.dp))
                 }
 
