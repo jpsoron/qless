@@ -396,6 +396,21 @@ fun navigateToMenu(localId: String, popUpRoute: String? = null) {
 }
 ```
 
+**Bloqueo de carrito nuevo con pedido en curso:**
+
+Mientras el usuario tiene un pedido activo (`status ∈ {pending, preparing, ready}`)
+no puede empezar un carrito nuevo. La fuente única de verdad es la extensión
+`OrdersUiState.activeOrder()` (en `OrderViewModel.kt`, junto a la constante
+`ACTIVE_ORDER_STATUSES`), que reemplazó las derivaciones duplicadas dispersas por
+las pantallas. El gate se aplica en el único punto donde nace un carrito —el
+`Agregar` de `MenuScreen`—: `AppNavigation` calcula `blockNewCart =
+orderState.activeOrder() != null` (y refresca `loadUserOrders()` al entrar al menú,
+para que funcione incluso entrando por QR). Con `blockNewCart == true`, `MenuScreen`
+muestra un banner ("Ya tenés un pedido en curso…") con CTA **"Ver pedido"** → Tracking
+y deshabilita los botones `+`. No se acopla la lógica de pedidos a `CartViewModel`:
+la regla vive en la capa de coordinación + UI. El invariante "pedido activo ⇒ carrito
+vacío" se sostiene porque confirmar un pedido limpia el carrito.
+
 **Card de carrito activo (`ActiveCartCard`):**
 
 Cuando hay ítems en el carrito, `AppNavigation` arma un descriptor `ActiveCartUi`
@@ -546,10 +561,36 @@ Los ViewModels son `ViewModel` planos que dependen de casos de uso obtenidos de
   para invertir dependencias y testear con fakes. Migrar a Hilt es opcional:
   reemplazaría `AppModule` por módulos `@Provides` y `@HiltViewModel`.
 
-### Pruebas (RF5)
+### Pruebas y métricas (RF5) — IMPLEMENTADO (falta correr)
 
-- Unit tests de ViewModels con JUnit4 + MockK y repositorios falsos.
-- Tests de composables stateless con Compose Testing.
+**Testabilidad.** Los ViewModels que se testean exponen un constructor primario
+con sus casos de uso (inyección) y un constructor secundario sin args que delega
+en `AppModule` para que `viewModel()` siga funcionando en producción. Así el test
+inyecta fakes sin tocar el grafo global (`OrderViewModel`, `CartViewModel`,
+`HomeViewModel`, `MisLocalesViewModel`, `MenuViewModel`).
+
+**Unit tests (JVM, `app/src/test`).** JUnit4 + `kotlinx-coroutines-test` +
+repositorios fake (`com/qless/fakes/FakeRepositories.kt`). `MainDispatcherRule`
+reemplaza `Dispatchers.Main` por un `UnconfinedTestDispatcher`. Cubren:
+flujo de pedidos (carga, filtros por estado, `activeOrder()`, checkout
+success/error, pickup, update de estado), carrito (observación, alta/baja de
+cantidad, `cartLocalId`, limpiar) y el mapeo `CachedResult → isOffline` + errores
+en locales/menú/favoritos. Se decidió usar **fakes en vez de MockK** (deterministas,
+sin dependencia extra a resolver).
+
+**Test de composable stateless (`app/src/androidTest`).** `ActiveCartCardTest`
+verifica render y callback de `ActiveCartCard` con Compose Testing.
+
+**Métricas no funcionales.** `scripts/measure-metrics.sh` mide cold start
+(`am start -W`) y jank/fps (`dumpsys gfxinfo`) por `adb` sobre la release;
+evidencia en `documentation/metrics/results.md`. Objetivos: cold start < 2.5 s,
+scroll > 54 fps (jank < 10%) en Pixel 9 Pro. Se difirió el módulo Macrobenchmark
+(cablear un módulo Gradle nuevo sin entorno de build es riesgoso); el método `adb`
+da la misma evidencia para H2.
+
+> Pendiente de **ejecución**: `./gradlew testDebugUnitTest` (unit),
+> `connectedDebugAndroidTest` (instrumentados) y correr el script de métricas en
+> el dispositivo. No hay JDK/dispositivo en el entorno donde se escribieron.
 
 ### Accesibilidad
 

@@ -26,6 +26,7 @@ import com.qless.ui.viewmodel.MenuViewModel
 import com.qless.ui.viewmodel.MisLocalesViewModel
 import com.qless.ui.viewmodel.OrderNavEvent
 import com.qless.ui.viewmodel.OrderViewModel
+import com.qless.ui.viewmodel.activeOrder
 import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.viewmodel.ThemeViewModel
 import com.qless.ui.components.ActiveCartUi
@@ -339,9 +340,7 @@ fun AppNavigation(
                 orderViewModel.loadUserOrders()
             }
 
-            val activeOrder = orderState.userOrders.firstOrNull {
-                it.status in setOf("pending", "preparing", "ready")
-            }
+            val activeOrder = orderState.activeOrder()
 
             HomeScreen(
                 homeViewModel = homeViewModel,
@@ -571,9 +570,13 @@ fun AppNavigation(
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             val authState by authViewModel.uiState.collectAsStateWithLifecycle()
             val isFavorito = localId in authState.currentUserFavoritos
+            val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
+            // Bloqueo de carrito nuevo mientras haya un pedido en curso.
+            val blockNewCart = orderState.activeOrder() != null
             val menuViewModel: MenuViewModel = viewModel()
             LaunchedEffect(Unit) {
                 menuViewModel.loadMenu(localId)
+                orderViewModel.loadUserOrders()
             }
             MenuScreen(
                 cartViewModel = cartViewModel,
@@ -581,8 +584,10 @@ fun AppNavigation(
                 local = local,
                 isDarkTheme = isDarkTheme,
                 isFavorito = isFavorito,
+                blockNewCart = blockNewCart,
                 onToggleFavorito = { authViewModel.toggleFavorito(localId) },
                 onViewCart = { navController.navigate(Screen.Cart.route) },
+                onViewActiveOrder = { navController.navigate(Screen.Tracking.route) },
                 onBack = {
                     if (!navController.popBackStack()) {
                         navController.navigate(Screen.Home.route) {
@@ -662,9 +667,7 @@ fun AppNavigation(
 
             // Pedido activo: preferimos el de userOrders (actualizado por polling),
             // fallback a lastCreatedOrder (disponible incluso antes del primer poll)
-            val activeOrder = orderState.userOrders.firstOrNull {
-                it.status in setOf("pending", "preparing", "ready")
-            } ?: lastOrder
+            val activeOrder = orderState.activeOrder() ?: lastOrder
 
             // Carga inmediata al entrar + polling cada 10s; se detiene al salir
             DisposableEffect(Unit) {
@@ -745,8 +748,7 @@ fun AppNavigation(
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
                 onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) },
                 onViewActiveOrder = {
-                    val order = orderViewModel.uiState.value.userOrders
-                        .firstOrNull { it.status in setOf("pending", "preparing", "ready") }
+                    val order = orderViewModel.uiState.value.activeOrder()
                     if (order?.status == "ready") {
                         navController.navigate(Screen.OrderReady.route)
                     } else {
