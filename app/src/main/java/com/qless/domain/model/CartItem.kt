@@ -1,4 +1,4 @@
-package com.qless.data
+package com.qless.domain.model
 
 data class CartItem(
     val emoji: String,

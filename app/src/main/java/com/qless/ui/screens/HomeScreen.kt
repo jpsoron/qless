@@ -29,8 +29,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.R
-import com.qless.data.Local
-import com.qless.data.Order
+import com.qless.domain.model.Local
+import com.qless.domain.model.Order
+import com.qless.ui.components.ActiveCartCard
+import com.qless.ui.components.ActiveCartUi
+import com.qless.ui.components.OfflineBanner
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.HomeViewModel
@@ -49,6 +52,8 @@ fun HomeScreen(
     homeViewModel: HomeViewModel,
     userName: String,
     activeOrder: Order? = null,
+    activeCart: ActiveCartUi? = null,
+    onViewCart: () -> Unit = {},
     isDarkTheme: Boolean = false,
     onNavigateToMisLocales: () -> Unit,
     onLocalSelected: (localId: String) -> Unit,
@@ -91,42 +96,43 @@ fun HomeScreen(
     ) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding)
+                .padding(bottom = padding.calculateBottomPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Top bar con logo
+            // Top bar — el fondo cubre la status bar gracias a statusBarsPadding()
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Pimentón)
                     .statusBarsPadding()
-                    .padding(start = 20.dp, end = 20.dp, top = 0.dp, bottom = 2.dp),
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_qless_blanco),
                     contentDescription = null,
                     tint = Color.Unspecified,
-                    modifier = Modifier.size(66.dp)
+                    modifier = Modifier.size(84.dp)
                 )
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(8.dp))
                 Column {
                     Text(
                         "QLess",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                     Text(
                         "Tu comida, sin filas.",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White.copy(alpha = 0.65f)
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.70f)
                     )
                 }
                 Spacer(Modifier.weight(1f))
                 Box(
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(42.dp)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
@@ -188,6 +194,11 @@ fun HomeScreen(
                         Spacer(Modifier.width(10.dp))
                         Text("Buscar locales o productos...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                     }
+                }
+
+                if (homeUiState.isOffline) {
+                    Spacer(Modifier.height(16.dp))
+                    OfflineBanner()
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -288,6 +299,12 @@ fun HomeScreen(
                         }
                     }
 
+                    Spacer(Modifier.height(24.dp))
+                }
+
+                // Carrito activo — debajo del pedido en curso si lo hay
+                if (activeCart != null) {
+                    ActiveCartCard(cart = activeCart, onVer = onViewCart)
                     Spacer(Modifier.height(24.dp))
                 }
 

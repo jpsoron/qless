@@ -10,7 +10,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import com.qless.R
 import androidx.compose.runtime.*
@@ -22,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.qless.data.Order
+import com.qless.domain.model.Order
 import com.qless.ui.components.BackOfficeBottomNav
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.BackOfficeFilter
@@ -62,33 +64,51 @@ fun BackOfficeScreen(
     ) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding)
+                .padding(bottom = padding.calculateBottomPadding())
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
                     .background(MaderaOscura)
-                    .statusBarsPadding(),
-                contentAlignment = Alignment.Center
+                    .statusBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_qless_blanco),
-                        contentDescription = null,
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(36.dp)
+                Icon(
+                    painter = painterResource(R.drawable.ic_qless_blanco),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(84.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Column {
+                    Text(
+                        "QLess",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                     Text(
                         "BackOffice",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Azafrán
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }

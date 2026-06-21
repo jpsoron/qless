@@ -2,7 +2,7 @@ package com.qless.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.qless.data.CartItem
+import com.qless.domain.model.CartItem
 
 @Entity(tableName = "cart_items")
 data class CartItemEntity(

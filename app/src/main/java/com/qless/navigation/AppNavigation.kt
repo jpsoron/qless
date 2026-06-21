@@ -26,8 +26,10 @@ import com.qless.ui.viewmodel.MenuViewModel
 import com.qless.ui.viewmodel.MisLocalesViewModel
 import com.qless.ui.viewmodel.OrderNavEvent
 import com.qless.ui.viewmodel.OrderViewModel
+import com.qless.ui.viewmodel.activeOrder
 import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.viewmodel.ThemeViewModel
+import com.qless.ui.components.ActiveCartUi
 import com.qless.ui.screens.*
 import com.qless.ui.screens.backoffice.BackOfficeAjustesScreen
 import com.qless.ui.screens.backoffice.BackOfficeHistoryScreen
@@ -101,6 +103,27 @@ fun AppNavigation(
             }
         }
     }
+
+    // Carrito activo (resuelto contra la lista de locales). Se muestra en inicio,
+    // mis locales y mis pedidos; "Ver" lleva al menú de ese local.
+    val cartState by cartViewModel.uiState.collectAsStateWithLifecycle()
+    val localesStateForCart by misLocalesViewModel.uiState.collectAsStateWithLifecycle()
+    val activeCart: ActiveCartUi? = cartState.items.let { items ->
+        val first = items.firstOrNull()
+        if (first == null || first.localId.isEmpty()) {
+            null
+        } else {
+            val local = localesStateForCart.locales.firstOrNull { it.id == first.localId }
+            ActiveCartUi(
+                localId = first.localId,
+                localNombre = local?.nombre ?: "Tu pedido",
+                localEmoji = local?.emoji ?: first.emoji,
+                itemCount = items.sumOf { it.quantity },
+                totalAmount = items.sumOf { it.unitPrice * it.quantity },
+            )
+        }
+    }
+    val onViewCart: () -> Unit = { activeCart?.let { navigateToMenu(it.localId) } }
 
     val onboardingCompleted by themeViewModel.isOnboardingCompleted.collectAsStateWithLifecycle()
 
@@ -317,14 +340,14 @@ fun AppNavigation(
                 orderViewModel.loadUserOrders()
             }
 
-            val activeOrder = orderState.userOrders.firstOrNull {
-                it.status in setOf("pending", "preparing", "ready")
-            }
+            val activeOrder = orderState.activeOrder()
 
             HomeScreen(
                 homeViewModel = homeViewModel,
                 userName = authState.currentUserName,
                 activeOrder = activeOrder,
+                activeCart = activeCart,
+                onViewCart = onViewCart,
                 isDarkTheme = isDarkTheme,
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onLocalSelected = { localId -> navigateToMenu(localId) },
@@ -340,6 +363,8 @@ fun AppNavigation(
             MisLocalesScreen(
                 misLocalesViewModel = misLocalesViewModel,
                 isDarkTheme = isDarkTheme,
+                activeCart = activeCart,
+                onViewCart = onViewCart,
                 onLocalSelected = { localId -> navigateToMenu(localId) },
                 onBack = { navController.popBackStack() },
                 onNavigateToInicio = {
@@ -543,16 +568,26 @@ fun AppNavigation(
             val misLocalesState by misLocalesViewModel.uiState.collectAsStateWithLifecycle()
             val local = misLocalesState.locales.firstOrNull { it.id == localId }
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+            val isFavorito = localId in authState.currentUserFavoritos
+            val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
+            // Bloqueo de carrito nuevo mientras haya un pedido en curso.
+            val blockNewCart = orderState.activeOrder() != null
             val menuViewModel: MenuViewModel = viewModel()
             LaunchedEffect(Unit) {
                 menuViewModel.loadMenu(localId)
+                orderViewModel.loadUserOrders()
             }
             MenuScreen(
                 cartViewModel = cartViewModel,
                 menuViewModel = menuViewModel,
                 local = local,
                 isDarkTheme = isDarkTheme,
+                isFavorito = isFavorito,
+                blockNewCart = blockNewCart,
+                onToggleFavorito = { authViewModel.toggleFavorito(localId) },
                 onViewCart = { navController.navigate(Screen.Cart.route) },
+                onViewActiveOrder = { navController.navigate(Screen.Tracking.route) },
                 onBack = {
                     if (!navController.popBackStack()) {
                         navController.navigate(Screen.Home.route) {
@@ -632,12 +667,11 @@ fun AppNavigation(
 
             // Pedido activo: preferimos el de userOrders (actualizado por polling),
             // fallback a lastCreatedOrder (disponible incluso antes del primer poll)
-            val activeOrder = orderState.userOrders.firstOrNull {
-                it.status in setOf("pending", "preparing", "ready")
-            } ?: lastOrder
+            val activeOrder = orderState.activeOrder() ?: lastOrder
 
-            // Arranca polling al entrar a la pantalla; lo detiene al salir
+            // Carga inmediata al entrar + polling cada 10s; se detiene al salir
             DisposableEffect(Unit) {
+                orderViewModel.loadUserOrders()
                 orderViewModel.startOrderPolling()
                 onDispose { orderViewModel.stopOrderPolling() }
             }
@@ -659,7 +693,11 @@ fun AppNavigation(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
-                }
+                },
+                onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
+                onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
+                onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) },
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) }
             )
         }
 
@@ -667,13 +705,15 @@ fun AppNavigation(
         composable(Screen.OrderReady.route) {
             val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
             val activeOrder = orderState.userOrders.firstOrNull { it.status == "ready" }
-                ?: orderState.lastCreatedOrder
+                ?: orderState.lastCreatedOrder?.takeIf { it.status == "ready" }
             OrderReadyScreen(
                 orderCode = activeOrder?.numero?.toString() ?: "----",
                 localNombre = activeOrder?.localNombre ?: "",
                 onConfirmPickup = {
+                    val orderId = activeOrder?.id
+                    if (orderId != null) orderViewModel.confirmPickup(orderId)
                     navController.navigate(Screen.PickupSuccess.route) {
-                        popUpTo(Screen.Tracking.route) { inclusive = true }
+                        popUpTo(Screen.Home.route) { inclusive = false }
                     }
                 }
             )
@@ -697,6 +737,8 @@ fun AppNavigation(
         composable(Screen.MisPedidos.route) {
             MisPedidosScreen(
                 orderViewModel = orderViewModel,
+                activeCart = activeCart,
+                onViewCart = onViewCart,
                 onNavigateToInicio = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
@@ -705,14 +747,23 @@ fun AppNavigation(
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
                 onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) },
-                onViewActiveOrder = { navController.navigate(Screen.OrderReady.route) },
+                onViewActiveOrder = {
+                    val order = orderViewModel.uiState.value.activeOrder()
+                    if (order?.status == "ready") {
+                        navController.navigate(Screen.OrderReady.route)
+                    } else {
+                        navController.navigate(Screen.Tracking.route)
+                    }
+                },
                 onViewOrderSummary = { navController.navigate(Screen.OrderSummary.route) }
             )
         }
 
         composable(Screen.OrderSummary.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
             OrderSummaryScreen(
+                order = orderState.selectedOrder,
                 isDarkTheme = isDarkTheme,
                 onBack = {
                     if (!navController.popBackStack(Screen.MisPedidos.route, inclusive = false)) {

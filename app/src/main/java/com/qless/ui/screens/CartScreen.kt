@@ -17,9 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qless.data.CartItem
+import com.qless.domain.model.CartItem
 import com.qless.ui.viewmodel.CartViewModel
-import com.qless.ui.theme.*
+import com.qless.ui.theme.Pimentón
+import com.qless.ui.theme.QLessStatusColors
 
 @Composable
 fun CartScreen(
@@ -31,10 +32,46 @@ fun CartScreen(
     val uiState by cartViewModel.uiState.collectAsState()
     val items = uiState.items
     var notes by remember { mutableStateOf("") }
+    var showClearCartDialog by remember { mutableStateOf(false) }
 
     val subtotal = items.sumOf { it.unitPrice * it.quantity }
     val discount = (subtotal * 0.10).toInt()
     val total = subtotal - discount
+
+    if (showClearCartDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearCartDialog = false },
+            title = {
+                Text(
+                    "Vaciar carrito",
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Text(
+                    "Se van a eliminar todos los productos de tu pedido.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        cartViewModel.clearCart()
+                        showClearCartDialog = false
+                    }
+                ) {
+                    Text("Vaciar", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearCartDialog = false }) {
+                    Text("Cancelar")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -60,6 +97,20 @@ fun CartScreen(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(Modifier.weight(1f))
+                    if (items.isNotEmpty()) {
+                        TextButton(
+                            onClick = { showClearCartDialog = true },
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                "Vaciar todo",
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer)
             }
@@ -228,4 +279,3 @@ private fun CartItemRow(item: CartItem, onAdd: () -> Unit, onRemove: () -> Unit)
         }
     }
 }
-

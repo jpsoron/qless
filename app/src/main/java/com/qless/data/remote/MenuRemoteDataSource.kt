@@ -1,6 +1,6 @@
 package com.qless.data.remote
 
-import com.qless.data.MenuItem
+import com.qless.domain.model.MenuItem
 import com.qless.data.remote.dto.MenuItemDto
 import com.qless.data.remote.dto.toDomain
 import io.github.jan.supabase.postgrest.from

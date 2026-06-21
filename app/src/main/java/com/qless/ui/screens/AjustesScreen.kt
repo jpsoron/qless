@@ -23,9 +23,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.components.QLessBottomNav
-import com.qless.ui.theme.*
+import com.qless.ui.theme.QLessTheme
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun AjustesScreen(
     userName: String,
     userEmail: String,
@@ -42,6 +43,78 @@ fun AjustesScreen(
 ) {
     val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     var gpsEnabled by remember { mutableStateOf(true) }
+    var showProfileSheet by remember { mutableStateOf(false) }
+    var profileName by remember(userName) { mutableStateOf(userName.ifBlank { "Usuario" }) }
+    var profileEmail by remember(userEmail) { mutableStateOf(userEmail) }
+
+    if (showProfileSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showProfileSheet = false },
+            containerColor = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    "Mi perfil",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    "Datos personales y cuenta",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(20.dp))
+                OutlinedTextField(
+                    value = profileName,
+                    onValueChange = { profileName = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = profileEmail,
+                    onValueChange = { profileEmail = it },
+                    label = { Text("Email") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                )
+                Spacer(Modifier.height(18.dp))
+                Button(
+                    onClick = { showProfileSheet = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(999.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Guardar cambios", color = Color.White, fontWeight = FontWeight.SemiBold)
+                }
+                Spacer(Modifier.height(12.dp))
+            }
+        }
+    }
+
     Scaffold(
         bottomBar = {
             QLessBottomNav(
@@ -115,7 +188,7 @@ fun AjustesScreen(
                         }
                     }
                     IconButton(
-                        onClick = { },
+                        onClick = { showProfileSheet = true },
                         modifier = Modifier.border(1.dp, Color.White.copy(alpha = 0.2f), CircleShape)
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
@@ -126,7 +199,7 @@ fun AjustesScreen(
             Spacer(Modifier.height(32.dp))
 
             SettingsSection("CUENTA") {
-                SettingsItem("👤", "Mi perfil", "Datos personales y cuenta")
+                SettingsItem("👤", "Mi perfil", "Datos personales y cuenta", onClick = { showProfileSheet = true })
                 SettingsItem(
                     icon = "💳",
                     title = "Métodos de pago",

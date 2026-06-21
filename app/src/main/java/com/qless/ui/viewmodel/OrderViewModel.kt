@@ -1,11 +1,15 @@
 package com.qless.ui.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.qless.data.CartItem
-import com.qless.data.Order
-import com.qless.data.OrderRepository
+import com.qless.di.AppModule
+import com.qless.domain.model.CartItem
+import com.qless.domain.model.Order
+import com.qless.domain.usecase.GetActiveLocalOrdersUseCase
+import com.qless.domain.usecase.GetCompletedLocalOrdersUseCase
+import com.qless.domain.usecase.GetUserOrdersUseCase
+import com.qless.domain.usecase.PlaceOrderUseCase
+import com.qless.domain.usecase.UpdateOrderStatusUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -26,6 +30,7 @@ data class OrdersUiState(
     val localOrders: List<Order> = emptyList(),       // activos: pending, preparing, ready
     val historyOrders: List<Order> = emptyList(),     // completados: picked_up
     val lastCreatedOrder: Order? = null,
+    val selectedOrder: Order? = null,
     val isLoadingUser: Boolean = false,
     val isLoadingLocal: Boolean = false,
     val isLoadingHistory: Boolean = false,
@@ -40,13 +45,35 @@ sealed interface OrderNavEvent {
     data class CheckoutError(val message: String) : OrderNavEvent
 }
 
-private val ACTIVE_STATUSES = setOf("pending", "preparing", "ready")
+/** Estados que cuentan como "pedido en curso" (no finalizado ni cancelado). */
+val ACTIVE_ORDER_STATUSES = setOf("pending", "preparing", "ready")
 
-class OrderViewModel(app: Application) : AndroidViewModel(app) {
+/** Fuente única de verdad del pedido activo del usuario. */
+fun OrdersUiState.activeOrder(): Order? =
+    userOrders.firstOrNull { it.status in ACTIVE_ORDER_STATUSES }
 
-    private val repository = OrderRepository()
+class OrderViewModel(
+    private val getUserOrders: GetUserOrdersUseCase,
+    private val getActiveLocalOrders: GetActiveLocalOrdersUseCase,
+    private val getCompletedLocalOrders: GetCompletedLocalOrdersUseCase,
+    private val placeOrderUseCase: PlaceOrderUseCase,
+    private val updateOrderStatusUseCase: UpdateOrderStatusUseCase,
+) : ViewModel() {
+
+    /** Constructor sin args para `viewModel()` en producción: toma el grafo de [AppModule]. */
+    constructor() : this(
+        AppModule.getUserOrders,
+        AppModule.getActiveLocalOrders,
+        AppModule.getCompletedLocalOrders,
+        AppModule.placeOrder,
+        AppModule.updateOrderStatus,
+    )
 
     private var pollingJob: Job? = null
+
+    // IDs de pedidos que el cliente confirmó como retirados en esta sesión.
+    // Protege el estado optimista contra recargas del server que devuelvan status desactualizado.
+    private val locallyPickedUp = mutableSetOf<String>()
 
     private val _uiState = MutableStateFlow(OrdersUiState())
     val uiState: StateFlow<OrdersUiState> = _uiState.asStateFlow()
@@ -57,7 +84,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
     fun filteredUserOrders(): List<Order> {
         val orders = _uiState.value.userOrders
         return when (_uiState.value.userFilter) {
-            OrderFilter.ACTIVE -> orders.filter { it.status in ACTIVE_STATUSES }
+            OrderFilter.ACTIVE -> orders.filter { it.status in ACTIVE_ORDER_STATUSES }
             OrderFilter.COMPLETED -> orders.filter { it.status == "picked_up" }
             OrderFilter.CANCELLED -> orders.filter { it.status == "cancelled" }
         }
@@ -75,8 +102,11 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
     fun loadUserOrders() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingUser = true, error = null) }
-            repository.getOrdersByUser()
-                .onSuccess { orders -> _uiState.update { it.copy(userOrders = orders, isLoadingUser = false) } }
+            getUserOrders()
+                .onSuccess { orders ->
+                    val adjusted = orders.applyLocalPickups()
+                    _uiState.update { it.copy(userOrders = adjusted, isLoadingUser = false) }
+                }
                 .onFailure { err -> _uiState.update { it.copy(isLoadingUser = false, error = err.message) } }
         }
     }
@@ -84,7 +114,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
     fun loadLocalOrders() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingLocal = true, error = null) }
-            repository.getActiveOrdersForLocal()
+            getActiveLocalOrders()
                 .onSuccess { orders -> _uiState.update { it.copy(localOrders = orders, isLoadingLocal = false) } }
                 .onFailure { err -> _uiState.update { it.copy(isLoadingLocal = false, error = err.message) } }
         }
@@ -93,7 +123,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
     fun loadOrderHistory() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingHistory = true, error = null) }
-            repository.getCompletedOrdersForLocal()
+            getCompletedLocalOrders()
                 .onSuccess { orders -> _uiState.update { it.copy(historyOrders = orders, isLoadingHistory = false) } }
                 .onFailure { err -> _uiState.update { it.copy(isLoadingHistory = false, error = err.message) } }
         }
@@ -103,7 +133,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         if (items.isEmpty()) return
         viewModelScope.launch {
             _uiState.update { it.copy(isCheckingOut = true) }
-            repository.createOrder(items, localId)
+            placeOrderUseCase(items, localId)
                 .onSuccess { order ->
                     _uiState.update { it.copy(isCheckingOut = false, lastCreatedOrder = order) }
                     _navEvent.emit(OrderNavEvent.CheckoutSuccess)
@@ -117,9 +147,32 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
 
     fun updateOrderStatus(orderId: String, newStatus: String) {
         viewModelScope.launch {
-            repository.updateStatus(orderId, newStatus)
+            updateOrderStatusUseCase(orderId, newStatus)
                 .onSuccess { loadLocalOrders() }
         }
+    }
+
+    fun confirmPickup(orderId: String) {
+        locallyPickedUp.add(orderId)
+        _uiState.update { state ->
+            state.copy(
+                userOrders = state.userOrders.applyLocalPickups(),
+                lastCreatedOrder = state.lastCreatedOrder?.let {
+                    if (it.id in locallyPickedUp) it.copy(status = "picked_up") else it
+                }
+            )
+        }
+        viewModelScope.launch {
+            updateOrderStatusUseCase(orderId, "picked_up")
+                .onSuccess {
+                    locallyPickedUp.remove(orderId) // server lo confirmó, ya no necesitamos override
+                    loadUserOrders()
+                }
+        }
+    }
+
+    fun selectOrder(order: Order) {
+        _uiState.update { it.copy(selectedOrder = order) }
     }
 
     fun setUserFilter(filter: OrderFilter) {
@@ -136,8 +189,8 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         pollingJob = viewModelScope.launch {
             while (true) {
                 delay(10_000L)
-                repository.getOrdersByUser()
-                    .onSuccess { orders -> _uiState.update { it.copy(userOrders = orders) } }
+                getUserOrders()
+                    .onSuccess { orders -> _uiState.update { it.copy(userOrders = orders.applyLocalPickups()) } }
             }
         }
     }
@@ -146,5 +199,10 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
     fun stopOrderPolling() {
         pollingJob?.cancel()
         pollingJob = null
+    }
+
+    private fun List<Order>.applyLocalPickups(): List<Order> {
+        if (locallyPickedUp.isEmpty()) return this
+        return map { if (it.id in locallyPickedUp) it.copy(status = "picked_up") else it }
     }
 }

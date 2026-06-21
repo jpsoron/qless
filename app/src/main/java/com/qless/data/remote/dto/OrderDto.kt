@@ -1,7 +1,7 @@
 package com.qless.data.remote.dto
 
-import com.qless.data.Order
-import com.qless.data.OrderItem
+import com.qless.domain.model.Order
+import com.qless.domain.model.OrderItem
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

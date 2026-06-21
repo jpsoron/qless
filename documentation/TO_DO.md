@@ -4,10 +4,10 @@
 
 ### Mis Locales
 
-- [ ] **Buscador funcional** — el `TextField` "Buscar local..." existe visualmente pero no filtra. Agregar `var query by remember { mutableStateOf("") }` y `.filter { it.nombre.contains(query, ignoreCase = true) }` sobre `uiState.locales`.
-- [ ] **Chips de categoría** — filtrar la lista por `local.categoria` con chips derivados de los datos reales. Estado: `var selectedCategory by remember { mutableStateOf<String?>(null) }`.
-- [ ] **Ordenar locales** — dropdown con opciones (rating ↓, nombre A-Z, primero los abiertos). Solo `.sortedBy { }` sobre la lista.
-- [ ] **Cerrar banner de geolocalización** — el botón "No" tiene `onClick = {}`. Ocultar el banner con `var showGeoBanner by remember { mutableStateOf(true) }`.
+- [X] **Buscador funcional** — el `TextField` "Buscar local..." existe visualmente pero no filtra. Agregar `var query by remember { mutableStateOf("") }` y `.filter { it.nombre.contains(query, ignoreCase = true) }` sobre `uiState.locales`.
+- [X] **Chips de categoría** — filtrar la lista por `local.categoria` con chips derivados de los datos reales. Estado: `var selectedCategory by remember { mutableStateOf<String?>(null) }`.
+- [X] **Ordenar locales** — dropdown con opciones (rating ↓, nombre A-Z, primero los abiertos). Solo `.sortedBy { }` sobre la lista.
+- [X] **Cerrar banner de geolocalización** — el botón "No" tiene `onClick = {}`. Ocultar el banner con `var showGeoBanner by remember { mutableStateOf(true) }`.
 
 ### Menú
 
@@ -15,8 +15,8 @@
 
 ### Mis Pedidos
 
-- [ ] **Tabs funcionales (Activos / Finalizados / Cancelados)** — los chips están renderizados con `selected = true/false` hardcodeado. Necesitan `var selectedTab by remember { mutableStateOf("Activos") }` y que cada tab muestre su lista correspondiente.
-- [ ] **Estado vacío por tab** — cuando un tab no tiene pedidos, mostrar un mensaje del tipo "No tenés pedidos finalizados".
+- [X] **Tabs funcionales (Activos / Finalizados / Cancelados)** — los chips están renderizados con `selected = true/false` hardcodeado. Necesitan `var selectedTab by remember { mutableStateOf("Activos") }` y que cada tab muestre su lista correspondiente.
+- [X] **Estado vacío por tab** — cuando un tab no tiene pedidos, mostrar un mensaje del tipo "No tenés pedidos finalizados".
 
 ### Login
 
@@ -24,15 +24,15 @@
 
 ### Ajustes
 
-- [ ] **"Mi perfil" navega a algún lado** — el ítem tiene `onClick = {}` sin destino. Puede navegar a una pantalla nueva o abrir un `BottomSheet` con los datos del usuario (nombre, email) y opción de editar nombre.
+- [X] **"Mi perfil" navega a algún lado** — el ítem tiene `onClick = {}` sin destino. Puede navegar a una pantalla nueva o abrir un `BottomSheet` con los datos del usuario (nombre, email) y opción de editar nombre.
 
 ### Carrito
 
-- [ ] **Vaciar carrito** — no hay botón de "Vaciar todo". Agregar un `AlertDialog` de confirmación + `cartViewModel.clearCart()`.
+- [X] **Vaciar carrito** — no hay botón de "Vaciar todo". Agregar un `AlertDialog` de confirmación + `cartViewModel.clearCart()`.
 
 ### Order Ready
 
-- [ ] **Placeholder de QR visual** — hay un comentario `// QR Code Placeholder`. Reemplazar con un recuadro decorativo que simule un QR (cuadrados anidados con colores del design system).
+- [X] **Placeholder de QR visual** — hay un comentario `// QR Code Placeholder`. Reemplazar con un recuadro decorativo que simule un QR (cuadrados anidados con colores del design system).
 
 ---
 

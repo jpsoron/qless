@@ -70,7 +70,7 @@ QLess es una aplicación Android nativa orientada al pedido anticipado en locale
 | UI | Jetpack Compose + Material 3 |
 | Navegación | Navigation Compose 2.9.0 |
 | Estado y ciclo de vida | ViewModel (AndroidViewModel / ViewModel), StateFlow, SharedFlow |
-| Persistencia local | Room 2.7.1 (carrito y métodos de pago) + DataStore Preferences (tema, onboarding, sesión) |
+| Persistencia local | Room 2.7.1 (carrito, métodos de pago, caché offline de locales y menú) + DataStore Preferences (tema, onboarding, sesión) |
 | Backend / Auth | Supabase Auth 3.1.4 (email + password) |
 | Backend / Base de datos | Supabase PostgREST (postgrest-kt 3.1.4) sobre PostgreSQL |
 | Cliente HTTP | Ktor OkHttp Engine 3.1.3 |
@@ -227,6 +227,31 @@ Guarda el JSON de la sesión de Supabase en un DataStore propio (`qless_session`
 - Tabla `locales`: `id` (uuid PK), `nombre`, `emoji`, `categoria`, `barrio`, `direccion`, `rating`, `tiempo_entrega`, `abierto`, `tiene_promo`, `destacado`. RLS con `using(true)`.
 - Tabla `menu_items`: `id` (uuid PK), `local_id` (uuid FK → `locales(id)` ON DELETE CASCADE), `nombre`, `descripcion`, `emoji`, `precio` (integer), `categoria`, `es_popular` (boolean), `disponible` (boolean), `orden` (integer). RLS con `using(true)`. Cada local tiene su propia carta; los ítems se filtran por `local_id`.
 
+**Modo offline (RF4) — caché de locales y menú en Room:**
+
+`LocalesRepositoryImpl` y `MenuRepositoryImpl` implementan una estrategia
+*network-first con fallback a caché*:
+
+1. Piden los datos al `RemoteDataSource` (Supabase).
+2. **Éxito:** reescriben la copia local en Room (`LocalDao.replaceAll` /
+   `MenuItemDao.replaceForLocal`) y devuelven los datos frescos.
+3. **Falla de red:** leen la última copia de Room. Si hay caché, la sirven; si
+   está vacía, recién ahí propagan el error.
+
+El origen del dato viaja a la UI envuelto en `domain/model/CachedResult<T>`
+(`data` + `fromCache`). Cuando `fromCache == true`, los ViewModels
+(`MisLocales`, `Menu`, `Home`) marcan `isOffline` y las pantallas muestran el
+componente `OfflineBanner` ("Sin conexión — mostrando los últimos datos
+guardados"). Un `Result.failure` significa que falló la red **y** no había caché.
+
+Entidades Room dedicadas: `LocalEntity` (tabla `locales`) y `MenuItemEntity`
+(tabla `menu_items`, con columna `orden` para reconstruir la carta en el orden
+original). La caché se llena sola al navegar online; el menú se cachea por local.
+
+> Alcance: el modo offline cubre **lectura** (catálogo de locales y menús). Una
+> cola de tareas offline para **escritura** queda pendiente hasta que los pedidos
+> persistan en backend (A1) — hoy no habría operación de escritura que encolar.
+
 ---
 
 ### Capa de Presentación (`ui/`)
@@ -371,6 +396,32 @@ fun navigateToMenu(localId: String, popUpRoute: String? = null) {
 }
 ```
 
+**Bloqueo de carrito nuevo con pedido en curso:**
+
+Mientras el usuario tiene un pedido activo (`status ∈ {pending, preparing, ready}`)
+no puede empezar un carrito nuevo. La fuente única de verdad es la extensión
+`OrdersUiState.activeOrder()` (en `OrderViewModel.kt`, junto a la constante
+`ACTIVE_ORDER_STATUSES`), que reemplazó las derivaciones duplicadas dispersas por
+las pantallas. El gate se aplica en el único punto donde nace un carrito —el
+`Agregar` de `MenuScreen`—: `AppNavigation` calcula `blockNewCart =
+orderState.activeOrder() != null` (y refresca `loadUserOrders()` al entrar al menú,
+para que funcione incluso entrando por QR). Con `blockNewCart == true`, `MenuScreen`
+muestra un banner ("Ya tenés un pedido en curso…") con CTA **"Ver pedido"** → Tracking
+y deshabilita los botones `+`. No se acopla la lógica de pedidos a `CartViewModel`:
+la regla vive en la capa de coordinación + UI. El invariante "pedido activo ⇒ carrito
+vacío" se sostiene porque confirmar un pedido limpia el carrito.
+
+**Card de carrito activo (`ActiveCartCard`):**
+
+Cuando hay ítems en el carrito, `AppNavigation` arma un descriptor `ActiveCartUi`
+(localId, nombre y emoji del local —resueltos contra la lista de `misLocalesViewModel`—,
+cantidad de productos y total) y lo inyecta en las pantallas de inicio (`HomeScreen`,
+debajo del banner de pedido en curso), `MisLocalesScreen` y `MisPedidosScreen`. El
+componente reutilizable `ui/components/ActiveCartCard.kt` muestra "CARRITO ACTIVO", el
+local y el resumen; el botón **"Ver"** invoca `navigateToMenu(localId)` para volver al
+menú de ese local (al coincidir el local del carrito, no dispara el diálogo de conflicto).
+El descriptor es `null` cuando el carrito está vacío, así que la card no se renderiza.
+
 **Flujo de Splash con verificación de sesión:**
 
 El composable de Splash espera dos condiciones simultáneas antes de navegar:
@@ -434,8 +485,8 @@ Splash (verificación de sesión en paralelo)
 | Sesión de usuario | Supabase Auth | DataStore (`qless_session`) si "Mantener sesión" activo |
 | Perfil (`nombre`, `email`, `rol`) | Supabase `perfiles` | En memoria (leído en cada login/restore) |
 | Favoritos del usuario (`favoritos uuid[]`) | Supabase `perfiles` | En `AuthUiState` durante la sesión |
-| Locales gastronómicos | Supabase `locales` | Sin caché local (siempre desde red) |
-| Menú del local | Supabase `menu_items` | Sin caché local (siempre desde red) |
+| Locales gastronómicos | Supabase `locales` | Room (`locales`) como caché; fallback offline (RF4) |
+| Menú del local | Supabase `menu_items` | Room (`menu_items`) como caché; fallback offline (RF4) |
 | Carrito | Room (con `localId` por ítem) | Sobrevive a reinicios |
 | Métodos de pago | Room | Sobrevive a reinicios |
 | Tema oscuro / onboarding | DataStore (`qless_settings`) | Permanente |
@@ -468,7 +519,7 @@ ktor                                 = "3.1.3"   # ktor-client-okhttp
 - ~~Favoritos del usuario desde Supabase~~ ✓ (columna `favoritos uuid[]` en `perfiles`)
 - ~~Conectar menú a Supabase PostgREST~~ ✓ (tabla `menu_items` + RLS + FK a `locales`)
 - Conectar pedidos a Supabase PostgREST.
-- Manejar errores de conectividad y modo offline básico (RF4): cachear el último menú y locales en Room.
+- ~~Manejar errores de conectividad y modo offline básico (RF4): cachear el último menú y locales en Room~~ ✓ (ver "Modo offline" abajo). Pendiente: cola de tareas offline para escritura (cuando exista persistencia de pedidos / A1).
 
 ### Autenticación
 
@@ -480,20 +531,66 @@ ktor                                 = "3.1.3"   # ktor-client-okhttp
 - Eliminar cuenta: requiere Supabase Edge Function con service role (actualmente solo hace sign-out).
 - Agregar / quitar favoritos desde la UI (hoy solo se leen, la modificación se hace desde SQL).
 
-### Clean Architecture
+### Clean Architecture — IMPLEMENTADO
 
-- Introducir capa `domain/` con modelos puros y casos de uso.
-- Definir interfaces de repositorio en `domain/` e implementarlas en `data/`.
+La capa de dominio ya existe y el código respeta la regla de dependencias del
+diagrama de `ARCHITECTURE.md`:
+
+- `domain/model/` — modelos puros de negocio (`Order`, `MenuItem`, `Local`,
+  `CartItem`, `PaymentMethod`, `User`, `AuthUser`). Sin anotaciones de
+  serialización ni de Room.
+- `domain/repository/` — **contratos** (interfaces) de repositorio.
+- `domain/usecase/` — casos de uso agrupados por dominio (`OrderUseCases`,
+  `MenuUseCases`, `LocalesUseCases`, `CartUseCases`, `PaymentUseCases`,
+  `AuthUseCases`, `ThemeUseCases`). El dominio principal (pedidos) concentra la
+  orquestación de reglas (p. ej. `PlaceOrderUseCase` valida carrito no vacío).
+- `data/repository/` — `…RepositoryImpl` que **implementan** los contratos de
+  dominio, delegando en los data sources remotos (Supabase) y locales (Room).
+- `di/AppModule.kt` — composition root manual: arma el grafo
+  impl → contrato → caso de uso. Se inicializa en `MainActivity.onCreate`.
+
+Los ViewModels son `ViewModel` planos que dependen de casos de uso obtenidos de
+`AppModule`, no de clases concretas de la capa de datos.
+
+> Nota: el árbol de archivos de la sección "Estructura del proyecto" (más arriba)
+> todavía refleja el layout previo (todo bajo `data/`) y debe regenerarse.
 
 ### Inyección de dependencias (Hilt)
 
-- Incorporar Hilt para eliminar la instanciación manual de DAOs y repositorios dentro de los ViewModels.
-- Migrar de `AndroidViewModel` a `ViewModel` regular una vez que el contexto lo provea Hilt.
+- El cableado hoy es un composition root manual (`di/AppModule.kt`), suficiente
+  para invertir dependencias y testear con fakes. Migrar a Hilt es opcional:
+  reemplazaría `AppModule` por módulos `@Provides` y `@HiltViewModel`.
 
-### Pruebas (RF5)
+### Pruebas y métricas (RF5) — IMPLEMENTADO (falta correr)
 
-- Unit tests de ViewModels con JUnit4 + MockK y repositorios falsos.
-- Tests de composables stateless con Compose Testing.
+**Testabilidad.** Los ViewModels que se testean exponen un constructor primario
+con sus casos de uso (inyección) y un constructor secundario sin args que delega
+en `AppModule` para que `viewModel()` siga funcionando en producción. Así el test
+inyecta fakes sin tocar el grafo global (`OrderViewModel`, `CartViewModel`,
+`HomeViewModel`, `MisLocalesViewModel`, `MenuViewModel`).
+
+**Unit tests (JVM, `app/src/test`).** JUnit4 + `kotlinx-coroutines-test` +
+repositorios fake (`com/qless/fakes/FakeRepositories.kt`). `MainDispatcherRule`
+reemplaza `Dispatchers.Main` por un `UnconfinedTestDispatcher`. Cubren:
+flujo de pedidos (carga, filtros por estado, `activeOrder()`, checkout
+success/error, pickup, update de estado), carrito (observación, alta/baja de
+cantidad, `cartLocalId`, limpiar) y el mapeo `CachedResult → isOffline` + errores
+en locales/menú/favoritos. Se decidió usar **fakes en vez de MockK** (deterministas,
+sin dependencia extra a resolver).
+
+**Test de composable stateless (`app/src/androidTest`).** `ActiveCartCardTest`
+verifica render y callback de `ActiveCartCard` con Compose Testing.
+
+**Métricas no funcionales.** `scripts/measure-metrics.sh` mide cold start
+(`am start -W`) y jank/fps (`dumpsys gfxinfo`) por `adb` sobre la release;
+evidencia en `documentation/metrics/results.md`. Objetivos: cold start < 2.5 s,
+scroll > 54 fps (jank < 10%) en Pixel 9 Pro. Se difirió el módulo Macrobenchmark
+(cablear un módulo Gradle nuevo sin entorno de build es riesgoso); el método `adb`
+da la misma evidencia para H2.
+
+> Pendiente de **ejecución**: `./gradlew testDebugUnitTest` (unit),
+> `connectedDebugAndroidTest` (instrumentados) y correr el script de métricas en
+> el dispositivo. No hay JDK/dispositivo en el entorno donde se escribieron.
 
 ### Accesibilidad
 

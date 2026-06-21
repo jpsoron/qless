@@ -1,5 +1,6 @@
 package com.qless.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,11 +11,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -22,17 +25,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.qless.data.Order
+import com.qless.domain.model.Order
+import com.qless.ui.components.ActiveCartCard
+import com.qless.ui.components.ActiveCartUi
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.OrderFilter
 import com.qless.ui.viewmodel.OrderViewModel
+import com.qless.ui.viewmodel.activeOrder
 import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
 fun MisPedidosScreen(
     orderViewModel: OrderViewModel,
+    activeCart: ActiveCartUi? = null,
+    onViewCart: () -> Unit = {},
     onNavigateToInicio: () -> Unit,
     onNavigateToMisLocales: () -> Unit,
     onNavigateToScanQr: () -> Unit,
@@ -44,8 +52,11 @@ fun MisPedidosScreen(
 
     LaunchedEffect(Unit) { orderViewModel.loadUserOrders() }
 
-    val filtered = orderViewModel.filteredUserOrders()
-    val activeOrder = state.userOrders.firstOrNull { it.status in setOf("pending", "preparing", "ready") }
+    val activeOrder = state.activeOrder()
+    val allFiltered = orderViewModel.filteredUserOrders()
+    val filtered = if (state.userFilter == OrderFilter.ACTIVE && activeOrder != null) {
+        allFiltered.filter { it.id != activeOrder.id }
+    } else allFiltered
 
     Scaffold(
         bottomBar = {
@@ -103,6 +114,11 @@ fun MisPedidosScreen(
                     Spacer(Modifier.height(28.dp))
                 }
 
+                if (activeCart != null) {
+                    ActiveCartCard(cart = activeCart, onVer = onViewCart)
+                    Spacer(Modifier.height(28.dp))
+                }
+
                 if (filtered.isNotEmpty()) {
                     Text(
                         "RECIENTES",
@@ -113,7 +129,10 @@ fun MisPedidosScreen(
                     )
                     Spacer(Modifier.height(12.dp))
                     filtered.forEach { order ->
-                        RecentOrderCard(order = order, onClick = onViewOrderSummary)
+                        RecentOrderCard(order = order, onClick = {
+                            orderViewModel.selectOrder(order)
+                            onViewOrderSummary()
+                        })
                         Spacer(Modifier.height(12.dp))
                     }
                 } else if (!state.isLoadingUser) {
@@ -168,60 +187,136 @@ private fun FilterChip(text: String, selected: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun ActiveOrderCard(order: Order, onClick: () -> Unit) {
+    val isReady = order.status == "ready"
+
+    val gradientColors = if (isReady)
+        listOf(Color(0xFF0D5A31), Color(0xFF218B52))
+    else
+        listOf(Color(0xFF5C3800), Color(0xFF9E6304))
+
+    val accentColor = if (isReady) QLessStatusColors.disponible else QLessStatusColors.enPreparacion
+
     val statusLabel = when (order.status) {
-        "pending" -> "PAGO CONFIRMADO"
+        "pending"   -> "PAGO CONFIRMADO"
         "preparing" -> "EN PREPARACIÓN"
-        "ready" -> "¡TU PEDIDO ESTÁ LISTO!"
-        else -> "PEDIDO ACTIVO"
+        "ready"     -> "¡TU PEDIDO ESTÁ LISTO!"
+        else        -> "PEDIDO ACTIVO"
     }
+
+    val subtitleText = when (order.status) {
+        "pending"   -> "El local está por empezar tu pedido"
+        "preparing" -> "La cocina está armando tu pedido"
+        else        -> "Acercate al mostrador a retirar"
+    }
+
+    val icon = if (isReady) Icons.Default.NotificationsActive else Icons.Default.Schedule
+
+    val pulse = rememberInfiniteTransition(label = "pulse")
+
+    // Ícono: scale pronunciado cuando listo, suave cuando en preparación
+    val iconScale by pulse.animateFloat(
+        initialValue = 1f,
+        targetValue = if (isReady) 1.45f else 1.22f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(if (isReady) 700 else 1400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "iconScale"
+    )
+
+    // Dot: parpadea en alpha para señalizar estado "en vivo"
+    val dotAlpha by pulse.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "dotAlpha"
+    )
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(22.dp),
-        color = QLessStatusColors.disponible
+        color = Color.Transparent
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.linearGradient(listOf(Color(0xFF0D5A31), Color(0xFF218B52))))
+                .background(Brush.linearGradient(gradientColors), shape = RoundedCornerShape(22.dp))
                 .padding(18.dp)
         ) {
+            // Círculo decorativo de fondo
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .size(128.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.08f))
+                    .background(Color.White.copy(alpha = 0.07f))
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // Ícono del estado
                 Box(
                     modifier = Modifier
-                        .size(58.dp)
+                        .size(56.dp)
+                        .scale(iconScale)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.14f)),
+                        .background(Color.White.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
+                    Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(statusLabel, color = Color.White.copy(alpha = 0.58f), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold, letterSpacing = 1.1.sp)
-                    Text(order.localNombre, color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
-                    Text("Pedido #${order.numero}", color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        when (order.status) {
-                            "pending"   -> "El local está por empezar tu pedido"
-                            "preparing" -> "La cocina está armando tu pedido"
-                            else        -> "Acercate al mostrador a retirar"
-                        },
-                        color = Color.White.copy(alpha = 0.72f),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    // Eyebrow con dot pulsante para en preparación
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        if (!isReady) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .clip(CircleShape)
+                                    .background(accentColor.copy(alpha = dotAlpha))
+                            )
+                        }
+                        Text(
+                            statusLabel,
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.8.sp
+                        )
+                    }
+                    Spacer(Modifier.height(2.dp))
+                    Text(order.localNombre, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 24.sp)
+                    Text("Pedido #${order.numero}", color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(6.dp))
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = Color.White.copy(alpha = 0.12f)
+                    ) {
+                        Text(
+                            subtitleText,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            color = Color.White.copy(alpha = 0.85f),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
                 }
-                Surface(shape = RoundedCornerShape(999.dp), color = Color.White) {
-                    Text("Ver →", modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp), color = QLessStatusColors.disponible, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                Spacer(Modifier.width(12.dp))
+                // Botón "Ver"
+                Surface(shape = RoundedCornerShape(999.dp), color = Color.White.copy(alpha = 0.18f)) {
+                    Text(
+                        "Ver →",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
+                    )
                 }
             }
         }
