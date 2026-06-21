@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.qless.di.AppModule
 import com.qless.domain.model.MenuItem
+import com.qless.domain.usecase.GetMenuUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,9 +19,13 @@ data class MenuUiState(
     val isOffline: Boolean = false,
 )
 
-class MenuViewModel : ViewModel() {
+class MenuViewModel(
+    private val getMenuUseCase: GetMenuUseCase,
+) : ViewModel() {
 
-    private val getMenuUseCase = AppModule.getMenu
+    /** Constructor sin args para `viewModel()` en producción: toma el grafo de [AppModule]. */
+    constructor() : this(AppModule.getMenu)
+
     private val _uiState = MutableStateFlow(MenuUiState())
     val uiState: StateFlow<MenuUiState> = _uiState.asStateFlow()
 

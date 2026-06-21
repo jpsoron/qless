@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.qless.di.AppModule
 import com.qless.domain.model.Local
+import com.qless.domain.usecase.GetFavoritosUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,9 +17,12 @@ data class HomeUiState(
     val isOffline: Boolean = false,
 )
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(
+    private val getFavoritosUseCase: GetFavoritosUseCase,
+) : ViewModel() {
 
-    private val getFavoritosUseCase = AppModule.getFavoritos
+    /** Constructor sin args para `viewModel()` en producción: toma el grafo de [AppModule]. */
+    constructor() : this(AppModule.getFavoritos)
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()

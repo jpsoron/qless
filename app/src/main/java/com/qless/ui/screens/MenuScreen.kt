@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,8 +41,10 @@ fun MenuScreen(
     local: Local? = null,
     isDarkTheme: Boolean = false,
     isFavorito: Boolean = false,
+    blockNewCart: Boolean = false,
     onToggleFavorito: () -> Unit = {},
     onViewCart: () -> Unit,
+    onViewActiveOrder: () -> Unit = {},
     onBack: () -> Unit,
 ) {
     val cartUiState by cartViewModel.uiState.collectAsState()
@@ -233,6 +236,15 @@ fun MenuScreen(
                     HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer)
                 }
 
+                if (blockNewCart) {
+                    item {
+                        ActiveOrderLockBanner(
+                            onViewActiveOrder = onViewActiveOrder,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+
                 if (menuUiState.isOffline) {
                     item {
                         OfflineBanner(
@@ -257,6 +269,7 @@ fun MenuScreen(
                     MenuItemCard(
                         item = item,
                         quantity = cartViewModel.getQuantity(item.nombre),
+                        canAdd = !blockNewCart,
                         onAdd = { cartViewModel.addItem(item.emoji, item.nombre, item.descripcion, item.precio, item.id, local?.id ?: "") },
                         onRemove = { cartViewModel.removeItem(item.nombre) }
                     )
@@ -366,6 +379,67 @@ private fun SkeletonMenuItemCard(brush: Brush) {
 }
 
 @Composable
+private fun ActiveOrderLockBanner(
+    onViewActiveOrder: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = QLessStatusColors.enPreparacionSurface,
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, QLessStatusColors.enPreparacion.copy(alpha = 0.4f))
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(QLessStatusColors.enPreparacion),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Schedule,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Ya tenés un pedido en curso",
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    "Vas a poder hacer un pedido nuevo cuando lo retires.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = QLessStatusColors.enPreparacion,
+                modifier = Modifier.clickable { onViewActiveOrder() }
+            ) {
+                Text(
+                    "Ver pedido",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun Chip(text: String, isDarkTheme: Boolean = false) {
     Surface(
         shape = RoundedCornerShape(999.dp),
@@ -384,6 +458,7 @@ private fun Chip(text: String, isDarkTheme: Boolean = false) {
 private fun MenuItemCard(
     item: MenuItem,
     quantity: Int,
+    canAdd: Boolean = true,
     onAdd: () -> Unit,
     onRemove: () -> Unit,
 ) {
@@ -455,14 +530,15 @@ private fun MenuItemCard(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clip(CircleShape)
-                                    .clickable { onAdd() },
+                                    .then(if (canAdd) Modifier.clickable { onAdd() } else Modifier),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     Icons.Filled.Add,
                                     contentDescription = "Agregar",
                                     modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = if (canAdd) MaterialTheme.colorScheme.primary
+                                           else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                                 )
                             }
                         }
@@ -471,15 +547,19 @@ private fun MenuItemCard(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                                .clickable { onAdd() },
+                                .background(
+                                    if (canAdd) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceVariant
+                                )
+                                .then(if (canAdd) Modifier.clickable { onAdd() } else Modifier),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 Icons.Filled.Add,
-                                contentDescription = "Agregar",
+                                contentDescription = if (canAdd) "Agregar" else "No disponible: tenés un pedido en curso",
                                 modifier = Modifier.size(18.dp),
-                                tint = Color.White
+                                tint = if (canAdd) Color.White
+                                       else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                             )
                         }
                     }

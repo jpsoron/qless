@@ -32,6 +32,7 @@ import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.OrderFilter
 import com.qless.ui.viewmodel.OrderViewModel
+import com.qless.ui.viewmodel.activeOrder
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -51,7 +52,7 @@ fun MisPedidosScreen(
 
     LaunchedEffect(Unit) { orderViewModel.loadUserOrders() }
 
-    val activeOrder = state.userOrders.firstOrNull { it.status in setOf("pending", "preparing", "ready") }
+    val activeOrder = state.activeOrder()
     val allFiltered = orderViewModel.filteredUserOrders()
     val filtered = if (state.userFilter == OrderFilter.ACTIVE && activeOrder != null) {
         allFiltered.filter { it.id != activeOrder.id }
