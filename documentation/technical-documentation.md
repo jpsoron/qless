@@ -252,6 +252,55 @@ original). La caché se llena sola al navegar online; el menú se cachea por loc
 > cola de tareas offline para **escritura** queda pendiente hasta que los pedidos
 > persistan en backend (A1) — hoy no habría operación de escritura que encolar.
 
+**Ubicación / cercanía (GPS):**
+
+La tabla `locales` tiene columnas `latitud`/`longitud` (mapeadas por `LocalDto`)
+que se persisten también en la caché Room (`LocalEntity`, DB v7) para que la
+distancia funcione offline. Locales con `(0,0)` se consideran "sin ubicación".
+
+- **`LocationProvider`** (contrato en `domain/location`, implementación
+  `FusedLocationProvider` en `data/location`) abstrae el SDK de Play Services:
+  expone `suspend fun currentLocation(): Coordinates?` (null si no hay permiso o
+  fix). Así los ViewModels/Composables no dependen de Android Location.
+- **`domain/usecase/LocationUseCases.kt`** — Kotlin puro y testeable:
+  `haversineMeters(...)`, `RankLocalsByDistanceUseCase` (anota `distanciaMetros`
+  en cada local y ordena por cercanía; los sin ubicación quedan al final) y
+  `GetCurrentLocationUseCase`. Constante `NEARBY_THRESHOLD_METERS = 50`.
+- **Flujo:** los Composables (`Home`, `MisLocales`) piden el permiso con
+  accompanist; al concederse, llaman `viewModel.refreshNearestLocal()`, que
+  obtiene la ubicación y rankea los locales.
+
+**Comportamiento según distancia al más cercano:**
+
+- **≤ 50 m (estás en el local):**
+  - Tras login / abrir la app con sesión, `AppNavigation` muestra una vez por
+    sesión la pantalla **`LocationDetectedScreen` ("¿Estás en {nombre}?")**, ya
+    **data-driven** (nombre, emoji, rating, distancia reales — sin hardcode). El
+    gate vive en el composable de `Home` (`LaunchedEffect` sobre `closestLocal`)
+    con guarda `locationPromptShown` (`rememberSaveable`).
+  - En `Home`, la card del local cambia su título a **"¿ESTÁS ACÁ?"**.
+- **> 50 m:**
+  - `Home` **no** muestra la card.
+  - `MisLocales` muestra el local **debajo del buscador y arriba de los filtros**
+    con el texto **"EL MÁS CERCANO A VOS"**, y soporta el sort "Más cercano".
+
+`NEARBY_THRESHOLD_METERS = 50` es la fuente única del umbral.
+
+**Rendimiento del fix:** `FusedLocationProvider` usa primero la **última ubicación
+conocida** (`lastLocation`, instantánea) si es reciente (< 2 min); solo si no hay,
+pide un fix nuevo de alta precisión (`getCurrentLocation`, más lento). Esto acelera
+mucho la aparición de la pantalla "¿Estás en X?".
+
+**Mapa real:** `LocationDetectedScreen` usa **Google Maps Compose** dentro de un
+`BottomSheetScaffold` (sheet arrastrable). El mapa es **interactivo** (scroll/zoom),
+centrado en las coordenadas del local con un marker; `contentPadding` empuja el
+centro por encima del sheet para que el pin quede centrado en el área visible. Se
+ocultan los POIs con un `MapStyleOptions` (menos ruido). Si el local no tiene
+coordenadas, cae a un mapa decorativo. La API key se inyecta en el manifest vía
+`manifestPlaceholders["MAPS_API_KEY"]` desde `local.properties` (`maps.api.key`) o
+el env `MAPS_API_KEY` — **no se commitea** (consigna). Deps:
+`com.google.maps.android:maps-compose` + `com.google.android.gms:play-services-maps`.
+
 ---
 
 ### Capa de Presentación (`ui/`)

@@ -33,6 +33,11 @@ android {
 
         buildConfigField("String", "SUPABASE_URL", "\"${secret("SUPABASE_URL", "supabase.url")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secret("SUPABASE_ANON_KEY", "supabase.anon.key")}\"")
+
+        // API key de Google Maps. Va por local.properties / env (NO se commitea).
+        // Se inyecta en el manifest como ${MAPS_API_KEY}.
+        manifestPlaceholders["MAPS_API_KEY"] =
+            System.getenv("MAPS_API_KEY") ?: localProperties["maps.api.key"]?.toString() ?: ""
     }
 
     buildTypes {
@@ -88,6 +93,13 @@ dependencies {
 
     // ML Kit Barcode Scanning
     implementation(libs.barcode.scanning)
+
+    // Location
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    // Mapa real (Google Maps Compose, usado en lite mode)
+    implementation("com.google.maps.android:maps-compose:6.4.1")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
 
     // Permissions
     implementation(libs.accompanist.permissions)
