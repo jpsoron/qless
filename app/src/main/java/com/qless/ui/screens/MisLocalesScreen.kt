@@ -29,9 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.*
-import com.google.android.gms.location.LocationServices
 import android.annotation.SuppressLint
-import androidx.compose.ui.platform.LocalContext
 import com.qless.domain.model.Local
 import com.qless.ui.components.ActiveCartCard
 import com.qless.ui.components.ActiveCartUi
@@ -68,20 +66,15 @@ fun MisLocalesScreen(
 ) {
     val uiState by misLocalesViewModel.uiState.collectAsState()
     val isLoading = uiState.isLoading
-    val context = LocalContext.current
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    
+
     val locationPermissionState = rememberPermissionState(
         android.Manifest.permission.ACCESS_FINE_LOCATION
     )
 
-    LaunchedEffect(locationPermissionState.status) {
-        if (locationPermissionState.status.isGranted) {
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                location?.let {
-                    misLocalesViewModel.updateUserLocation(it.latitude, it.longitude)
-                }
-            }
+    // Con permiso y locales ya cargados, calcula la distancia y reordena por cercanía.
+    LaunchedEffect(locationPermissionState.status.isGranted, uiState.locales.size) {
+        if (locationPermissionState.status.isGranted && uiState.locales.isNotEmpty()) {
+            misLocalesViewModel.refreshNearestLocal()
         }
     }
 
@@ -209,27 +202,6 @@ fun MisLocalesScreen(
                     Spacer(Modifier.height(12.dp))
                 }
 
-                // Show closest local highlight if found
-                uiState.closestLocal?.let { closest ->
-                    if (locationPermissionState.status.isGranted) {
-                        Text(
-                            "EL MÁS CERCANO",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Pimentón,
-                            letterSpacing = 1.sp
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        LocalCard(local = closest, onClick = { onLocalSelected(closest.id) })
-                        Spacer(Modifier.height(20.dp))
-                    }
-                }
-
-                // Geo banner (the original one)
-                if (showGeoBanner && locationPermissionState.status.isGranted && uiState.closestLocal != null) {
-                   // Ya mostramos el card de arriba, quizás ocultar este o adaptarlo
-                }
-
                 // Buscador
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -267,6 +239,22 @@ fun MisLocalesScreen(
                 }
 
                 Spacer(Modifier.height(12.dp))
+
+                // El más cercano a vos — debajo del buscador, arriba de los filtros.
+                uiState.closestLocal?.let { closest ->
+                    if (locationPermissionState.status.isGranted && closest.distanciaMetros != null) {
+                        Text(
+                            "EL MÁS CERCANO A VOS",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Pimentón,
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        LocalCard(local = closest, onClick = { onLocalSelected(closest.id) })
+                        Spacer(Modifier.height(16.dp))
+                    }
+                }
 
                 Row(
                     modifier = Modifier

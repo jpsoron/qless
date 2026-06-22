@@ -23,7 +23,7 @@ import com.qless.data.local.entity.UserEntity
         LocalEntity::class,
         MenuItemEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class QLessDatabase : RoomDatabase() {

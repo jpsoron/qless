@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.qless.di.AppModule
 import com.qless.domain.model.Local
+import com.qless.domain.usecase.GetCurrentLocationUseCase
 import com.qless.domain.usecase.GetFavoritosUseCase
+import com.qless.domain.usecase.GetLocalesUseCase
+import com.qless.domain.usecase.RankLocalsByDistanceUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,12 +23,18 @@ data class HomeUiState(
 
 class HomeViewModel(
     private val getFavoritosUseCase: GetFavoritosUseCase,
+    private val getLocalesUseCase: GetLocalesUseCase,
+    private val getCurrentLocation: GetCurrentLocationUseCase,
+    private val rankLocalsByDistance: RankLocalsByDistanceUseCase,
 ) : ViewModel() {
 
-    private val getFavoritosUseCase = AppModule.getFavoritos
-    private val getLocalesUseCase = AppModule.getLocales
     /** Constructor sin args para `viewModel()` en producción: toma el grafo de [AppModule]. */
-    constructor() : this(AppModule.getFavoritos)
+    constructor() : this(
+        AppModule.getFavoritos,
+        AppModule.getLocales,
+        AppModule.getCurrentLocation,
+        AppModule.rankLocalsByDistance,
+    )
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -47,22 +56,19 @@ class HomeViewModel(
         }
     }
 
-    fun updateUserLocation(lat: Double, lng: Double) {
+    /**
+     * Obtiene la ubicación del dispositivo y calcula el local más cercano entre
+     * todos los locales. Llamar cuando ya se tiene permiso de ubicación.
+     */
+    fun refreshNearestLocal() {
         viewModelScope.launch {
-            getLocalesUseCase().onSuccess { locales ->
-                val closest = locales.map { local ->
-                    val distance = calculateDistance(lat, lng, local.latitud, local.longitud)
-                    local.copy(distanciaMetros = distance)
-                }.minByOrNull { it.distanciaMetros ?: Double.MAX_VALUE }
-
-                _uiState.update { it.copy(closestLocal = closest) }
+            val coords = getCurrentLocation() ?: return@launch
+            getLocalesUseCase().onSuccess { result ->
+                val ranked = rankLocalsByDistance(coords.lat, coords.lng, result.data)
+                _uiState.update {
+                    it.copy(closestLocal = ranked.firstOrNull { local -> local.distanciaMetros != null })
+                }
             }
         }
-    }
-
-    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val results = FloatArray(1)
-        android.location.Location.distanceBetween(lat1, lon1, lat2, lon2, results)
-        return results[0].toDouble()
     }
 }

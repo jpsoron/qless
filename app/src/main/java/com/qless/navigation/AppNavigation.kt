@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,6 +30,8 @@ import com.qless.ui.viewmodel.OrderViewModel
 import com.qless.ui.viewmodel.activeOrder
 import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.viewmodel.ThemeViewModel
+import com.qless.domain.model.Local
+import com.qless.domain.usecase.NEARBY_THRESHOLD_METERS
 import com.qless.ui.components.ActiveCartUi
 import com.qless.ui.screens.*
 import com.qless.ui.screens.backoffice.BackOfficeAjustesScreen
@@ -84,6 +87,10 @@ fun AppNavigation(
     val misLocalesViewModel: MisLocalesViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
     var currentLocalId by remember { mutableStateOf("") }
+    // Local detectado por GPS a ≤50 m, para la pantalla "¿Estás en X?".
+    var detectedLocal by remember { mutableStateOf<Local?>(null) }
+    // Se muestra una vez por sesión (se reinicia al relanzar la app).
+    var locationPromptShown by rememberSaveable { mutableStateOf(false) }
     var pendingLocalId by remember { mutableStateOf<String?>(null) }
     var pendingPopUpRoute by remember { mutableStateOf<String?>(null) }
 
@@ -197,7 +204,7 @@ fun AppNavigation(
                 authViewModel = authViewModel,
                 onLoginSuccess = {
                     themeViewModel.setOnboardingCompleted()
-                    navController.navigate(Screen.LocationDetected.route) {
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -300,7 +307,7 @@ fun AppNavigation(
             GoogleLoginScreen(
                 onBack = { navController.popBackStack() },
                 onContinueWithGoogle = {
-                    navController.navigate(Screen.LocationDetected.route) {
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
@@ -332,12 +339,25 @@ fun AppNavigation(
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             val authState by authViewModel.uiState.collectAsStateWithLifecycle()
             val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
+            val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
             LaunchedEffect(authState.currentUserFavoritos) {
                 homeViewModel.loadFavoritos(authState.currentUserFavoritos)
             }
             LaunchedEffect(Unit) {
                 orderViewModel.loadUserOrders()
+            }
+
+            // Si el local más cercano está a ≤50 m, mostrar "¿Estás en X?" (una vez por sesión).
+            LaunchedEffect(homeState.closestLocal) {
+                val nearby = homeState.closestLocal?.takeIf { local ->
+                    local.distanciaMetros?.let { it <= NEARBY_THRESHOLD_METERS } == true
+                }
+                if (nearby != null && !locationPromptShown) {
+                    locationPromptShown = true
+                    detectedLocal = nearby
+                    navController.navigate(Screen.LocationDetected.route)
+                }
             }
 
             val activeOrder = orderState.activeOrder()
@@ -385,22 +405,31 @@ fun AppNavigation(
         }
 
         composable(Screen.LocationDetected.route) {
-            LocationDetectedScreen(
-                onConfirmLocation = {
-                    navigateToMenu(currentLocalId, Screen.LocationDetected.route)
-                },
-                onRejectLocation = {
+            val local = detectedLocal
+            if (local == null) {
+                // Sin local detectado (entrada directa): volver a Home.
+                LaunchedEffect(Unit) {
                     navController.navigate(Screen.Home.route) {
-                        popUpTo(0) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onSearchAnother = {
-                    navController.navigate(Screen.MisLocales.route) {
                         popUpTo(Screen.LocationDetected.route) { inclusive = true }
                     }
                 }
-            )
+            } else {
+                LocationDetectedScreen(
+                    local = local,
+                    distanceMeters = local.distanciaMetros,
+                    onConfirmLocation = {
+                        navigateToMenu(local.id, Screen.LocationDetected.route)
+                    },
+                    onRejectLocation = {
+                        navController.popBackStack()
+                    },
+                    onSearchAnother = {
+                        navController.navigate(Screen.MisLocales.route) {
+                            popUpTo(Screen.LocationDetected.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
         }
 
         composable(Screen.ScanQr.route) {

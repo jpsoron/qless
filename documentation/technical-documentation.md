@@ -252,6 +252,40 @@ original). La caché se llena sola al navegar online; el menú se cachea por loc
 > cola de tareas offline para **escritura** queda pendiente hasta que los pedidos
 > persistan en backend (A1) — hoy no habría operación de escritura que encolar.
 
+**Ubicación / cercanía (GPS):**
+
+La tabla `locales` tiene columnas `latitud`/`longitud` (mapeadas por `LocalDto`)
+que se persisten también en la caché Room (`LocalEntity`, DB v7) para que la
+distancia funcione offline. Locales con `(0,0)` se consideran "sin ubicación".
+
+- **`LocationProvider`** (contrato en `domain/location`, implementación
+  `FusedLocationProvider` en `data/location`) abstrae el SDK de Play Services:
+  expone `suspend fun currentLocation(): Coordinates?` (null si no hay permiso o
+  fix). Así los ViewModels/Composables no dependen de Android Location.
+- **`domain/usecase/LocationUseCases.kt`** — Kotlin puro y testeable:
+  `haversineMeters(...)`, `RankLocalsByDistanceUseCase` (anota `distanciaMetros`
+  en cada local y ordena por cercanía; los sin ubicación quedan al final) y
+  `GetCurrentLocationUseCase`. Constante `NEARBY_THRESHOLD_METERS = 50`.
+- **Flujo:** los Composables (`Home`, `MisLocales`) piden el permiso con
+  accompanist; al concederse, llaman `viewModel.refreshNearestLocal()`, que
+  obtiene la ubicación y rankea los locales.
+
+**Comportamiento según distancia al más cercano:**
+
+- **≤ 50 m (estás en el local):**
+  - Tras login / abrir la app con sesión, `AppNavigation` muestra una vez por
+    sesión la pantalla **`LocationDetectedScreen` ("¿Estás en {nombre}?")**, ya
+    **data-driven** (nombre, emoji, rating, distancia reales — sin hardcode). El
+    gate vive en el composable de `Home` (`LaunchedEffect` sobre `closestLocal`)
+    con guarda `locationPromptShown` (`rememberSaveable`).
+  - En `Home`, la card del local cambia su título a **"¿ESTÁS ACÁ?"**.
+- **> 50 m:**
+  - `Home` **no** muestra la card.
+  - `MisLocales` muestra el local **debajo del buscador y arriba de los filtros**
+    con el texto **"EL MÁS CERCANO A VOS"**, y soporta el sort "Más cercano".
+
+`NEARBY_THRESHOLD_METERS = 50` es la fuente única del umbral.
+
 ---
 
 ### Capa de Presentación (`ui/`)

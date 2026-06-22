@@ -29,13 +29,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.*
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import android.annotation.SuppressLint
-import androidx.compose.ui.platform.LocalContext
 import com.qless.R
 import com.qless.domain.model.Local
 import com.qless.domain.model.Order
+import com.qless.domain.usecase.NEARBY_THRESHOLD_METERS
 import com.qless.ui.components.ActiveCartCard
 import com.qless.ui.components.ActiveCartUi
 import com.qless.ui.components.OfflineBanner
@@ -72,21 +70,15 @@ fun HomeScreen(
     val homeUiState by homeViewModel.uiState.collectAsState()
     val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     var selectedTab by remember { mutableIntStateOf(0) }
-    
-    val context = LocalContext.current
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
     val locationPermissionState = rememberPermissionState(
         android.Manifest.permission.ACCESS_FINE_LOCATION
     )
 
-    LaunchedEffect(locationPermissionState.status) {
+    // Con permiso, obtiene la ubicación y calcula el local más cercano.
+    LaunchedEffect(locationPermissionState.status.isGranted) {
         if (locationPermissionState.status.isGranted) {
-            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-                .addOnSuccessListener { location ->
-                    location?.let {
-                        homeViewModel.updateUserLocation(it.latitude, it.longitude)
-                    }
-                }
+            homeViewModel.refreshNearestLocal()
         }
     }
 
@@ -266,11 +258,12 @@ fun HomeScreen(
                     Spacer(Modifier.height(16.dp))
                 }
 
-                // Show closest local highlight
+                // Estás acá: solo si el más cercano está dentro de 50 m.
                 homeUiState.closestLocal?.let { closest ->
-                    if (locationPermissionState.status.isGranted) {
+                    val isAtLocal = closest.distanciaMetros?.let { it <= NEARBY_THRESHOLD_METERS } == true
+                    if (locationPermissionState.status.isGranted && isAtLocal) {
                         Text(
-                            "EL MÁS CERCANO A VOS",
+                            "¿ESTÁS ACÁ?",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = Pimentón,

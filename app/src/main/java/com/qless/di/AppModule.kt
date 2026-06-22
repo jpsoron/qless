@@ -2,6 +2,8 @@ package com.qless.di
 
 import android.content.Context
 import com.qless.data.local.QLessDatabase
+import com.qless.data.location.FusedLocationProvider
+import com.qless.domain.location.LocationProvider
 import com.qless.data.repository.CartRepositoryImpl
 import com.qless.data.repository.LocalesRepositoryImpl
 import com.qless.data.repository.MenuRepositoryImpl
@@ -24,6 +26,7 @@ import com.qless.domain.usecase.DeleteAccountUseCase
 import com.qless.domain.usecase.EnsureDefaultPaymentMethodsUseCase
 import com.qless.domain.usecase.GetActiveLocalOrdersUseCase
 import com.qless.domain.usecase.GetCompletedLocalOrdersUseCase
+import com.qless.domain.usecase.GetCurrentLocationUseCase
 import com.qless.domain.usecase.GetFavoritosUseCase
 import com.qless.domain.usecase.GetLocalesUseCase
 import com.qless.domain.usecase.GetMenuUseCase
@@ -35,6 +38,7 @@ import com.qless.domain.usecase.ObserveDarkModeUseCase
 import com.qless.domain.usecase.ObserveOnboardingCompletedUseCase
 import com.qless.domain.usecase.ObservePaymentMethodsUseCase
 import com.qless.domain.usecase.PlaceOrderUseCase
+import com.qless.domain.usecase.RankLocalsByDistanceUseCase
 import com.qless.domain.usecase.RegisterUseCase
 import com.qless.domain.usecase.RemovePaymentMethodUseCase
 import com.qless.domain.usecase.RestoreSessionUseCase
@@ -73,6 +77,7 @@ object AppModule {
     private val paymentRepository: PaymentMethodRepository by lazy { PaymentMethodRepositoryImpl(database.paymentMethodDao()) }
     private val userRepository: UserRepository by lazy { UserRepositoryImpl(database.userDao(), appContext) }
     private val themeRepository: ThemeRepository by lazy { ThemeRepositoryImpl(appContext) }
+    private val locationProvider: LocationProvider by lazy { FusedLocationProvider(appContext) }
 
     // --- Casos de uso: pedidos (dominio principal) ---
     val placeOrder by lazy { PlaceOrderUseCase(orderRepository) }
@@ -87,6 +92,10 @@ object AppModule {
     // --- Locales ---
     val getLocales by lazy { GetLocalesUseCase(localesRepository) }
     val getFavoritos by lazy { GetFavoritosUseCase(localesRepository) }
+
+    // --- Ubicación (GPS) ---
+    val getCurrentLocation by lazy { GetCurrentLocationUseCase(locationProvider) }
+    val rankLocalsByDistance by lazy { RankLocalsByDistanceUseCase() }
 
     // --- Carrito ---
     val observeCart by lazy { ObserveCartUseCase(cartRepository) }
