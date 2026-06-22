@@ -17,6 +17,8 @@ data class LocalDto(
     val abierto: Boolean,
     @SerialName("tiene_promo") val tienePromo: Boolean = false,
     val destacado: Boolean = false,
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0,
 )
 
 fun LocalDto.toDomain() = Local(
@@ -30,4 +32,6 @@ fun LocalDto.toDomain() = Local(
     abierto = abierto,
     tienePromo = tienePromo,
     destacado = destacado,
+    latitud = latitud,
+    longitud = longitud,
 )

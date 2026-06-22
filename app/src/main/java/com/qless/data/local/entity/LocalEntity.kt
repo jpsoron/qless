@@ -20,6 +20,8 @@ data class LocalEntity(
     val abierto: Boolean,
     val tienePromo: Boolean,
     val destacado: Boolean,
+    val latitud: Double = 0.0,
+    val longitud: Double = 0.0,
 )
 
 fun LocalEntity.toDomain() = Local(
@@ -33,6 +35,8 @@ fun LocalEntity.toDomain() = Local(
     abierto = abierto,
     tienePromo = tienePromo,
     destacado = destacado,
+    latitud = latitud,
+    longitud = longitud,
 )
 
 fun Local.toEntity() = LocalEntity(
@@ -46,4 +50,6 @@ fun Local.toEntity() = LocalEntity(
     abierto = abierto,
     tienePromo = tienePromo,
     destacado = destacado,
+    latitud = latitud,
+    longitud = longitud,
 )

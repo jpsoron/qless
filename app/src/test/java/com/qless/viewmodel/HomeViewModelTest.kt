@@ -1,8 +1,12 @@
 package com.qless.viewmodel
 
 import com.qless.domain.model.CachedResult
+import com.qless.domain.usecase.GetCurrentLocationUseCase
 import com.qless.domain.usecase.GetFavoritosUseCase
+import com.qless.domain.usecase.GetLocalesUseCase
+import com.qless.domain.usecase.RankLocalsByDistanceUseCase
 import com.qless.fakes.FakeLocalesRepository
+import com.qless.fakes.FakeLocationProvider
 import com.qless.fakes.sampleLocal
 import com.qless.ui.viewmodel.HomeViewModel
 import com.qless.util.MainDispatcherRule
@@ -21,7 +25,12 @@ class HomeViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private fun buildVm(repo: FakeLocalesRepository) =
-        HomeViewModel(GetFavoritosUseCase(repo))
+        HomeViewModel(
+            GetFavoritosUseCase(repo),
+            GetLocalesUseCase(repo),
+            GetCurrentLocationUseCase(FakeLocationProvider()),
+            RankLocalsByDistanceUseCase(),
+        )
 
     @Test
     fun `sin favoritos no llama al caso de uso y limpia el estado`() {

@@ -21,10 +21,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.domain.model.Local
 import com.qless.ui.theme.*
+import kotlin.math.roundToInt
 
 @Composable
 fun LocationDetectedScreen(
+    local: Local,
+    distanceMeters: Double? = null,
     onConfirmLocation: () -> Unit,
     onRejectLocation: () -> Unit,
     onSearchAnother: () -> Unit,
@@ -70,7 +74,7 @@ fun LocationDetectedScreen(
                     .background(Pimentón),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🍔", fontSize = 28.sp)
+                Text(local.emoji, fontSize = 28.sp)
             }
         }
 
@@ -104,15 +108,16 @@ fun LocationDetectedScreen(
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                "¿Estás acá?",
+                "¿Estás en ${local.nombre}?",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center
             )
 
             Spacer(Modifier.height(26.dp))
 
-            DetectedRestaurantCard()
+            DetectedRestaurantCard(local = local, distanceMeters = distanceMeters)
 
             Spacer(Modifier.height(24.dp))
 
@@ -253,7 +258,7 @@ private fun GpsStatusPill(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun DetectedRestaurantCard() {
+private fun DetectedRestaurantCard(local: Local, distanceMeters: Double?) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(26.dp),
@@ -279,38 +284,47 @@ private fun DetectedRestaurantCard() {
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🍔", fontSize = 34.sp)
+                Text(local.emoji, fontSize = 34.sp)
             }
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Big Pons", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
+                    Text(local.nombre, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
                     Spacer(Modifier.weight(1f))
-                    DistancePill()
+                    DistancePill(distanceMeters)
                 }
                 Spacer(Modifier.height(4.dp))
-                Text("San Isidro · Hamburguesas & Snacks", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Text("${local.barrio} · ${local.categoria}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
-                    SmallStatusPill("Abierto", QLessStatusColors.disponible, QLessStatusColors.disponibleSurface)
+                    if (local.abierto) {
+                        SmallStatusPill("Abierto", QLessStatusColors.disponible, QLessStatusColors.disponibleSurface)
+                    } else {
+                        SmallStatusPill("Cerrado", MaterialTheme.colorScheme.error, MaterialTheme.colorScheme.errorContainer)
+                    }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                         Icon(Icons.Default.Star, contentDescription = null, tint = QLessStatusColors.enPreparacion, modifier = Modifier.size(12.dp))
-                        Text("4.8", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                        Text(local.rating, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                     }
-                    SmallStatusPill("15–25 min", QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+                    local.tiempoEntrega?.let {
+                        SmallStatusPill(it, QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+                    }
                 }
-                Spacer(Modifier.height(7.dp))
-                SmallStatusPill("10% OFF 1.er pedido", MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primaryContainer)
+                if (local.tienePromo) {
+                    Spacer(Modifier.height(7.dp))
+                    SmallStatusPill("10% OFF 1.er pedido", MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primaryContainer)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun DistancePill() {
+private fun DistancePill(distanceMeters: Double?) {
+    val label = distanceMeters?.let { "~${it.roundToInt()} m" } ?: "cerca"
     Surface(shape = RoundedCornerShape(999.dp), color = MaterialTheme.colorScheme.onSurface) {
         Text(
-            "~30 m",
+            label,
             modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),
             color = Color.White,
             fontWeight = FontWeight.SemiBold,
@@ -336,6 +350,14 @@ private fun SmallStatusPill(text: String, color: Color, container: Color) {
 @Composable
 private fun LocationDetectedPreview() {
     QLessTheme {
-        LocationDetectedScreen(onConfirmLocation = {}, onRejectLocation = {}, onSearchAnother = {})
+        LocationDetectedScreen(
+            local = Local(
+                id = "1", emoji = "🍔", nombre = "Big Pons", categoria = "Hamburguesas",
+                barrio = "San Isidro", rating = "4.8", tiempoEntrega = "15–25 min",
+                abierto = true, tienePromo = true, destacado = false,
+            ),
+            distanceMeters = 28.0,
+            onConfirmLocation = {}, onRejectLocation = {}, onSearchAnother = {},
+        )
     }
 }

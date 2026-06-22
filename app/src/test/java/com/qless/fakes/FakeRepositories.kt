@@ -1,7 +1,9 @@
 package com.qless.fakes
 
+import com.qless.domain.location.LocationProvider
 import com.qless.domain.model.CachedResult
 import com.qless.domain.model.CartItem
+import com.qless.domain.model.Coordinates
 import com.qless.domain.model.Local
 import com.qless.domain.model.MenuItem
 import com.qless.domain.model.Order
@@ -112,6 +114,12 @@ class FakeMenuRepository(
     }
 }
 
+class FakeLocationProvider(
+    var coordinates: Coordinates? = null,
+) : LocationProvider {
+    override suspend fun currentLocation(): Coordinates? = coordinates
+}
+
 // --- Builders de muestra ---
 
 fun sampleOrder(
@@ -134,7 +142,12 @@ fun sampleOrder(
     createdAt = createdAt,
 )
 
-fun sampleLocal(id: String = "l1", nombre: String = "Local Demo"): Local = Local(
+fun sampleLocal(
+    id: String = "l1",
+    nombre: String = "Local Demo",
+    latitud: Double = 0.0,
+    longitud: Double = 0.0,
+): Local = Local(
     id = id,
     emoji = "🍔",
     nombre = nombre,
@@ -145,6 +158,8 @@ fun sampleLocal(id: String = "l1", nombre: String = "Local Demo"): Local = Local
     abierto = true,
     tienePromo = false,
     destacado = false,
+    latitud = latitud,
+    longitud = longitud,
 )
 
 fun sampleMenuItem(
