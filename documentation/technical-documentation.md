@@ -286,6 +286,21 @@ distancia funcione offline. Locales con `(0,0)` se consideran "sin ubicación".
 
 `NEARBY_THRESHOLD_METERS = 50` es la fuente única del umbral.
 
+**Rendimiento del fix:** `FusedLocationProvider` usa primero la **última ubicación
+conocida** (`lastLocation`, instantánea) si es reciente (< 2 min); solo si no hay,
+pide un fix nuevo de alta precisión (`getCurrentLocation`, más lento). Esto acelera
+mucho la aparición de la pantalla "¿Estás en X?".
+
+**Mapa real:** `LocationDetectedScreen` usa **Google Maps Compose** dentro de un
+`BottomSheetScaffold` (sheet arrastrable). El mapa es **interactivo** (scroll/zoom),
+centrado en las coordenadas del local con un marker; `contentPadding` empuja el
+centro por encima del sheet para que el pin quede centrado en el área visible. Se
+ocultan los POIs con un `MapStyleOptions` (menos ruido). Si el local no tiene
+coordenadas, cae a un mapa decorativo. La API key se inyecta en el manifest vía
+`manifestPlaceholders["MAPS_API_KEY"]` desde `local.properties` (`maps.api.key`) o
+el env `MAPS_API_KEY` — **no se commitea** (consigna). Deps:
+`com.google.maps.android:maps-compose` + `com.google.android.gms:play-services-maps`.
+
 ---
 
 ### Capa de Presentación (`ui/`)

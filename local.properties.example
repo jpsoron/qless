@@ -9,3 +9,7 @@
 # SUPABASE_URL / SUPABASE_ANON_KEY, ver .github/workflows/ci.yml)
 supabase.url=https://TU-PROYECTO.supabase.co/
 supabase.anon.key=TU_ANON_KEY
+
+# API key de Google Maps (Maps SDK for Android). Se inyecta en el manifest.
+# En CI: variable de entorno MAPS_API_KEY.
+maps.api.key=TU_MAPS_API_KEY
