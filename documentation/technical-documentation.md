@@ -539,7 +539,47 @@ Splash (verificación de sesión en paralelo)
 | Carrito | Room (con `localId` por ítem) | Sobrevive a reinicios |
 | Métodos de pago | Room | Sobrevive a reinicios |
 | Tema oscuro / onboarding | DataStore (`qless_settings`) | Permanente |
-| Pedidos activos | Simulado | Sin persistencia |
+| Pedidos (`orders` + `order_items`) | Supabase PostgREST | Cambios en vivo vía **Supabase Realtime** (Postgres Changes) |
+| Notificaciones de pedido | Generadas localmente al detectar cambios de estado | Room (`notifications`, scoped por `userId`) |
+
+---
+
+## Tiempo real y notificaciones
+
+### Estado de pedidos en vivo (Supabase Realtime)
+
+El estado de los pedidos se actualiza por **Supabase Realtime** (Postgres Changes),
+reemplazando el polling anterior (`getUserOrders()` cada 10 s):
+
+- `SupabaseClient` instala `Realtime` (además de `Auth` + `Postgrest`). En Supabase,
+  la tabla `orders` está en la publication `supabase_realtime`.
+- `OrderRemoteDataSource` expone `observeUserOrderChanges()` (filtro `user_id`) y
+  `observeLocalOrderChanges()` (filtro `local_id`) como `Flow<Unit>` de *señal*: emiten
+  al (re)suscribirse y por cada evento. La señal dispara un **re-fetch** de la query REST
+  existente (que ya trae los embeds `order_items`/`locales`), en vez de confiar en el
+  payload del evento.
+- Contratos en `OrderRepository`; casos de uso `Observe{User,Local}OrderChangesUseCase`.
+- `OrderViewModel.observeUserOrders()` / `observeLocalOrders()` son `suspend` y se
+  colectan según el ciclo de vida. El canal del **cliente** vive a nivel app mientras hay
+  sesión + foreground (`ProcessLifecycleOwner.repeatOnLifecycle(STARTED)`); el del
+  **BackOffice** está scopeado a sus pantallas.
+- Limitación: Realtime entrega solo en foreground. Al volver de background se re-fetchea.
+
+### Notificaciones de cambio de estado
+
+Side-effect del mismo flujo del cliente, sin polling nuevo:
+
+- `OrderViewModel` mantiene `lastKnownStatuses` y, ante una transición real (no la carga
+  inicial ni el `picked_up` propio), llama `NotifyOrderUpdateUseCase(order)`.
+- El use case **persiste** un `AppNotification` en Room (`notifications`, scoped por
+  `userId`) **y** publica en la bandeja vía `SystemNotifier` (interface en `domain/`,
+  impl `AndroidSystemNotifier` con `NotificationManager` + canal `order_status`). Permiso
+  `POST_NOTIFICATIONS` (Android 13+) pedido en runtime.
+- `NotificationCenterScreen` (ruta nueva) lista los avisos, marca leídos al abrir y permite
+  borrar; la campana de Home navega ahí y muestra **badge** de no-leídas
+  (`NotificationViewModel.unreadCount`). `NotificacionesScreen` queda como preferencias.
+- Tap en la notificación → abre la app en el seguimiento (deep-link vía `MainActivity`).
+- Limitaciones: sin FCM no hay push con la app cerrada; avisos locales por device; solo cliente.
 
 ---
 
@@ -554,9 +594,12 @@ composeBom                           = "2026.05.01"
 lifecycleRuntimeKtx                  = "2.10.0"
 navigationCompose                    = "2.9.0"
 room                                 = "2.7.1"
-supabase                             = "3.1.4"   # BOM: auth-kt + postgrest-kt
+supabase                             = "3.1.4"   # BOM: auth-kt + postgrest-kt + realtime-kt
 ktor                                 = "3.1.3"   # ktor-client-okhttp
 ```
+
+> `lifecycle-process` (mismo ref que `lifecycleRuntimeKtx`) se usa para mantener el
+> canal Realtime del cliente vivo solo en foreground (`ProcessLifecycleOwner`).
 
 ---
 
