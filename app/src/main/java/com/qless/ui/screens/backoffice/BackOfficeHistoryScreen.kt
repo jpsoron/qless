@@ -34,7 +34,8 @@ fun BackOfficeHistoryScreen(
 ) {
     val state by orderViewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) { orderViewModel.loadOrderHistory() }
+    // Tiempo real: el mismo canal del local mantiene al día activos e historial.
+    LaunchedEffect(Unit) { orderViewModel.observeLocalOrders() }
 
     val completedOrders = state.historyOrders
     val activeCount     = state.localOrders.count { it.status in ACTIVE_ORDER_STATUSES }

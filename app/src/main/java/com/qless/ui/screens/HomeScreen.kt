@@ -258,10 +258,11 @@ fun HomeScreen(
                     Spacer(Modifier.height(16.dp))
                 }
 
-                // Estás acá: solo si el más cercano está dentro de 50 m.
+                // Estás acá: solo si el más cercano está dentro de 50 m y no hay un
+                // pedido activo en curso (con pedido activo el foco es el seguimiento).
                 homeUiState.closestLocal?.let { closest ->
                     val isAtLocal = closest.distanciaMetros?.let { it <= NEARBY_THRESHOLD_METERS } == true
-                    if (locationPermissionState.status.isGranted && isAtLocal) {
+                    if (activeOrder == null && locationPermissionState.status.isGranted && isAtLocal) {
                         Text(
                             "¿ESTÁS ACÁ?",
                             style = MaterialTheme.typography.labelMedium,

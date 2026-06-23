@@ -39,7 +39,9 @@ fun BackOfficeScreen(
 ) {
     val state by orderViewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) { orderViewModel.loadLocalOrders() }
+    // Tiempo real: el canal del local refresca activos e historial ante cada cambio.
+    // Vive mientras la pantalla está en composición y se corta al salir.
+    LaunchedEffect(Unit) { orderViewModel.observeLocalOrders() }
 
     // Derivado directamente del state observado para garantizar recomposición correcta
     val filtered = when (state.localFilter) {

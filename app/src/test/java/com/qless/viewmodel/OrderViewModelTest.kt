@@ -4,6 +4,8 @@ import com.qless.domain.model.CartItem
 import com.qless.domain.usecase.GetActiveLocalOrdersUseCase
 import com.qless.domain.usecase.GetCompletedLocalOrdersUseCase
 import com.qless.domain.usecase.GetUserOrdersUseCase
+import com.qless.domain.usecase.ObserveLocalOrderChangesUseCase
+import com.qless.domain.usecase.ObserveUserOrderChangesUseCase
 import com.qless.domain.usecase.PlaceOrderUseCase
 import com.qless.domain.usecase.UpdateOrderStatusUseCase
 import com.qless.fakes.FakeOrderRepository
@@ -36,6 +38,8 @@ class OrderViewModelTest {
         getCompletedLocalOrders = GetCompletedLocalOrdersUseCase(repo),
         placeOrderUseCase = PlaceOrderUseCase(repo),
         updateOrderStatusUseCase = UpdateOrderStatusUseCase(repo),
+        observeUserOrderChanges = ObserveUserOrderChangesUseCase(repo),
+        observeLocalOrderChanges = ObserveLocalOrderChangesUseCase(repo),
     )
 
     private fun cartItem(price: Int = 500, qty: Int = 2) =
