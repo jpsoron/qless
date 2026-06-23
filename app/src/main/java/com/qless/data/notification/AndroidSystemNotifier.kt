@@ -1,6 +1,7 @@
 package com.qless.data.notification
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -53,6 +54,8 @@ class AndroidSystemNotifier(private val context: Context) : SystemNotifier {
             .build()
 
         // Un id por pedido: el aviso nuevo reemplaza al anterior del mismo pedido.
+        // Permission is already checked via hasPermission() at the top of this method.
+        @SuppressLint("MissingPermission")
         NotificationManagerCompat.from(context).notify(notification.orderId.hashCode(), systemNotification)
     }
 
