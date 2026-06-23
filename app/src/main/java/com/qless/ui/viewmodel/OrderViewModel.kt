@@ -8,6 +8,7 @@ import com.qless.domain.model.Order
 import com.qless.domain.usecase.GetActiveLocalOrdersUseCase
 import com.qless.domain.usecase.GetCompletedLocalOrdersUseCase
 import com.qless.domain.usecase.GetUserOrdersUseCase
+import com.qless.domain.usecase.NotifyOrderUpdateUseCase
 import com.qless.domain.usecase.ObserveLocalOrderChangesUseCase
 import com.qless.domain.usecase.ObserveUserOrderChangesUseCase
 import com.qless.domain.usecase.PlaceOrderUseCase
@@ -60,6 +61,7 @@ class OrderViewModel(
     private val updateOrderStatusUseCase: UpdateOrderStatusUseCase,
     private val observeUserOrderChanges: ObserveUserOrderChangesUseCase,
     private val observeLocalOrderChanges: ObserveLocalOrderChangesUseCase,
+    private val notifyOrderUpdate: NotifyOrderUpdateUseCase,
 ) : ViewModel() {
 
     /** Constructor sin args para `viewModel()` en producción: toma el grafo de [AppModule]. */
@@ -71,7 +73,12 @@ class OrderViewModel(
         AppModule.updateOrderStatus,
         AppModule.observeUserOrderChanges,
         AppModule.observeLocalOrderChanges,
+        AppModule.notifyOrderUpdate,
     )
+
+    // Último estado conocido por pedido, para detectar transiciones y notificar solo
+    // cambios reales (no la carga inicial). Vive con la instancia compartida del VM.
+    private val lastKnownStatuses = mutableMapOf<String, String>()
 
     // IDs de pedidos que el cliente confirmó como retirados en esta sesión.
     // Protege el estado optimista contra recargas del server que devuelvan status desactualizado.
@@ -195,9 +202,24 @@ class OrderViewModel(
         observeUserOrderChanges().collect {
             getUserOrders()
                 .onSuccess { orders ->
+                    detectAndNotify(orders)
                     _uiState.update { it.copy(userOrders = orders.applyLocalPickups(), isLoadingUser = false) }
                 }
                 .onFailure { err -> _uiState.update { it.copy(error = err.message) } }
+        }
+    }
+
+    /**
+     * Compara cada pedido contra el último estado conocido y dispara una notificación
+     * por cada transición real. No notifica la primera vez que ve un pedido (carga
+     * inicial) ni el `picked_up` que el propio cliente confirmó (ya está en [locallyPickedUp]).
+     */
+    private suspend fun detectAndNotify(orders: List<Order>) {
+        for (order in orders) {
+            val previous = lastKnownStatuses.put(order.id, order.status)
+            if (previous == null || previous == order.status) continue
+            if (order.status == "picked_up" && order.id in locallyPickedUp) continue
+            notifyOrderUpdate(order)
         }
     }
 

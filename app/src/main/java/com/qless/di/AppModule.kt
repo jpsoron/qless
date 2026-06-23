@@ -4,20 +4,26 @@ import android.content.Context
 import com.qless.data.local.QLessDatabase
 import com.qless.data.location.FusedLocationProvider
 import com.qless.domain.location.LocationProvider
+import com.qless.data.notification.AndroidSystemNotifier
 import com.qless.data.repository.CartRepositoryImpl
 import com.qless.data.repository.LocalesRepositoryImpl
 import com.qless.data.repository.MenuRepositoryImpl
+import com.qless.data.repository.NotificationRepositoryImpl
 import com.qless.data.repository.OrderRepositoryImpl
 import com.qless.data.repository.PaymentMethodRepositoryImpl
 import com.qless.data.repository.ThemeRepositoryImpl
 import com.qless.data.repository.UserRepositoryImpl
+import com.qless.data.session.SupabaseSessionProvider
+import com.qless.domain.notification.SystemNotifier
 import com.qless.domain.repository.CartRepository
 import com.qless.domain.repository.LocalesRepository
 import com.qless.domain.repository.MenuRepository
+import com.qless.domain.repository.NotificationRepository
 import com.qless.domain.repository.OrderRepository
 import com.qless.domain.repository.PaymentMethodRepository
 import com.qless.domain.repository.ThemeRepository
 import com.qless.domain.repository.UserRepository
+import com.qless.domain.session.SessionProvider
 import com.qless.domain.usecase.AddCartItemUseCase
 import com.qless.domain.usecase.AddPaymentMethodUseCase
 import com.qless.domain.usecase.ClearCartUseCase
@@ -31,10 +37,16 @@ import com.qless.domain.usecase.GetFavoritosUseCase
 import com.qless.domain.usecase.GetLocalesUseCase
 import com.qless.domain.usecase.GetMenuUseCase
 import com.qless.domain.usecase.GetUserOrdersUseCase
+import com.qless.domain.usecase.ClearNotificationsUseCase
+import com.qless.domain.usecase.GetCurrentUserIdUseCase
 import com.qless.domain.usecase.LoginUseCase
 import com.qless.domain.usecase.LogoutUseCase
+import com.qless.domain.usecase.MarkNotificationsReadUseCase
+import com.qless.domain.usecase.NotifyOrderUpdateUseCase
 import com.qless.domain.usecase.ObserveCartUseCase
 import com.qless.domain.usecase.ObserveLocalOrderChangesUseCase
+import com.qless.domain.usecase.ObserveNotificationsUseCase
+import com.qless.domain.usecase.ObserveUnreadCountUseCase
 import com.qless.domain.usecase.ObserveUserOrderChangesUseCase
 import com.qless.domain.usecase.ObserveDarkModeUseCase
 import com.qless.domain.usecase.ObserveOnboardingCompletedUseCase
@@ -80,6 +92,9 @@ object AppModule {
     private val userRepository: UserRepository by lazy { UserRepositoryImpl(database.userDao(), appContext) }
     private val themeRepository: ThemeRepository by lazy { ThemeRepositoryImpl(appContext) }
     private val locationProvider: LocationProvider by lazy { FusedLocationProvider(appContext) }
+    private val notificationRepository: NotificationRepository by lazy { NotificationRepositoryImpl(database.notificationDao()) }
+    private val systemNotifier: SystemNotifier by lazy { AndroidSystemNotifier(appContext) }
+    private val sessionProvider: SessionProvider by lazy { SupabaseSessionProvider() }
 
     // --- Casos de uso: pedidos (dominio principal) ---
     val placeOrder by lazy { PlaceOrderUseCase(orderRepository) }
@@ -89,6 +104,14 @@ object AppModule {
     val updateOrderStatus by lazy { UpdateOrderStatusUseCase(orderRepository) }
     val observeUserOrderChanges by lazy { ObserveUserOrderChangesUseCase(orderRepository) }
     val observeLocalOrderChanges by lazy { ObserveLocalOrderChangesUseCase(orderRepository) }
+
+    // --- Notificaciones ---
+    val notifyOrderUpdate by lazy { NotifyOrderUpdateUseCase(notificationRepository, systemNotifier) }
+    val observeNotifications by lazy { ObserveNotificationsUseCase(notificationRepository) }
+    val observeUnreadCount by lazy { ObserveUnreadCountUseCase(notificationRepository) }
+    val markNotificationsRead by lazy { MarkNotificationsReadUseCase(notificationRepository) }
+    val clearNotifications by lazy { ClearNotificationsUseCase(notificationRepository) }
+    val getCurrentUserId by lazy { GetCurrentUserIdUseCase(sessionProvider) }
 
     // --- Menú ---
     val getMenu by lazy { GetMenuUseCase(menuRepository) }

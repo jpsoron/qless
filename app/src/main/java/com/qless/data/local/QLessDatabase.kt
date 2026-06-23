@@ -7,11 +7,13 @@ import androidx.room.RoomDatabase
 import com.qless.data.local.dao.CartItemDao
 import com.qless.data.local.dao.LocalDao
 import com.qless.data.local.dao.MenuItemDao
+import com.qless.data.local.dao.NotificationDao
 import com.qless.data.local.dao.PaymentMethodDao
 import com.qless.data.local.dao.UserDao
 import com.qless.data.local.entity.CartItemEntity
 import com.qless.data.local.entity.LocalEntity
 import com.qless.data.local.entity.MenuItemEntity
+import com.qless.data.local.entity.NotificationEntity
 import com.qless.data.local.entity.PaymentMethodEntity
 import com.qless.data.local.entity.UserEntity
 
@@ -22,8 +24,9 @@ import com.qless.data.local.entity.UserEntity
         UserEntity::class,
         LocalEntity::class,
         MenuItemEntity::class,
+        NotificationEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class QLessDatabase : RoomDatabase() {
@@ -33,6 +36,7 @@ abstract class QLessDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun localDao(): LocalDao
     abstract fun menuItemDao(): MenuItemDao
+    abstract fun notificationDao(): NotificationDao
 
     companion object {
         @Volatile
