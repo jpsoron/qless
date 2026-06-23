@@ -10,7 +10,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.NavHostController
@@ -18,7 +21,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.viewmodel.CartViewModel
@@ -133,6 +135,20 @@ fun AppNavigation(
     val onViewCart: () -> Unit = { activeCart?.let { navigateToMenu(it.localId) } }
 
     val onboardingCompleted by themeViewModel.isOnboardingCompleted.collectAsStateWithLifecycle()
+
+    // Tiempo real (Supabase Realtime) a nivel app: mientras haya sesión de cliente y la app
+    // esté en foreground, el canal de pedidos del usuario vive una vez para toda la app
+    // (lo lee Tracking y, más adelante, las notificaciones). Se corta en background y
+    // re-fetchea al volver. El BackOffice tiene su propio canal scopeado a sus pantallas.
+    val authStateForRealtime by authViewModel.uiState.collectAsStateWithLifecycle()
+    val isClientSession = authStateForRealtime.currentUserEmail.isNotEmpty() &&
+        authStateForRealtime.currentUserRole != "BACK_OFFICE"
+    LaunchedEffect(isClientSession) {
+        if (!isClientSession) return@LaunchedEffect
+        ProcessLifecycleOwner.get().lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            orderViewModel.observeUserOrders()
+        }
+    }
 
     if (pendingLocalId != null) {
         AlertDialog(
@@ -349,11 +365,12 @@ fun AppNavigation(
             }
 
             // Si el local más cercano está a ≤50 m, mostrar "¿Estás en X?" (una vez por sesión).
+            // Con un pedido activo en curso no interrumpimos: el foco es el seguimiento.
             LaunchedEffect(homeState.closestLocal) {
                 val nearby = homeState.closestLocal?.takeIf { local ->
                     local.distanciaMetros?.let { it <= NEARBY_THRESHOLD_METERS } == true
                 }
-                if (nearby != null && !locationPromptShown) {
+                if (nearby != null && !locationPromptShown && orderState.activeOrder() == null) {
                     locationPromptShown = true
                     detectedLocal = nearby
                     navController.navigate(Screen.LocationDetected.route)
@@ -698,12 +715,10 @@ fun AppNavigation(
             // fallback a lastCreatedOrder (disponible incluso antes del primer poll)
             val activeOrder = orderState.activeOrder() ?: lastOrder
 
-            // Carga inmediata al entrar + polling cada 10s; se detiene al salir
-            DisposableEffect(Unit) {
-                orderViewModel.loadUserOrders()
-                orderViewModel.startOrderPolling()
-                onDispose { orderViewModel.stopOrderPolling() }
-            }
+            // El canal Realtime del cliente ya vive a nivel app (ver AppNavigation),
+            // así que userOrders se mantiene al día solo. Disparamos una carga inmediata
+            // por si la pantalla se abre antes del primer evento del canal.
+            LaunchedEffect(Unit) { orderViewModel.loadUserOrders() }
 
             // Navegación automática cuando el status pasa a "ready"
             LaunchedEffect(activeOrder?.status) {
@@ -750,7 +765,14 @@ fun AppNavigation(
 
         composable(Screen.PickupSuccess.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+            val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
+            // El pedido recién retirado: preferimos lastCreatedOrder; fallback al picked_up más reciente.
+            val pickedUpOrder = orderState.lastCreatedOrder?.takeIf { it.status == "picked_up" }
+                ?: orderState.userOrders.firstOrNull { it.status == "picked_up" }
             PickupSuccessScreen(
+                userName = authState.currentUserName,
+                order = pickedUpOrder,
                 isDarkTheme = isDarkTheme,
                 onGoHome = {
                     navController.navigate(Screen.Home.route) {

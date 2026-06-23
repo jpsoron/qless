@@ -8,10 +8,10 @@ import com.qless.domain.model.Order
 import com.qless.domain.usecase.GetActiveLocalOrdersUseCase
 import com.qless.domain.usecase.GetCompletedLocalOrdersUseCase
 import com.qless.domain.usecase.GetUserOrdersUseCase
+import com.qless.domain.usecase.ObserveLocalOrderChangesUseCase
+import com.qless.domain.usecase.ObserveUserOrderChangesUseCase
 import com.qless.domain.usecase.PlaceOrderUseCase
 import com.qless.domain.usecase.UpdateOrderStatusUseCase
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -58,6 +58,8 @@ class OrderViewModel(
     private val getCompletedLocalOrders: GetCompletedLocalOrdersUseCase,
     private val placeOrderUseCase: PlaceOrderUseCase,
     private val updateOrderStatusUseCase: UpdateOrderStatusUseCase,
+    private val observeUserOrderChanges: ObserveUserOrderChangesUseCase,
+    private val observeLocalOrderChanges: ObserveLocalOrderChangesUseCase,
 ) : ViewModel() {
 
     /** Constructor sin args para `viewModel()` en producción: toma el grafo de [AppModule]. */
@@ -67,9 +69,9 @@ class OrderViewModel(
         AppModule.getCompletedLocalOrders,
         AppModule.placeOrder,
         AppModule.updateOrderStatus,
+        AppModule.observeUserOrderChanges,
+        AppModule.observeLocalOrderChanges,
     )
-
-    private var pollingJob: Job? = null
 
     // IDs de pedidos que el cliente confirmó como retirados en esta sesión.
     // Protege el estado optimista contra recargas del server que devuelvan status desactualizado.
@@ -183,22 +185,34 @@ class OrderViewModel(
         _uiState.update { it.copy(localFilter = filter) }
     }
 
-    /** Inicia polling cada 10 s para actualizar el estado del pedido activo en tiempo real. */
-    fun startOrderPolling() {
-        pollingJob?.cancel()
-        pollingJob = viewModelScope.launch {
-            while (true) {
-                delay(10_000L)
-                getUserOrders()
-                    .onSuccess { orders -> _uiState.update { it.copy(userOrders = orders.applyLocalPickups()) } }
-            }
+    /**
+     * Observa en vivo (Supabase Realtime) los pedidos del usuario y refleja cada cambio
+     * en [uiState]. Suspende hasta que se cancele el scope que la invoca: pensada para
+     * llamarse desde `repeatOnLifecycle` a nivel app, de modo que el canal viva mientras
+     * haya sesión + foreground y se corte (y re-fetchee al volver) al pasar a background.
+     */
+    suspend fun observeUserOrders() {
+        observeUserOrderChanges().collect {
+            getUserOrders()
+                .onSuccess { orders ->
+                    _uiState.update { it.copy(userOrders = orders.applyLocalPickups(), isLoadingUser = false) }
+                }
+                .onFailure { err -> _uiState.update { it.copy(error = err.message) } }
         }
     }
 
-    /** Detiene el polling. Llamar cuando la pantalla de seguimiento sale de pantalla. */
-    fun stopOrderPolling() {
-        pollingJob?.cancel()
-        pollingJob = null
+    /**
+     * Observa en vivo los pedidos del local (BackOffice) y refresca tanto los activos
+     * como el historial ante cada cambio. Suspende hasta cancelación (ciclo de vida de
+     * la pantalla que la invoca).
+     */
+    suspend fun observeLocalOrders() {
+        observeLocalOrderChanges().collect {
+            getActiveLocalOrders()
+                .onSuccess { orders -> _uiState.update { it.copy(localOrders = orders, isLoadingLocal = false) } }
+            getCompletedLocalOrders()
+                .onSuccess { orders -> _uiState.update { it.copy(historyOrders = orders, isLoadingHistory = false) } }
+        }
     }
 
     private fun List<Order>.applyLocalPickups(): List<Order> {
