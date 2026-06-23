@@ -1,35 +1,51 @@
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+
 package com.qless.ui.screens
 
+import android.Manifest
+import android.util.Log
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qless.ui.theme.Pimentón
-import kotlinx.coroutines.delay
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanearQrScreen(
     onBack: () -> Unit,
     onQrDetected: (String) -> Unit
 ) {
-    // Timer de 5 segundos: si no hay acción, envía "error" para ir a la pantalla de QrNoReconocido
+    // Manejo de permisos
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+
+    // Pedir permiso al entrar
     LaunchedEffect(Unit) {
-        delay(5000)
-        onQrDetected("error")
+        if (!cameraPermissionState.status.isGranted) {
+            cameraPermissionState.launchPermissionRequest()
+        }
     }
 
     Scaffold(
@@ -70,60 +86,111 @@ fun ScanearQrScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // --- MARCO DE ESCANEO ---
             Box(
                 modifier = Modifier
                     .size(280.dp)
                     .border(4.dp, Color.White, RoundedCornerShape(32.dp))
-                    .background(Color.White.copy(alpha = 0.05f))
-                    .clickable { onQrDetected("success") }, // Click manual -> Éxito (Menú)
+                    .clip(RoundedCornerShape(32.dp))
+                    .background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
+                if (cameraPermissionState.status.isGranted) {
+                    CameraPreview(onQrDetected = onQrDetected)
+                } else {
+                    Text(
+                        "Se necesita permiso de cámara\npara escanear el QR",
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+
+                // Línea visual de escaneo
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.8f)
-                        .height(3.dp)
-                        .background(Pimentón)
-                )
-                
-                Text(
-                    "TOCÁ AQUÍ PARA SIMULAR",
-                    color = Color.White.copy(alpha = 0.6f),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)
+                        .height(2.dp)
+                        .background(Color.Red.copy(alpha = 0.5f))
                 )
             }
 
             Spacer(modifier = Modifier.height(56.dp))
-
-            // --- BOTÓN DE SIMULACIÓN ---
-            Button(
-                onClick = { onQrDetected("success") },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Pimentón,
-                    contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-            ) {
-                Text(
-                    "SIMULAR LECTURA EXITOSA", 
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                "O espera 5 segundos para simular un error",
-                color = Color.White.copy(alpha = 0.4f),
-                fontSize = 12.sp
+                "Aseguráte de tener buena iluminación",
+                color = Color.White.copy(alpha = 0.5f),
+                fontSize = 14.sp
             )
         }
     }
+}
+
+@androidx.annotation.OptIn(ExperimentalGetImage::class)
+@Composable
+fun CameraPreview(
+    onQrDetected: (String) -> Unit
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    var isDetected by remember { mutableStateOf(false) }
+
+    AndroidView(
+        factory = { ctx ->
+            val previewView = PreviewView(ctx)
+            val executor = ContextCompat.getMainExecutor(ctx)
+            
+            cameraProviderFuture.addListener({
+                val cameraProvider = cameraProviderFuture.get()
+                
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+
+                val scanner = BarcodeScanning.getClient()
+
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+
+                imageAnalysis.setAnalyzer(executor) { imageProxy ->
+                    val mediaImage = imageProxy.image
+                    if (mediaImage != null && !isDetected) {
+                        val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+                        
+                        scanner.process(image)
+                            .addOnSuccessListener { barcodes ->
+                                for (barcode in barcodes) {
+                                    barcode.rawValue?.let { qrValue ->
+                                        isDetected = true
+                                        onQrDetected(qrValue)
+                                    }
+                                }
+                            }
+                            .addOnCompleteListener {
+                                imageProxy.close()
+                            }
+                    } else {
+                        imageProxy.close()
+                    }
+                }
+
+                try {
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(
+                        lifecycleOwner,
+                        CameraSelector.DEFAULT_BACK_CAMERA,
+                        preview,
+                        imageAnalysis
+                    )
+                } catch (e: Exception) {
+                    Log.e("CameraX", "Error vinculando cámara", e)
+                }
+            }, executor)
+            
+            previewView
+        },
+        modifier = Modifier.fillMaxSize()
+    )
 }

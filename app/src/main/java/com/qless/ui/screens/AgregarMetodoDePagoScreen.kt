@@ -56,7 +56,7 @@ fun AgregarMetodoDePagoScreen(
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -74,21 +74,21 @@ fun AgregarMetodoDePagoScreen(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(Melocotón)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = Pimentón)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver", tint = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.width(12.dp))
                 Text(
                     "Agregar método",
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             Text(
                 "Completá los datos del medio de pago",
-                color = Madera,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 15.sp,
                 modifier = Modifier.padding(start = 52.dp)
             )
@@ -109,23 +109,23 @@ fun AgregarMetodoDePagoScreen(
             Spacer(Modifier.height(16.dp))
 
             // Formulario
-            Text("Nombre en la tarjeta", color = Madera, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text("Nombre en la tarjeta", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             CustomTextField(value = nombre, onValueChange = { nombre = it })
 
             Spacer(Modifier.height(16.dp))
 
-            Text("Número", color = Madera, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text("Número", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             CustomTextField(value = numero, onValueChange = { numero = it })
 
             Spacer(Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Vencimiento", color = Madera, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text("Vencimiento", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                     CustomTextField(value = vencimiento, onValueChange = { vencimiento = it })
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Código de seguridad", color = Madera, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text("Código de seguridad", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                     CustomTextField(value = cvc, onValueChange = { cvc = it })
                 }
             }
@@ -138,8 +138,8 @@ fun AgregarMetodoDePagoScreen(
                     .fillMaxWidth()
                     .clickable { esPrincipal = !esPrincipal },
                 shape = RoundedCornerShape(12.dp),
-                color = Mantequilla,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -148,13 +148,13 @@ fun AgregarMetodoDePagoScreen(
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
-                        tint = if (esPrincipal) Pimentón else Madera.copy(alpha = 0.3f),
+                        tint = if (esPrincipal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Guardar como método principal", fontWeight = FontWeight.SemiBold, color = Espresso, fontSize = 15.sp)
-                        Text("Se sugiere primero en el checkout", color = Madera, fontSize = 12.sp)
+                        Text("Guardar como método principal", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
+                        Text("Se sugiere primero en el checkout", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     }
                 }
             }
@@ -174,7 +174,7 @@ fun AgregarMetodoDePagoScreen(
                     onBack()
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Guardar método", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
@@ -185,11 +185,11 @@ fun AgregarMetodoDePagoScreen(
             OutlinedButton(
                 onClick = onBack,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Pimentón)
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Cancelar", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Borgoña)
+                Text("Cancelar", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.error)
             }
 
             Spacer(Modifier.height(24.dp))
@@ -197,7 +197,7 @@ fun AgregarMetodoDePagoScreen(
             // Volver a pagos link
             Text(
                 "← Volver a pagos",
-                color = Pimentón,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 15.sp,
                 modifier = Modifier.clickable { onBack() }
@@ -207,7 +207,7 @@ fun AgregarMetodoDePagoScreen(
 
             Text(
                 "Los datos sensibles se procesan de forma segura y no quedan visibles para el local.",
-                color = Madera.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 fontSize = 13.sp,
                 lineHeight = 18.sp
             )
@@ -224,14 +224,14 @@ fun TabButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
             .width(100.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(99.dp),
-        color = if (isSelected) Pimentón else Color.Transparent,
-        border = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, Melocotón) else null
+        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+        border = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer) else null
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(vertical = 8.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            color = if (isSelected) Color.White else Madera,
+            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium,
             fontSize = 14.sp
         )
@@ -248,10 +248,10 @@ fun CustomTextField(value: String, onValueChange: (String) -> Unit) {
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedContainerColor = Color.White,
             focusedContainerColor = Color.White,
-            unfocusedBorderColor = Melocotón,
-            focusedBorderColor = Pimentón,
-            unfocusedTextColor = Espresso,
-            focusedTextColor = Espresso
+            unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface
         ),
         singleLine = true
     )

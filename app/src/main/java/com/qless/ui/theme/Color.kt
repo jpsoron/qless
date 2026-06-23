@@ -22,7 +22,7 @@ val Tomate         = Color(0xFFE8673A)
 val Melocotón      = Color(0xFFFFEDE0)
 
 // Variantes dark del primario
-val PimentónDark   = Color(0xFFFFB59A)
+val PimentónDark   = Color(0xFFFF7A45)
 
 // Semánticos — estados del pedido
 val Albahaca       = Color(0xFF1A7A4A)

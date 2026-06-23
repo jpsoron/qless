@@ -8,6 +8,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,11 +19,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.viewmodel.AuthNavEvent
+import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
 @Composable
 fun EliminarCuentaScreen(
+    authViewModel: AuthViewModel,
     onBack: () -> Unit,
     onConfirmDelete: () -> Unit,
     onNavigateToInicio: () -> Unit,
@@ -29,6 +35,17 @@ fun EliminarCuentaScreen(
     onNavigateToMisPedidos: () -> Unit,
     onNavigateToAjustes: () -> Unit,
 ) {
+    val uiState by authViewModel.uiState.collectAsState()
+    val userName = uiState.currentUserName
+    val userEmail = uiState.currentUserEmail
+    val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+
+    LaunchedEffect(Unit) {
+        authViewModel.navEvent.collect { event ->
+            if (event is AuthNavEvent.AccountDeleted) onConfirmDelete()
+        }
+    }
+
     Scaffold(
         bottomBar = {
             QLessBottomNav(
@@ -44,7 +61,7 @@ fun EliminarCuentaScreen(
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -63,12 +80,12 @@ fun EliminarCuentaScreen(
                     onClick = onBack,
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Melocotón, CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
-                        tint = Pimentón
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Spacer(Modifier.width(16.dp))
@@ -76,7 +93,7 @@ fun EliminarCuentaScreen(
                     "Eliminar cuenta",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -91,12 +108,12 @@ fun EliminarCuentaScreen(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(CircleShape)
-                        .background(Melocotón),
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "M",
-                        color = Pimentón,
+                        initial,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 24.sp
                     )
@@ -104,15 +121,15 @@ fun EliminarCuentaScreen(
                 Spacer(Modifier.width(16.dp))
                 Column {
                     Text(
-                        "María González",
+                        userName.ifBlank { "Usuario" },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        "maria@email.com",
+                        userEmail.ifBlank { "" },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Madera.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 }
             }
@@ -125,19 +142,19 @@ fun EliminarCuentaScreen(
             Text(
                 "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción borrará permanentemente todos tus datos, historial de pedidos y métodos de pago.",
                 style = MaterialTheme.typography.bodyLarge,
-                color = Madera,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 26.sp
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
-                onClick = onConfirmDelete,
+                onClick = { authViewModel.deleteAccount() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Borgoña)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
                 Text("Eliminar cuenta definitivamente", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
@@ -150,8 +167,8 @@ fun EliminarCuentaScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Madera)
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
             ) {
                 Text("Cancelar", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
@@ -161,10 +178,3 @@ fun EliminarCuentaScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun EliminarCuentaPreview() {
-    QLessTheme {
-        EliminarCuentaScreen({}, {}, {}, {}, {}, {}, {})
-    }
-}

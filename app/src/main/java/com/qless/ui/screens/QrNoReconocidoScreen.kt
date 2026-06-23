@@ -28,7 +28,7 @@ fun QrNoReconocidoScreen(
     onRetry: () -> Unit,
     onManualInput: () -> Unit
 ) {
-    val darkBackground = Color(0xFF0D0806) // Fondo casi negro con tinte Espresso
+    val darkBackground = Color(0xFF0D0806) // Fondo casi negro con tinte MaterialTheme.colorScheme.onSurface
     
     Column(
         modifier = Modifier
@@ -47,10 +47,11 @@ fun QrNoReconocidoScreen(
             contentAlignment = Alignment.Center
         ) {
             // Marco de esquinas (L)
+            val errorColor = MaterialTheme.colorScheme.error
             Canvas(modifier = Modifier.size(160.dp)) {
                 val cornerLength = 30.dp.toPx()
                 val strokeWidth = 3.dp.toPx()
-                val color = Borgoña.copy(alpha = 0.6f)
+                val color = errorColor.copy(alpha = 0.6f)
 
                 // Arriba izquierda
                 drawLine(color, Offset(0f, 0f), Offset(cornerLength, 0f), strokeWidth)
@@ -71,14 +72,14 @@ fun QrNoReconocidoScreen(
                 modifier = Modifier
                     .size(80.dp)
                     .blur(20.dp)
-                    .background(Borgoña.copy(alpha = 0.3f), CircleShape)
+                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.3f), CircleShape)
             )
 
             // Círculo central con X
             Surface(
                 modifier = Modifier.size(80.dp),
                 shape = CircleShape,
-                color = Borgoña
+                color = MaterialTheme.colorScheme.error
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -130,7 +131,7 @@ fun QrNoReconocidoScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(16.dp)
         ) {
             Icon(Icons.Default.Refresh, contentDescription = null)

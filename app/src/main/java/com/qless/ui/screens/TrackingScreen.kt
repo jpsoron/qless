@@ -11,12 +11,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.RoomService
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.components.PulseRings
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
@@ -40,32 +43,83 @@ private enum class StepStatus { DONE, ACTIVE, PENDING }
 
 @Composable
 fun TrackingScreen(
+    orderCode: String = "----",
+    localNombre: String = "",
+    status: String = "preparing",
     onGoHome: () -> Unit,
-    onNavigateToOrderReady: () -> Unit,
+    onNavigateToMisLocales: () -> Unit = {},
+    onNavigateToMisPedidos: () -> Unit = {},
+    onNavigateToAjustes: () -> Unit = {},
+    onNavigateToScanQr: () -> Unit = {},
 ) {
     val steps = listOf(
-        TrackingStep(Icons.Default.CheckCircle, "Pedido recibido", "Tu compra fue confirmada", StepStatus.DONE, "13:08"),
-        TrackingStep(Icons.Default.Schedule, "En preparación", "La cocina está armando tu pedido", StepStatus.ACTIVE, "13:11"),
-        TrackingStep(Icons.Default.Notifications, "Listo para retirar", "Te avisamos cuando esté listo", StepStatus.PENDING),
+        TrackingStep(
+            Icons.Default.CheckCircle, "Pedido recibido", "Tu compra fue confirmada",
+            StepStatus.DONE
+        ),
+        TrackingStep(
+            Icons.Default.Schedule, "En preparación", "La cocina está armando tu pedido",
+            when (status) {
+                "pending" -> StepStatus.PENDING
+                "preparing" -> StepStatus.ACTIVE
+                else -> StepStatus.DONE
+            }
+        ),
+        TrackingStep(
+            Icons.Default.Notifications, "Listo para retirar", "Te avisamos cuando esté listo",
+            when (status) {
+                "ready" -> StepStatus.ACTIVE
+                else -> StepStatus.PENDING
+            }
+        ),
     )
 
-    // Animación del indicador circular
+    // Animación del indicador circular: una fracción base 0→1 que cada estado
+    // mapea a su propio tramo del borde.
     val infiniteTransition = rememberInfiniteTransition(label = "timer_pulse")
-    val progress by infiniteTransition.animateFloat(
-        initialValue = 0.2f,
-        targetValue = 0.75f,
+    val fraction by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(3000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "progress"
     )
+    // "Pedido recibido": el borde late de 0%→50%.
+    // "En preparación": late de 50%→100%.
+    val progress = when (status) {
+        "pending" -> fraction * 0.5f
+        "preparing" -> 0.5f + fraction * 0.5f
+        else -> 1f
+    }
+    // "Respiro" sutil del beeper para que se sienta vivo
+    val breathe by infiniteTransition.animateFloat(
+        initialValue = 0.97f,
+        targetValue = 1.03f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1600, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "breathe"
+    )
 
     Scaffold(
         bottomBar = {
-            QLessBottomNav(selectedTab = 0, onTabSelected = { if (it == 0) onGoHome() })
+            QLessBottomNav(
+                selectedTab = 0,
+                onTabSelected = { tab ->
+                    when (tab) {
+                        0 -> onGoHome()
+                        1 -> onNavigateToMisLocales()
+                        2 -> onNavigateToMisPedidos()
+                        3 -> onNavigateToAjustes()
+                        4 -> onNavigateToScanQr()
+                    }
+                }
+            )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -88,13 +142,19 @@ fun TrackingScreen(
                         "Seguimiento",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-                    Text("Pedido #4521 · Big Pons", color = Madera, style = MaterialTheme.typography.bodySmall)
+                    Text("Pedido #$orderCode${if (localNombre.isNotEmpty()) " · $localNombre" else ""}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                }
+                val (badgeLabel, badgeColor, badgeBg) = when (status) {
+                    "pending"   -> Triple("Pago confirmado",  QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+                    "preparing" -> Triple("En preparación",   QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+                    "ready"     -> Triple("Listo para retirar", QLessStatusColors.disponible,  QLessStatusColors.disponibleSurface)
+                    else        -> Triple("Pedido activo",    QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
                 }
                 Surface(
                     shape = RoundedCornerShape(999.dp),
-                    color = AzafránClaro
+                    color = badgeBg
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -105,9 +165,9 @@ fun TrackingScreen(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(Azafrán)
+                                .background(badgeColor)
                         )
-                        Text("En preparación", style = MaterialTheme.typography.labelSmall, color = Azafrán, fontWeight = FontWeight.SemiBold)
+                        Text(badgeLabel, style = MaterialTheme.typography.labelSmall, color = badgeColor, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -120,49 +180,62 @@ fun TrackingScreen(
                 horizontalArrangement = Arrangement.End
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.Default.Schedule, contentDescription = null, tint = Madera, modifier = Modifier.size(14.dp))
-                    Text("~15 min estimados", style = MaterialTheme.typography.bodySmall, color = Madera)
+                    Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                    Text("~15 min estimados", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // Timer circular
+            // Beeper "vivo": el círculo central late con pulsos ámbar que
+            // emanan hacia afuera mientras el pedido está en preparación.
             Box(
                 modifier = Modifier
-                    .size(200.dp)
+                    .size(300.dp)
                     .align(Alignment.CenterHorizontally),
                 contentAlignment = Alignment.Center
             ) {
+                PulseRings(
+                    color = QLessStatusColors.enPreparacion,
+                    modifier = Modifier.fillMaxSize(),
+                    startRadiusFraction = 0.66f
+                )
+                Box(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .scale(breathe),
+                    contentAlignment = Alignment.Center
+                ) {
                 CircularProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxSize(),
-                    color = Azafrán,
-                    trackColor = Melocotón,
+                    color = QLessStatusColors.enPreparacion,
+                    trackColor = MaterialTheme.colorScheme.primaryContainer,
                     strokeWidth = 10.dp,
                     strokeCap = StrokeCap.Round
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
-                        imageVector = Icons.Default.Notifications,
+                        imageVector = Icons.Default.RoomService,
                         contentDescription = null,
-                        tint = Azafrán,
-                        modifier = Modifier.size(32.dp)
+                        tint = QLessStatusColors.enPreparacion,
+                        modifier = Modifier.size(36.dp)
                     )
                     Text(
                         "12",
                         fontSize = 48.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Espresso,
+                        color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 52.sp
                     )
-                    Text("min", color = Madera, style = MaterialTheme.typography.bodyMedium)
+                    Text("min", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                     Text(
                         "ESTIMADO",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Madera.copy(alpha = 0.6f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         letterSpacing = 1.sp
                     )
+                }
                 }
             }
 
@@ -179,9 +252,9 @@ fun TrackingScreen(
                                 .width(2.dp)
                                 .height(24.dp)
                                 .background(
-                                    if (step.status == StepStatus.DONE) Albahaca
-                                    else if (step.status == StepStatus.ACTIVE) Azafrán
-                                    else Melocotón
+                                    if (step.status == StepStatus.DONE) QLessStatusColors.disponible
+                                    else if (step.status == StepStatus.ACTIVE) QLessStatusColors.enPreparacion
+                                    else MaterialTheme.colorScheme.primaryContainer
                                 )
                         )
                     }
@@ -196,8 +269,8 @@ fun TrackingScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
                 shape = RoundedCornerShape(16.dp),
-                color = Melocotón,
-                border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
+                color = MaterialTheme.colorScheme.primaryContainer,
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -205,16 +278,16 @@ fun TrackingScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("Mostrá este código al retirar", style = MaterialTheme.typography.bodySmall, color = Madera)
+                        Text("Mostrá este código al retirar", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f))
                         Text(
-                            "#4521",
+                            "#$orderCode",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = Pimentón
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = Madera, modifier = Modifier.size(14.dp))
-                            Text("Retiro en Caja 1", style = MaterialTheme.typography.bodySmall, color = Madera)
+                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f), modifier = Modifier.size(14.dp))
+                            Text("Retiro en Caja 1", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f))
                         }
                     }
                     Surface(
@@ -224,29 +297,12 @@ fun TrackingScreen(
                         Text(
                             "▦▦\n▦▦",
                             modifier = Modifier.padding(12.dp),
-                            color = Espresso,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 24.sp,
                             lineHeight = 26.sp,
                             textAlign = TextAlign.Center
                         )
                     }
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            OutlinedButton(
-                onClick = onNavigateToOrderReady,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .height(48.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.5.dp, Melocotón)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Default.Notifications, contentDescription = null, tint = Espresso, modifier = Modifier.size(18.dp))
-                    Text("Simular: Pedido Listo", color = Espresso)
                 }
             }
 
@@ -267,9 +323,9 @@ private fun TrackingStepRow(step: TrackingStep) {
                 .clip(CircleShape)
                 .background(
                     when (step.status) {
-                        StepStatus.DONE -> Albahaca
-                        StepStatus.ACTIVE -> Azafrán
-                        StepStatus.PENDING -> Melocotón
+                        StepStatus.DONE -> QLessStatusColors.disponible
+                        StepStatus.ACTIVE -> QLessStatusColors.enPreparacion
+                        StepStatus.PENDING -> MaterialTheme.colorScheme.primaryContainer
                     }
                 ),
             contentAlignment = Alignment.Center
@@ -277,7 +333,7 @@ private fun TrackingStepRow(step: TrackingStep) {
             Icon(
                 imageVector = step.icon,
                 contentDescription = null,
-                tint = if (step.status == StepStatus.PENDING) Madera else Color.White,
+                tint = if (step.status == StepStatus.PENDING) MaterialTheme.colorScheme.onSurfaceVariant else Color.White,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -286,15 +342,15 @@ private fun TrackingStepRow(step: TrackingStep) {
             Text(
                 step.title,
                 fontWeight = FontWeight.SemiBold,
-                color = if (step.status == StepStatus.PENDING) Madera else Espresso,
+                color = if (step.status == StepStatus.PENDING) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge
             )
-            Text(step.description, style = MaterialTheme.typography.bodySmall, color = Madera)
+            Text(step.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (step.time != null) {
                 Text(
                     step.time,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (step.status == StepStatus.DONE) Albahaca else Azafrán,
+                    color = if (step.status == StepStatus.DONE) QLessStatusColors.disponible else QLessStatusColors.enPreparacion,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -305,5 +361,5 @@ private fun TrackingStepRow(step: TrackingStep) {
 @Preview(showBackground = true)
 @Composable
 private fun TrackingPreview() {
-    QLessTheme { TrackingScreen(onGoHome = {}, onNavigateToOrderReady = {}) }
+    QLessTheme { TrackingScreen(onGoHome = {}) }
 }

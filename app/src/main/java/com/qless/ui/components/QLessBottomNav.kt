@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,15 +41,22 @@ fun QLessBottomNav(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
 ) {
+    val isDark = QLessTheme.isDark
+
+    val navBackground  = if (isDark) Color(0xFF9E7A5A) else Color.White
+    val selectedColor  = if (isDark) Color.White else MaterialTheme.colorScheme.primary
+    val selectedPill   = if (isDark) Color.White.copy(alpha = 0.22f) else MaterialTheme.colorScheme.primaryContainer
+    val unselectedColor = if (isDark) Color.White.copy(alpha = 0.50f) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .zIndex(100f)
     ) {
-        // White background — height matches only the normal tab items, not the QR button
+        // Background — madera oscura en dark mode, blanco en light
         Surface(
-            color = Color.White,
+            color = navBackground,
             shadowElevation = 8.dp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -66,6 +74,9 @@ fun QLessBottomNav(
                     NavTabItem(
                         item = item,
                         isSelected = selectedTab == index,
+                        selectedColor = selectedColor,
+                        selectedPill = selectedPill,
+                        unselectedColor = unselectedColor,
                         onClick = { onTabSelected(index) }
                     )
                 }
@@ -75,6 +86,9 @@ fun QLessBottomNav(
                     NavTabItem(
                         item = item,
                         isSelected = selectedTab == index + 2,
+                        selectedColor = selectedColor,
+                        selectedPill = selectedPill,
+                        unselectedColor = unselectedColor,
                         onClick = { onTabSelected(index + 2) }
                     )
                 }
@@ -108,7 +122,7 @@ fun QLessBottomNav(
                 "Escanear",
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Madera.copy(alpha = 0.6f)
+                color = unselectedColor
             )
         }
     }
@@ -118,6 +132,9 @@ fun QLessBottomNav(
 private fun NavTabItem(
     item: NavItem,
     isSelected: Boolean,
+    selectedColor: Color,
+    selectedPill: Color,
+    unselectedColor: Color,
     onClick: () -> Unit,
 ) {
     Column(
@@ -132,7 +149,7 @@ private fun NavTabItem(
                 .then(
                     if (isSelected) Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Melocotón)
+                        .background(selectedPill)
                     else Modifier
                 ),
             contentAlignment = Alignment.Center
@@ -140,7 +157,7 @@ private fun NavTabItem(
             Icon(
                 imageVector = item.icon,
                 contentDescription = item.label,
-                tint = if (isSelected) Pimentón else Madera.copy(alpha = 0.6f),
+                tint = if (isSelected) selectedColor else unselectedColor,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -148,7 +165,7 @@ private fun NavTabItem(
             item.label,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
-            color = if (isSelected) Pimentón else Madera.copy(alpha = 0.6f)
+            color = if (isSelected) selectedColor else unselectedColor
         )
     }
 }

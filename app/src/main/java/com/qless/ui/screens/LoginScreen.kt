@@ -20,10 +20,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.R
+import com.qless.ui.viewmodel.AuthNavEvent
+import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.theme.*
 
 @Composable
 fun LoginScreen(
+    authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
     onNavigateToBackOffice: () -> Unit,
     onNavigateToRegister: () -> Unit,
@@ -32,11 +35,22 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(false) }
+    val uiState by authViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        authViewModel.navEvent.collect { event ->
+            when (event) {
+                AuthNavEvent.LoginSuccess -> onLoginSuccess()
+                AuthNavEvent.LoginBackOffice -> onNavigateToBackOffice()
+                else -> Unit
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(CremaCálida)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
@@ -56,13 +70,13 @@ fun LoginScreen(
             "QLess",
             fontSize = 40.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Pimentón,
+            color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.headlineLarge
         )
         Text(
             "Tu comida, sin filas.",
             fontSize = 16.sp,
-            color = Madera,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyMedium
         )
 
@@ -73,7 +87,7 @@ fun LoginScreen(
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
             fontSize = 26.sp,
-            color = Espresso,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -83,20 +97,20 @@ fun LoginScreen(
         Text(
             "Correo electrónico",
             style = MaterialTheme.typography.labelMedium,
-            color = Madera,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(6.dp))
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            placeholder = { Text("nombre@ejemplo.com", color = Madera.copy(alpha = 0.4f)) },
+            placeholder = { Text("nombre@ejemplo.com", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Melocotón,
-                focusedBorderColor = Pimentón,
+                unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
             ),
@@ -109,21 +123,21 @@ fun LoginScreen(
         Text(
             "Contraseña",
             style = MaterialTheme.typography.labelMedium,
-            color = Madera,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(6.dp))
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            placeholder = { Text("••••••", color = Madera.copy(alpha = 0.4f)) },
+            placeholder = { Text("••••••", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Melocotón,
-                focusedBorderColor = Pimentón,
+                unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
             ),
@@ -143,15 +157,15 @@ fun LoginScreen(
                     checked = rememberMe,
                     onCheckedChange = { rememberMe = it },
                     colors = CheckboxDefaults.colors(
-                        checkedColor = Pimentón,
-                        uncheckedColor = Melocotón
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        uncheckedColor = MaterialTheme.colorScheme.primaryContainer
                     ),
                     modifier = Modifier.size(32.dp)
                 )
                 Text(
                     "Mantener sesión\nabierta",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Espresso,
+                    color = MaterialTheme.colorScheme.onSurface,
                     lineHeight = 14.sp,
                     fontSize = 12.sp
                 )
@@ -162,45 +176,64 @@ fun LoginScreen(
             ) {
                 Text(
                     "Olvidé mi contraseña",
-                    color = Pimentón,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium
                 )
             }
         }
 
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(16.dp))
+
+        // Error de login
+        if (uiState.loginError != null) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+            ) {
+                Text(
+                    text = uiState.loginError ?: "",
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+        } else {
+            Spacer(Modifier.height(12.dp))
+        }
 
         // Botón principal
         Button(
-            onClick = {
-                if (email.lowercase() == "backoffice" && password.lowercase() == "backoffice") {
-                    onNavigateToBackOffice()
-                } else {
-                    onLoginSuccess()
-                }
-            },
+            onClick = { authViewModel.login(email, password, rememberMe) },
+            enabled = !uiState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
         ) {
-            Text("Iniciar sesión", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+            } else {
+                Text("Iniciar sesión", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+            }
         }
 
         Spacer(Modifier.height(24.dp))
 
         // Divider
         Row(verticalAlignment = Alignment.CenterVertically) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Melocotón.copy(alpha = 0.5f))
+            HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
             Text(
                 " o ",
-                color = Madera.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Melocotón.copy(alpha = 0.5f))
+            HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
         }
 
         Spacer(Modifier.height(24.dp))
@@ -213,7 +246,7 @@ fun LoginScreen(
                 .height(54.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Surface(
                 modifier = Modifier.size(24.dp),
@@ -230,7 +263,7 @@ fun LoginScreen(
                 }
             }
             Spacer(Modifier.width(12.dp))
-            Text("Continuar con Google", color = Espresso, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            Text("Continuar con Google", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         }
 
         Spacer(Modifier.height(40.dp))
@@ -242,7 +275,7 @@ fun LoginScreen(
         ) {
             Text(
                 "¿No tenés cuenta? ",
-                color = Espresso,
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium
             )
             TextButton(
@@ -251,7 +284,7 @@ fun LoginScreen(
             ) {
                 Text(
                     "Crear cuenta",
-                    color = Pimentón,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -262,15 +295,3 @@ fun LoginScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun LoginPreview() {
-    QLessTheme { 
-        LoginScreen(
-            onLoginSuccess = {}, 
-            onNavigateToBackOffice = {},
-            onNavigateToRegister = {}, 
-            onNavigateToGoogleLogin = {}
-        ) 
-    }
-}

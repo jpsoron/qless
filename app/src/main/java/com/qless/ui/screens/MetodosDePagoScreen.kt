@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +37,8 @@ fun MetodosDePagoScreen(
     onNavigateToMisPedidos: () -> Unit,
     onNavigateToAjustes: () -> Unit
 ) {
-    val methods = paymentViewModel.methods
+    val uiState by paymentViewModel.uiState.collectAsState()
+    val methods = uiState.methods
     Scaffold(
         bottomBar = {
             QLessBottomNav(
@@ -52,7 +54,7 @@ fun MetodosDePagoScreen(
                 }
             )
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -73,12 +75,12 @@ fun MetodosDePagoScreen(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(Melocotón)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
-                        tint = Pimentón
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Spacer(Modifier.width(12.dp))
@@ -86,7 +88,7 @@ fun MetodosDePagoScreen(
                     "Métodos de pago",
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -100,14 +102,14 @@ fun MetodosDePagoScreen(
             ) {
                 Text(
                     "Administrá tarjetas y billeteras\nasociadas",
-                    color = Madera,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 15.sp,
                     lineHeight = 20.sp,
                     modifier = Modifier.weight(1f)
                 )
                 Button(
                     onClick = onNavigateToAgregarMetodo,
-                    colors = ButtonDefaults.buttonColors(containerColor = Pimentón),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(99.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
@@ -130,7 +132,7 @@ fun MetodosDePagoScreen(
                         Spacer(Modifier.height(12.dp))
                         Text(
                             "Todavía no agregaste métodos de pago",
-                            color = Madera,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 15.sp,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
@@ -143,7 +145,7 @@ fun MetodosDePagoScreen(
                         "MC"    -> Color(0xFFF79E1B) to Color.White
                         "AMEX"  -> Color(0xFF2E77BC) to Color.White
                         "MP"    -> Color(0xFFFFE100) to Color(0xFF2D3277)
-                        else    -> Madera to Color.White
+                        else    -> MaterialTheme.colorScheme.onSurfaceVariant to Color.White
                     }
                     val title = if (method.esBilletera) {
                         method.nombre  // "Mercado Pago", "MODO", etc.
@@ -178,7 +180,7 @@ fun MetodosDePagoScreen(
             // Texto informativo al pie
             Text(
                 "Elegí el medio de pago al confirmar tu carrito. Los locales no ven el número completo.",
-                color = Madera.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 fontSize = 13.sp,
                 lineHeight = 18.sp
             )
@@ -202,8 +204,8 @@ fun PaymentMethodCard(
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Mantequilla,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -232,17 +234,17 @@ fun PaymentMethodCard(
                 Text(
                     text = title,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 16.sp
                 )
                 Text(
                     text = subtitle,
-                    color = Madera,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp
                 )
                 Text(
                     text = description,
-                    color = Madera.copy(alpha = 0.6f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     fontSize = 12.sp
                 )
             }
@@ -253,13 +255,13 @@ fun PaymentMethodCard(
                     Surface(
                         shape = RoundedCornerShape(99.dp),
                         color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Madera.copy(alpha = 0.2f))
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
                     ) {
                         Text(
                             text = tag,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                             fontSize = 12.sp,
-                            color = Madera,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -271,14 +273,14 @@ fun PaymentMethodCard(
                             onClick = { onDelete(); showConfirm = false },
                             contentPadding = PaddingValues(0.dp)
                         ) {
-                            Text("Confirmar", color = Borgoña, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Confirmar", color = MaterialTheme.colorScheme.error, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         }
                     } else {
                         TextButton(
                             onClick = { showConfirm = true },
                             contentPadding = PaddingValues(0.dp)
                         ) {
-                            Text("Eliminar", color = Madera.copy(alpha = 0.5f), fontSize = 12.sp)
+                            Text("Eliminar", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f), fontSize = 12.sp)
                         }
                     }
                 }

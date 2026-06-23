@@ -8,8 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,15 +19,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.domain.model.Order
+import com.qless.domain.model.OrderItem
 import com.qless.ui.theme.*
 
 @Composable
 fun PickupSuccessScreen(
+    userName: String,
+    order: Order?,
+    isDarkTheme: Boolean = false,
     onGoHome: () -> Unit,
     onViewSummary: () -> Unit
 ) {
+    val firstName = userName.trim().substringBefore(" ").ifBlank { "crack" }
+    val initial = userName.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     Scaffold(
-        containerColor = CremaCálida 
+        containerColor = MaterialTheme.colorScheme.background 
     ) { padding ->
         Column(
             modifier = Modifier
@@ -42,7 +47,7 @@ fun PickupSuccessScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(320.dp) // Más altura para evitar superposición
-                    .background(Albahaca)
+                    .background(QLessStatusColors.disponible)
                     .statusBarsPadding(), 
                 contentAlignment = Alignment.TopCenter // Alineamos arriba
             ) {
@@ -54,10 +59,10 @@ fun PickupSuccessScreen(
                     Surface(
                         modifier = Modifier.size(80.dp),
                         shape = CircleShape,
-                        color = Pimentón
+                        color = MaterialTheme.colorScheme.primary
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("M", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                            Text(initial, color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                         }
                     }
                     Spacer(Modifier.height(16.dp))
@@ -68,7 +73,7 @@ fun PickupSuccessScreen(
                         letterSpacing = 2.sp
                     )
                     Text(
-                        "¡Buen provecho,\nMaría! 🥳",
+                        "¡Buen provecho,\n$firstName! 🥳",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White,
@@ -77,7 +82,7 @@ fun PickupSuccessScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Tu pedido fue retirado a las 13:25",
+                        "Tu pedido fue retirado con éxito",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.9f)
                     )
@@ -93,7 +98,7 @@ fun PickupSuccessScreen(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    color = Mantequilla,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     shadowElevation = 2.dp
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -104,76 +109,54 @@ fun PickupSuccessScreen(
                                 color = Color.White
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Text("🍔", fontSize = 24.sp)
+                                    Text(order?.localEmoji?.ifBlank { "🍽️" } ?: "🍽️", fontSize = 24.sp)
                                 }
                             }
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Big Pons · San Isidro", fontWeight = FontWeight.SemiBold, color = Espresso)
-                                Text("Pedido #4521 · Retiro en mostrador", style = MaterialTheme.typography.bodySmall, color = Madera)
+                                Text(order?.localNombre?.ifBlank { "Tu pedido" } ?: "Tu pedido", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                                Text(
+                                    "Pedido #${order?.numero ?: "----"} · Retiro en mostrador",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-                            Text("$9.000", fontWeight = FontWeight.SemiBold, color = Espresso, fontSize = 18.sp)
+                            Text("$${"%,d".format(order?.totalAmount ?: 0)}", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp)
                         }
-                        
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Melocotón)
-                        
-                        // Lista de Items
-                        OrderItemRow("Combo Big Classic", "x2")
-                        OrderItemRow("Papas Fritas Grandes", "x1")
-                        OrderItemRow("Gaseosa 500 ml", "x1")
-                        
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Melocotón)
-                        
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.primaryContainer)
+
+                        // Lista de Items del pedido
+                        order?.items?.forEach { item ->
+                            OrderItemRow(item.nombre, "x${item.quantity}")
+                        }
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.primaryContainer)
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Visa •••• 4242 · $9.000", style = MaterialTheme.typography.bodySmall, color = Madera)
+                            Text("Total $${"%,d".format(order?.totalAmount ?: 0)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Surface(
                                 shape = RoundedCornerShape(999.dp),
-                                color = AlbahacaClaro
+                                color = QLessStatusColors.disponibleSurface
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.Check, contentDescription = null, tint = Albahaca, modifier = Modifier.size(14.dp))
+                                    Icon(Icons.Default.Check, contentDescription = null, tint = QLessStatusColors.disponible, modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(4.dp))
-                                    Text("Retirado", style = MaterialTheme.typography.labelSmall, color = Albahaca, fontWeight = FontWeight.SemiBold)
+                                    Text("Retirado", style = MaterialTheme.typography.labelSmall, color = QLessStatusColors.disponible, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
-
-                // Tarjeta de Calificación
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    color = Mantequilla,
-                    shadowElevation = 2.dp
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("¿Cómo estuvo Big Pons?", fontWeight = FontWeight.SemiBold, color = Espresso)
-                        Text("Tu opinión ayuda a otros usuarios", style = MaterialTheme.typography.bodySmall, color = Madera)
-                        
-                        Spacer(Modifier.height(16.dp))
-                        
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            repeat(4) { Icon(Icons.Filled.Star, contentDescription = null, tint = Azafrán, modifier = Modifier.size(32.dp)) }
-                            Icon(Icons.Outlined.Star, contentDescription = null, tint = Madera.copy(alpha = 0.3f), modifier = Modifier.size(32.dp))
-                        }
-                        
-                        Spacer(Modifier.height(12.dp))
-                        Text("Tocá para calificar", style = MaterialTheme.typography.labelSmall, color = Madera.copy(alpha = 0.5f))
-                    }
-                }
+                // Tarjeta de calificación oculta: todavía no hay funcionalidad de reseñas.
 
                 Spacer(Modifier.height(32.dp))
 
@@ -182,7 +165,10 @@ fun PickupSuccessScreen(
                     onClick = onGoHome,
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDarkTheme) Pimentón else MaterialTheme.colorScheme.primary,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text("Volver al inicio", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
@@ -193,7 +179,7 @@ fun PickupSuccessScreen(
                     onClick = onViewSummary,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Ver resumen del pedido", color = Espresso, fontWeight = FontWeight.SemiBold)
+                    Text("Ver resumen del pedido", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
                 }
                 
                 Spacer(Modifier.height(40.dp))
@@ -208,8 +194,8 @@ private fun OrderItemRow(name: String, quantity: String) {
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(name, color = Espresso, style = MaterialTheme.typography.bodyMedium)
-        Text(quantity, color = Madera, style = MaterialTheme.typography.bodySmall)
+        Text(name, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium)
+        Text(quantity, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -217,6 +203,19 @@ private fun OrderItemRow(name: String, quantity: String) {
 @Composable
 private fun PickupSuccessPreview() {
     QLessTheme {
-        PickupSuccessScreen(onGoHome = {}, onViewSummary = {})
+        PickupSuccessScreen(
+            userName = "María González",
+            order = Order(
+                id = "1", numero = 4521, userId = "u1", localId = "l1",
+                localNombre = "Big Pons", localEmoji = "🍔",
+                status = "picked_up", totalAmount = 9000, createdAt = "",
+                items = listOf(
+                    OrderItem("i1", "Combo Big Classic", 4000, 2),
+                    OrderItem("i2", "Papas Fritas Grandes", 1000, 1),
+                ),
+            ),
+            onGoHome = {},
+            onViewSummary = {},
+        )
     }
 }

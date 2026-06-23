@@ -1,5 +1,5 @@
 # Local configuration
-local.properties
+/local.properties
 
 # Gradle
 .gradle/
