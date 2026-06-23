@@ -8,7 +8,7 @@
     * **Room Database:** Base de datos para persistencia local.
 * **Backend:** Servidor remoto.
     * **API REST:** Interfaz de comunicación.
-    * **MySQL Database:** Base de datos principal.
+    * **PostgreSQL (Supabase):** Base de datos principal.
 
 ---
 
@@ -97,8 +97,9 @@ flowchart LR
     end
 
     subgraph BackendSys["Backend"]
-        API["API REST"]
-        DB[("MySQL Database")]
+        API["API REST\n(Supabase PostgREST)"]
+        Realtime["Supabase Realtime\n(WebSocket)"]
+        DB[("PostgreSQL\n(Supabase)")]
     end
 
     %% Relaciones Usuario y Presentación
@@ -118,6 +119,7 @@ flowchart LR
     Repo -- "datos remotos" --> RemoteDS
     LocalDS -- "lectura / escritura" --> Room
     RemoteDS -- "HTTP / JSON" --> API
+    RemoteDS -- "WebSocket / Postgres Changes" --> Realtime
     SSO -- "autenticación" --> API
 
     %% Relaciones Servicios Dispositivo
@@ -128,3 +130,4 @@ flowchart LR
 
     %% Relaciones Backend
     API -- "lectura / escritura" --> DB
+    Realtime -- "escucha cambios" --> DB

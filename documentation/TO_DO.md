@@ -47,6 +47,6 @@ Todas las pantallas existen y están ruteadas en `AppNavigation`. Estas necesita
 | `NotificacionesScreen` | Preferencias (toggles cosméticos por ahora) | Los toggles todavía no gatean nada |
 | `NotificationCenterScreen` | ✓ Centro real de notificaciones | Avisos reales por Supabase Realtime, persistidos en Room, con badge en Home |
 | `MenuScreen` | Datos reales desde Supabase | Header aún hardcodeado a "Big Pons" (sin pasar datos del local al screen) |
-| `MisLocalesScreen` | Datos reales desde Supabase | Buscador y chips de filtro son solo decorativos |
+| `MisLocalesScreen` | ✓ Datos reales; buscador, chips y orden funcionales | — |
 | `GoogleLoginScreen` | UI hecha | Los botones no hacen nada real (Google Auth no implementado) |
 | `OrderSummaryScreen` | UI hecha | Datos hardcodeados (número de pedido, ítems, totales) |
