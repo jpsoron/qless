@@ -4,6 +4,7 @@ import com.qless.data.remote.OrderRemoteDataSource
 import com.qless.domain.model.CartItem
 import com.qless.domain.model.Order
 import com.qless.domain.repository.OrderRepository
+import kotlinx.coroutines.flow.Flow
 
 class OrderRepositoryImpl(
     private val remoteDataSource: OrderRemoteDataSource = OrderRemoteDataSource(),
@@ -23,4 +24,10 @@ class OrderRepositoryImpl(
 
     override suspend fun updateStatus(orderId: String, status: String): Result<Unit> =
         remoteDataSource.updateStatus(orderId, status)
+
+    override fun observeUserOrderChanges(): Flow<Unit> =
+        remoteDataSource.observeUserOrderChanges()
+
+    override fun observeLocalOrderChanges(): Flow<Unit> =
+        remoteDataSource.observeLocalOrderChanges()
 }

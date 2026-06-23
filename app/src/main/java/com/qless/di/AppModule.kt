@@ -34,6 +34,8 @@ import com.qless.domain.usecase.GetUserOrdersUseCase
 import com.qless.domain.usecase.LoginUseCase
 import com.qless.domain.usecase.LogoutUseCase
 import com.qless.domain.usecase.ObserveCartUseCase
+import com.qless.domain.usecase.ObserveLocalOrderChangesUseCase
+import com.qless.domain.usecase.ObserveUserOrderChangesUseCase
 import com.qless.domain.usecase.ObserveDarkModeUseCase
 import com.qless.domain.usecase.ObserveOnboardingCompletedUseCase
 import com.qless.domain.usecase.ObservePaymentMethodsUseCase
@@ -85,6 +87,8 @@ object AppModule {
     val getActiveLocalOrders by lazy { GetActiveLocalOrdersUseCase(orderRepository) }
     val getCompletedLocalOrders by lazy { GetCompletedLocalOrdersUseCase(orderRepository) }
     val updateOrderStatus by lazy { UpdateOrderStatusUseCase(orderRepository) }
+    val observeUserOrderChanges by lazy { ObserveUserOrderChangesUseCase(orderRepository) }
+    val observeLocalOrderChanges by lazy { ObserveLocalOrderChangesUseCase(orderRepository) }
 
     // --- Menú ---
     val getMenu by lazy { GetMenuUseCase(menuRepository) }

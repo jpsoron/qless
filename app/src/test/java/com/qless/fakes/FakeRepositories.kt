@@ -13,6 +13,7 @@ import com.qless.domain.repository.MenuRepository
 import com.qless.domain.repository.OrderRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * Fakes en memoria de los contratos de dominio. Se prefieren a un framework de
@@ -24,6 +25,8 @@ class FakeOrderRepository(
     var activeLocalOrders: Result<List<Order>> = Result.success(emptyList()),
     var completedLocalOrders: Result<List<Order>> = Result.success(emptyList()),
     var createResult: ((List<CartItem>, String) -> Result<Order>)? = null,
+    var userOrderChanges: Flow<Unit> = emptyFlow(),
+    var localOrderChanges: Flow<Unit> = emptyFlow(),
 ) : OrderRepository {
 
     val createdOrders = mutableListOf<Pair<List<CartItem>, String>>()
@@ -44,6 +47,9 @@ class FakeOrderRepository(
         statusUpdates += orderId to status
         return updateResult
     }
+
+    override fun observeUserOrderChanges(): Flow<Unit> = userOrderChanges
+    override fun observeLocalOrderChanges(): Flow<Unit> = localOrderChanges
 }
 
 class FakeCartRepository(
