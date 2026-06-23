@@ -1,15 +1,18 @@
 package com.qless.fakes
 
 import com.qless.domain.location.LocationProvider
+import com.qless.domain.model.AppNotification
 import com.qless.domain.model.CachedResult
 import com.qless.domain.model.CartItem
 import com.qless.domain.model.Coordinates
 import com.qless.domain.model.Local
 import com.qless.domain.model.MenuItem
 import com.qless.domain.model.Order
+import com.qless.domain.notification.SystemNotifier
 import com.qless.domain.repository.CartRepository
 import com.qless.domain.repository.LocalesRepository
 import com.qless.domain.repository.MenuRepository
+import com.qless.domain.repository.NotificationRepository
 import com.qless.domain.repository.OrderRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +53,31 @@ class FakeOrderRepository(
 
     override fun observeUserOrderChanges(): Flow<Unit> = userOrderChanges
     override fun observeLocalOrderChanges(): Flow<Unit> = localOrderChanges
+}
+
+class FakeNotificationRepository : NotificationRepository {
+    val added = mutableListOf<AppNotification>()
+    private val items = MutableStateFlow<List<AppNotification>>(emptyList())
+
+    override fun observe(userId: String): Flow<List<AppNotification>> = items
+    override fun unreadCount(userId: String): Flow<Int> =
+        MutableStateFlow(added.count { it.userId == userId && !it.read })
+
+    override suspend fun add(notification: AppNotification) {
+        added += notification
+        items.value = items.value + notification
+    }
+
+    override suspend fun markAllRead(userId: String) {}
+    override suspend fun clear(userId: String) {
+        added.clear()
+        items.value = emptyList()
+    }
+}
+
+class FakeSystemNotifier : SystemNotifier {
+    val notified = mutableListOf<AppNotification>()
+    override fun notify(notification: AppNotification) { notified += notification }
 }
 
 class FakeCartRepository(

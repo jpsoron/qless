@@ -8,7 +8,7 @@
     * **Room Database:** Base de datos para persistencia local.
 * **Backend:** Servidor remoto.
     * **API REST:** Interfaz de comunicación.
-    * **MySQL Database:** Base de datos principal.
+    * **PostgreSQL (Supabase):** Base de datos principal.
 
 ---
 
@@ -37,8 +37,11 @@ Gestiona el origen de los datos (local o remoto) y la autenticación.
 * **Repositorios:** Implementan los contratos de la capa de dominio. Deciden si buscar datos locales o remotos.
     * Piden datos locales al *Local Data Source*.
     * Piden datos remotos al *Remote Data Source*.
-* **Local Data Source:** Realiza lectura y escritura en la *Room Database*.
-* **Remote Data Source:** Se comunica vía HTTP / JSON con la *API REST* del backend.
+* **Local Data Source:** Realiza lectura y escritura en la *Room Database* (incluye el
+  centro de notificaciones, tabla `notifications`).
+* **Remote Data Source:** Se comunica vía HTTP / JSON con la *API REST* del backend y,
+  para el estado de pedidos en vivo, por **Supabase Realtime** (Postgres Changes) sobre
+  un WebSocket.
 * **Google SSO:** Gestiona la autenticación delegada comunicándose con la *API REST*.
 
 ### 4. Servicios del dispositivo
@@ -47,6 +50,9 @@ Hardware y funciones nativas accedidas por los casos de uso:
 * **Cámara Escaneo QR:** Para escanear códigos QR.
 * **Sonido Avisos:** Para avisar cuando un pedido está listo.
 * **Vibración Alertas:** Para alertar sobre cambios de estado.
+* **Notificaciones (`SystemNotifier`):** Bandeja del sistema (`NotificationManager`) ante
+  cambios de estado del pedido detectados por Realtime. Abstracción en `domain/`, impl en
+  `data/`, inyectada por `AppModule`.
 
 ---
 
@@ -91,8 +97,9 @@ flowchart LR
     end
 
     subgraph BackendSys["Backend"]
-        API["API REST"]
-        DB[("MySQL Database")]
+        API["API REST\n(Supabase PostgREST)"]
+        Realtime["Supabase Realtime\n(WebSocket)"]
+        DB[("PostgreSQL\n(Supabase)")]
     end
 
     %% Relaciones Usuario y Presentación
@@ -112,6 +119,7 @@ flowchart LR
     Repo -- "datos remotos" --> RemoteDS
     LocalDS -- "lectura / escritura" --> Room
     RemoteDS -- "HTTP / JSON" --> API
+    RemoteDS -- "WebSocket / Postgres Changes" --> Realtime
     SSO -- "autenticación" --> API
 
     %% Relaciones Servicios Dispositivo
@@ -122,3 +130,4 @@ flowchart LR
 
     %% Relaciones Backend
     API -- "lectura / escritura" --> DB
+    Realtime -- "escucha cambios" --> DB

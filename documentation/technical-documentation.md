@@ -32,7 +32,7 @@ Dos actores principales:
 
 ### Sensor utilizado
 
-Cámara del dispositivo para escaneo de códigos QR de mesa (RF6). Actualmente simulado con un timer de 5 segundos.
+Cámara del dispositivo para escaneo de códigos QR de mesa (RF6). Implementado con CameraX + ML Kit.
 
 ### Design System
 
@@ -89,85 +89,146 @@ QLess es una aplicación Android nativa orientada al pedido anticipado en locale
 com.qless
 ├── MainActivity.kt
 ├── navigation/
-│   └── AppNavigation.kt             — NavHost con 29 rutas (sealed class Screen)
+│   └── AppNavigation.kt             — NavHost con 30 rutas (sealed class Screen)
 ├── data/
-│   ├── CartItem.kt                  — modelo de dominio (incluye localId)
-│   ├── CartRepository.kt
-│   ├── Local.kt                     — modelo de dominio (local gastronómico)
-│   ├── LocalesRepository.kt         — getLocales() + getFavoritos(ids)
-│   ├── MenuItem.kt                  — modelo de dominio (ítem de menú)
-│   ├── MenuRepository.kt            — getMenu(localId)
-│   ├── PaymentMethod.kt             — modelo de dominio
-│   ├── PaymentMethodRepository.kt
 │   ├── SessionStorage.kt            — persistencia de sesión en DataStore (qless_session)
-│   ├── ThemeRepository.kt           — dark mode + onboarding en DataStore (qless_settings)
-│   ├── UserRepository.kt            — auth + perfil + sesión persistente
 │   ├── local/
-│   │   ├── QLessDatabase.kt         — singleton RoomDatabase (v4)
+│   │   ├── QLessDatabase.kt         — singleton RoomDatabase (v8)
 │   │   ├── dao/
 │   │   │   ├── CartItemDao.kt
+│   │   │   ├── LocalDao.kt
+│   │   │   ├── MenuItemDao.kt
+│   │   │   ├── NotificationDao.kt
 │   │   │   ├── PaymentMethodDao.kt
 │   │   │   └── UserDao.kt
 │   │   └── entity/
-│   │       ├── CartItemEntity.kt    — incluye campo localId
+│   │       ├── CartItemEntity.kt       — incluye campo localId
+│   │       ├── LocalEntity.kt          — caché offline de locales (incluye latitud/longitud)
+│   │       ├── MenuItemEntity.kt       — caché offline de menú (con columna orden)
+│   │       ├── NotificationEntity.kt   — avisos persistidos por userId
 │   │       ├── PaymentMethodEntity.kt
 │   │       └── UserEntity.kt
-│   └── remote/
-│       ├── SupabaseClient.kt              — singleton (URL + anon key desde BuildConfig)
-│       ├── AuthRemoteDataSource.kt        — signIn, signUp, signOut, getCurrentSessionJson, tryImportSession
-│       ├── LocalesRemoteDataSource.kt     — fetchLocales(), fetchLocalesByIds(ids)
-│       ├── MenuRemoteDataSource.kt        — fetchMenuForLocal(localId)
-│       ├── ProfileRemoteDataSource.kt     — fetchProfile() desde tabla `perfiles`
-│       └── dto/
-│           ├── LocalDto.kt               — DTO @Serializable + toDomain()
-│           ├── MenuItemDto.kt            — DTO @Serializable + toDomain()
-│           └── Perfil.kt                 — DTO @Serializable (id, nombre, email, rol, favoritos)
+│   ├── location/
+│   │   └── FusedLocationProvider.kt   — impl de LocationProvider (Play Services)
+│   ├── notification/
+│   │   └── AndroidSystemNotifier.kt   — impl de SystemNotifier (NotificationManager, canal order_status)
+│   ├── remote/
+│   │   ├── SupabaseClient.kt              — singleton (URL + anon key desde BuildConfig); instala Auth + Postgrest + Realtime
+│   │   ├── AuthRemoteDataSource.kt        — signIn, signUp, signOut, getCurrentSessionJson, tryImportSession
+│   │   ├── LocalesRemoteDataSource.kt     — fetchLocales(), fetchLocalesByIds(ids)
+│   │   ├── MenuRemoteDataSource.kt        — fetchMenuForLocal(localId)
+│   │   ├── OrderRemoteDataSource.kt       — CRUD de pedidos + observeUserOrderChanges() / observeLocalOrderChanges()
+│   │   ├── ProfileRemoteDataSource.kt     — fetchProfile() desde tabla `perfiles`
+│   │   └── dto/
+│   │       ├── LocalDto.kt               — DTO @Serializable + toDomain()
+│   │       ├── MenuItemDto.kt            — DTO @Serializable + toDomain()
+│   │       ├── OrderDto.kt               — DTO @Serializable + toDomain()
+│   │       └── Perfil.kt                 — DTO @Serializable (id, nombre, email, rol, favoritos)
+│   ├── repository/
+│   │   ├── CartRepositoryImpl.kt
+│   │   ├── LocalesRepositoryImpl.kt      — network-first + fallback a caché Room
+│   │   ├── MenuRepositoryImpl.kt         — network-first + fallback a caché Room
+│   │   ├── NotificationRepositoryImpl.kt
+│   │   ├── OrderRepositoryImpl.kt
+│   │   ├── PaymentMethodRepositoryImpl.kt
+│   │   ├── ThemeRepositoryImpl.kt
+│   │   └── UserRepositoryImpl.kt
+│   └── session/
+│       └── SupabaseSessionProvider.kt    — impl de SessionProvider
+├── di/
+│   └── AppModule.kt                      — composition root manual; inicializado en MainActivity.onCreate
+├── domain/
+│   ├── location/
+│   │   └── LocationProvider.kt           — contrato (suspend fun currentLocation(): Coordinates?)
+│   ├── model/
+│   │   ├── AppNotification.kt
+│   │   ├── AuthUser.kt
+│   │   ├── CachedResult.kt               — wrapper data + fromCache para modo offline
+│   │   ├── CartItem.kt
+│   │   ├── Coordinates.kt
+│   │   ├── Local.kt
+│   │   ├── MenuItem.kt
+│   │   ├── Order.kt
+│   │   ├── PaymentMethod.kt
+│   │   └── User.kt
+│   ├── notification/
+│   │   └── SystemNotifier.kt             — contrato (interface)
+│   ├── repository/
+│   │   ├── CartRepository.kt
+│   │   ├── LocalesRepository.kt
+│   │   ├── MenuRepository.kt
+│   │   ├── NotificationRepository.kt
+│   │   ├── OrderRepository.kt
+│   │   ├── PaymentMethodRepository.kt
+│   │   ├── ThemeRepository.kt
+│   │   └── UserRepository.kt
+│   ├── session/
+│   │   └── SessionProvider.kt            — contrato (interface)
+│   └── usecase/
+│       ├── AuthUseCases.kt
+│       ├── CartUseCases.kt
+│       ├── LocalesUseCases.kt
+│       ├── LocationUseCases.kt           — haversineMeters, RankLocalsByDistanceUseCase, GetCurrentLocationUseCase
+│       ├── MenuUseCases.kt
+│       ├── NotificationUseCases.kt
+│       ├── OrderUseCases.kt
+│       ├── PaymentUseCases.kt
+│       └── ThemeUseCases.kt
 └── ui/
-    ├── viewmodel/
-    │   ├── AuthViewModel.kt           — AuthUiState + AuthNavEvent + checkExistingSession()
-    │   ├── CartViewModel.kt           — incluye cartLocalId y addItem con localId
-    │   ├── HomeViewModel.kt           — HomeUiState (favoritos) + loadFavoritos(ids)
-    │   ├── MisLocalesViewModel.kt     — MisLocalesUiState (locales desde Supabase)
-    │   ├── MenuViewModel.kt           — carga menú real desde Supabase por localId
-    │   ├── PaymentMethodViewModel.kt
-    │   └── ThemeViewModel.kt          — dark mode + onboarding
     ├── components/
+    │   ├── ActiveCartCard.kt             — card de carrito activo (reutilizable)
+    │   ├── BackOfficeBottomNav.kt
+    │   ├── OfflineBanner.kt
+    │   ├── PulseRings.kt
     │   └── QLessBottomNav.kt
+    ├── samples/
+    │   └── UISamplesScreen.kt
     ├── screens/
-    │   ├── SplashScreen.kt
-    │   ├── OnboardingScreen.kt
-    │   ├── LoginScreen.kt             — checkbox "Mantener sesión" funcional
-    │   ├── RegisterScreen.kt
-    │   ├── GoogleLoginScreen.kt
-    │   ├── HomeScreen.kt              — favoritos reales; tap navega directo al menú del local
-    │   ├── LocationDetectedScreen.kt
-    │   ├── MisLocalesScreen.kt        — locales reales; banner geo con dismiss funcional
-    │   ├── ScanearQrScreen.kt
-    │   ├── QrNoReconocidoScreen.kt
-    │   ├── MenuScreen.kt              — menú real desde Supabase; header dinámico por local
-    │   ├── CartScreen.kt
-    │   ├── PaymentScreen.kt
     │   ├── AgregarMetodoDePagoScreen.kt
-    │   ├── MetodosDePagoScreen.kt
-    │   ├── OrderConfirmedScreen.kt
-    │   ├── TrackingScreen.kt
-    │   ├── OrderReadyScreen.kt
-    │   ├── PickupSuccessScreen.kt
-    │   ├── OrderSummaryScreen.kt
-    │   ├── MisPedidosScreen.kt
-    │   ├── AjustesScreen.kt
-    │   ├── NotificacionesScreen.kt
-    │   ├── EliminarCuentaScreen.kt
+    │   ├── AjustesScreen.kt              — "Mi perfil" abre BottomSheet con edición de nombre
+    │   ├── CartScreen.kt                 — incluye vaciar carrito con AlertDialog
     │   ├── CerrarSesionScreen.kt
+    │   ├── EliminarCuentaScreen.kt
+    │   ├── GoogleLoginScreen.kt
+    │   ├── HomeScreen.kt                 — favoritos reales; badge de notificaciones; tap navega al menú del local
+    │   ├── LocationDetectedScreen.kt
+    │   ├── LoginScreen.kt                — checkbox "Mantener sesión" funcional
+    │   ├── MenuScreen.kt                 — menú real desde Supabase; header dinámico por local
+    │   ├── MetodosDePagoScreen.kt
+    │   ├── MisLocalesScreen.kt           — locales reales; buscador, chips y orden funcionales
+    │   ├── MisPedidosScreen.kt           — pedidos reales con tabs Activos / Finalizados / Cancelados
+    │   ├── NotificacionesScreen.kt       — preferencias (toggles cosméticos por ahora)
+    │   ├── NotificationCenterScreen.kt   — centro de notificaciones; marca leídas al abrir; badge en Home
+    │   ├── OnboardingScreen.kt
+    │   ├── OrderConfirmedScreen.kt
+    │   ├── OrderReadyScreen.kt
+    │   ├── OrderSummaryScreen.kt
+    │   ├── PaymentScreen.kt
+    │   ├── PickupSuccessScreen.kt
+    │   ├── QrNoReconocidoScreen.kt
+    │   ├── RegisterScreen.kt
+    │   ├── ScanearQrScreen.kt
+    │   ├── SplashScreen.kt
+    │   ├── TrackingScreen.kt
     │   └── backoffice/
-    │       ├── BackOfficeScreen.kt
+    │       ├── BackOfficeAjustesScreen.kt
     │       ├── BackOfficeHistoryScreen.kt
-    │       ├── BackOfficeUpdateOrderScreen.kt
-    │       └── BackOfficeAjustesScreen.kt
-    └── theme/
-        ├── Color.kt
-        ├── Theme.kt
-        └── Type.kt
+    │       ├── BackOfficeScreen.kt
+    │       └── BackOfficeUpdateOrderScreen.kt
+    ├── theme/
+    │   ├── Color.kt
+    │   ├── Theme.kt
+    │   └── Type.kt
+    └── viewmodel/
+        ├── AuthViewModel.kt              — AuthUiState + AuthNavEvent + checkExistingSession()
+        ├── CartViewModel.kt              — incluye cartLocalId y addItem con localId
+        ├── HomeViewModel.kt              — HomeUiState (favoritos) + loadFavoritos(ids)
+        ├── MenuViewModel.kt              — carga menú real desde Supabase por localId (scoped por entry)
+        ├── MisLocalesViewModel.kt        — MisLocalesUiState (locales desde Supabase)
+        ├── NotificationViewModel.kt      — lista de notificaciones + unreadCount
+        ├── OrderViewModel.kt             — pedidos en tiempo real vía Supabase Realtime
+        ├── PaymentMethodViewModel.kt
+        └── ThemeViewModel.kt             — dark mode + onboarding
 ```
 
 ---
@@ -394,16 +455,18 @@ sealed interface AuthNavEvent {
 
 ### Navegación
 
-`AppNavigation.kt` define un `NavHost` con 29 rutas. La mayoría de ViewModels se instancian una única vez a nivel de `AppNavigation`; `MenuViewModel` es la excepción — se instancia dentro del composable de `Screen.Menu` para que quede scoped al backstack entry.
+`AppNavigation.kt` define un `NavHost` con 30 rutas. La mayoría de ViewModels se instancian una única vez a nivel de `AppNavigation`; `MenuViewModel` es la excepción — se instancia dentro del composable de `Screen.Menu` para que quede scoped al backstack entry.
 
 **ViewModels instanciados en AppNavigation:**
 
 ```kotlin
 val authViewModel: AuthViewModel = viewModel()
 val cartViewModel: CartViewModel = viewModel()
+val orderViewModel: OrderViewModel = viewModel()
 val paymentViewModel: PaymentMethodViewModel = viewModel()
 val misLocalesViewModel: MisLocalesViewModel = viewModel()
 val homeViewModel: HomeViewModel = viewModel()
+val notificationViewModel: NotificationViewModel = viewModel()
 // MenuViewModel se crea dentro del composable Screen.Menu (scoped por entry)
 ```
 
@@ -539,7 +602,47 @@ Splash (verificación de sesión en paralelo)
 | Carrito | Room (con `localId` por ítem) | Sobrevive a reinicios |
 | Métodos de pago | Room | Sobrevive a reinicios |
 | Tema oscuro / onboarding | DataStore (`qless_settings`) | Permanente |
-| Pedidos activos | Simulado | Sin persistencia |
+| Pedidos (`orders` + `order_items`) | Supabase PostgREST | Cambios en vivo vía **Supabase Realtime** (Postgres Changes) |
+| Notificaciones de pedido | Generadas localmente al detectar cambios de estado | Room (`notifications`, scoped por `userId`) |
+
+---
+
+## Tiempo real y notificaciones
+
+### Estado de pedidos en vivo (Supabase Realtime)
+
+El estado de los pedidos se actualiza por **Supabase Realtime** (Postgres Changes),
+reemplazando el polling anterior (`getUserOrders()` cada 10 s):
+
+- `SupabaseClient` instala `Realtime` (además de `Auth` + `Postgrest`). En Supabase,
+  la tabla `orders` está en la publication `supabase_realtime`.
+- `OrderRemoteDataSource` expone `observeUserOrderChanges()` (filtro `user_id`) y
+  `observeLocalOrderChanges()` (filtro `local_id`) como `Flow<Unit>` de *señal*: emiten
+  al (re)suscribirse y por cada evento. La señal dispara un **re-fetch** de la query REST
+  existente (que ya trae los embeds `order_items`/`locales`), en vez de confiar en el
+  payload del evento.
+- Contratos en `OrderRepository`; casos de uso `Observe{User,Local}OrderChangesUseCase`.
+- `OrderViewModel.observeUserOrders()` / `observeLocalOrders()` son `suspend` y se
+  colectan según el ciclo de vida. El canal del **cliente** vive a nivel app mientras hay
+  sesión + foreground (`ProcessLifecycleOwner.repeatOnLifecycle(STARTED)`); el del
+  **BackOffice** está scopeado a sus pantallas.
+- Limitación: Realtime entrega solo en foreground. Al volver de background se re-fetchea.
+
+### Notificaciones de cambio de estado
+
+Side-effect del mismo flujo del cliente, sin polling nuevo:
+
+- `OrderViewModel` mantiene `lastKnownStatuses` y, ante una transición real (no la carga
+  inicial ni el `picked_up` propio), llama `NotifyOrderUpdateUseCase(order)`.
+- El use case **persiste** un `AppNotification` en Room (`notifications`, scoped por
+  `userId`) **y** publica en la bandeja vía `SystemNotifier` (interface en `domain/`,
+  impl `AndroidSystemNotifier` con `NotificationManager` + canal `order_status`). Permiso
+  `POST_NOTIFICATIONS` (Android 13+) pedido en runtime.
+- `NotificationCenterScreen` (ruta nueva) lista los avisos, marca leídos al abrir y permite
+  borrar; la campana de Home navega ahí y muestra **badge** de no-leídas
+  (`NotificationViewModel.unreadCount`). `NotificacionesScreen` queda como preferencias.
+- Tap en la notificación → abre la app en el seguimiento (deep-link vía `MainActivity`).
+- Limitaciones: sin FCM no hay push con la app cerrada; avisos locales por device; solo cliente.
 
 ---
 
@@ -554,9 +657,12 @@ composeBom                           = "2026.05.01"
 lifecycleRuntimeKtx                  = "2.10.0"
 navigationCompose                    = "2.9.0"
 room                                 = "2.7.1"
-supabase                             = "3.1.4"   # BOM: auth-kt + postgrest-kt
+supabase                             = "3.1.4"   # BOM: auth-kt + postgrest-kt + realtime-kt
 ktor                                 = "3.1.3"   # ktor-client-okhttp
 ```
+
+> `lifecycle-process` (mismo ref que `lifecycleRuntimeKtx`) se usa para mantener el
+> canal Realtime del cliente vivo solo en foreground (`ProcessLifecycleOwner`).
 
 ---
 
@@ -648,7 +754,7 @@ da la misma evidencia para H2.
 
 ### Sensor real
 
-- ~~Integrar CameraX + ML Kit para lectura real de QR~~ ✓ (implementado, simulado con timer de 5 s)
+- ~~Integrar CameraX + ML Kit para lectura real de QR~~ ✓ (CameraX + ML Kit implementado)
 
 ### Migración de base de datos
 

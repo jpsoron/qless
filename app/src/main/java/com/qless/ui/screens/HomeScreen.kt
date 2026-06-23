@@ -60,6 +60,8 @@ fun HomeScreen(
     activeCart: ActiveCartUi? = null,
     onViewCart: () -> Unit = {},
     isDarkTheme: Boolean = false,
+    unreadNotifications: Int = 0,
+    onNavigateToNotifications: () -> Unit = {},
     onNavigateToMisLocales: () -> Unit,
     onLocalSelected: (localId: String) -> Unit,
     onNavigateToTracking: () -> Unit,
@@ -146,19 +148,38 @@ fun HomeScreen(
                     )
                 }
                 Spacer(Modifier.weight(1f))
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Notifications,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(22.dp)
-                    )
+                Box(contentAlignment = Alignment.TopEnd) {
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.2f))
+                            .clickable { onNavigateToNotifications() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = "Notificaciones",
+                            tint = Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    if (unreadNotifications > 0) {
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clip(CircleShape)
+                                .background(Pimentón),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                if (unreadNotifications > 9) "9+" else unreadNotifications.toString(),
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
 
