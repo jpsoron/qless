@@ -47,10 +47,16 @@ data class QLessExtras(
 
 val LocalQLessExtras = staticCompositionLocalOf { QLessExtras() }
 
+/** True cuando el tema activo es oscuro. Leerlo con `QLessTheme.isDark`. */
+val LocalDarkTheme = staticCompositionLocalOf { false }
+
 // Accessor de conveniencia — usar igual que MaterialTheme
 object QLessTheme {
     val extras: QLessExtras
         @Composable get() = LocalQLessExtras.current
+
+    val isDark: Boolean
+        @Composable get() = LocalDarkTheme.current
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,7 +89,10 @@ fun QLessTheme(
         kraftColor = if (darkTheme) Color(0xFF9E7A5A) else Color(0xFF7A5C3E),
     )
 
-    CompositionLocalProvider(LocalQLessExtras provides extras) {
+    CompositionLocalProvider(
+        LocalQLessExtras provides extras,
+        LocalDarkTheme provides darkTheme,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography  = AppTypography,

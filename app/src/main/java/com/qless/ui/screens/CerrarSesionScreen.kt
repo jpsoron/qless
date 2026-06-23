@@ -8,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,11 +21,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
 
 @Composable
 fun CerrarSesionScreen(
+    authViewModel: AuthViewModel,
     onBack: () -> Unit,
     onConfirmLogout: () -> Unit,
     onNavigateToInicio: () -> Unit,
@@ -31,6 +35,10 @@ fun CerrarSesionScreen(
     onNavigateToScanQr: () -> Unit,
     onNavigateToMisPedidos: () -> Unit,
 ) {
+    val uiState by authViewModel.uiState.collectAsState()
+    val userName = uiState.currentUserName
+    val userEmail = uiState.currentUserEmail
+    val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
     Scaffold(
         bottomBar = {
             Box(modifier = Modifier.zIndex(100f).graphicsLayer(clip = false)) {
@@ -47,7 +55,7 @@ fun CerrarSesionScreen(
                 )
             }
         },
-        containerColor = CremaCálida
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier
@@ -66,12 +74,12 @@ fun CerrarSesionScreen(
                     onClick = onBack,
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Melocotón, CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
-                        tint = Pimentón
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Spacer(Modifier.width(16.dp))
@@ -79,7 +87,7 @@ fun CerrarSesionScreen(
                     "Cerrar sesión",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = Espresso
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -88,7 +96,7 @@ fun CerrarSesionScreen(
             Text(
                 "Vas a salir de tu cuenta en este dispositivo",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Madera
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(32.dp))
@@ -98,7 +106,7 @@ fun CerrarSesionScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 color = Color.White,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -108,10 +116,10 @@ fun CerrarSesionScreen(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(Borgoña.copy(alpha = 0.1f)),
+                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("!", color = Borgoña, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
+                        Text("!", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
@@ -119,13 +127,13 @@ fun CerrarSesionScreen(
                             "Se va a cerrar tu sesión actual",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = Espresso
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             "Vas a volver a la pantalla de ingreso. Tus pedidos y métodos guardados seguirán asociados a tu cuenta.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Madera,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             lineHeight = 18.sp
                         )
                     }
@@ -138,8 +146,8 @@ fun CerrarSesionScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                color = Mantequilla,
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -149,23 +157,23 @@ fun CerrarSesionScreen(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(Melocotón),
+                            .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("M", color = Pimentón, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                        Text(initial, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
                         Text(
-                            "María González",
+                            userName.ifBlank { "Usuario" },
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = Espresso
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "maria@email.com",
+                            userEmail.ifBlank { "" },
                             style = MaterialTheme.typography.bodySmall,
-                            color = Madera
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -175,12 +183,15 @@ fun CerrarSesionScreen(
 
             // Action Buttons
             Button(
-                onClick = onConfirmLogout,
+                onClick = {
+                    authViewModel.logout()
+                    onConfirmLogout()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Pimentón)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Cerrar sesión", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
@@ -193,8 +204,8 @@ fun CerrarSesionScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Pimentón)
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Cancelar", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
@@ -202,10 +213,3 @@ fun CerrarSesionScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun CerrarSesionPreview() {
-    QLessTheme {
-        CerrarSesionScreen({}, {}, {}, {}, {}, {})
-    }
-}

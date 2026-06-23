@@ -1,45 +1,64 @@
 package com.qless.ui.viewmodel
 
-import android.app.Application
-import androidx.compose.runtime.mutableStateListOf
-import androidx.lifecycle.AndroidViewModel
-import com.qless.data.CartItem
-import com.qless.data.CartRepository
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.qless.di.AppModule
+import com.qless.domain.model.CartItem
+import com.qless.domain.usecase.AddCartItemUseCase
+import com.qless.domain.usecase.ClearCartUseCase
+import com.qless.domain.usecase.ObserveCartUseCase
+import com.qless.domain.usecase.UpdateCartItemQuantityUseCase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class CartViewModel(app: Application) : AndroidViewModel(app) {
-    private val repository = CartRepository(app)
-    val items = mutableStateListOf<CartItem>()
+data class CartUiState(
+    val items: List<CartItem> = emptyList(),
+)
+
+class CartViewModel(
+    private val observeCartUseCase: ObserveCartUseCase,
+    private val addCartItemUseCase: AddCartItemUseCase,
+    private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
+    private val clearCartUseCase: ClearCartUseCase,
+) : ViewModel() {
+
+    /** Constructor sin args para `viewModel()` en producción: toma el grafo de [AppModule]. */
+    constructor() : this(
+        AppModule.observeCart,
+        AppModule.addCartItem,
+        AppModule.updateCartItemQuantity,
+        AppModule.clearCart,
+    )
+
+    private val _uiState = MutableStateFlow(CartUiState())
+    val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
 
     init {
-        items.addAll(repository.loadCart())
+        viewModelScope.launch {
+            observeCartUseCase().collect { list ->
+                _uiState.update { it.copy(items = list) }
+            }
+        }
     }
 
-    fun addItem(emoji: String, name: String, detail: String, unitPrice: Int) {
-        val index = items.indexOfFirst { it.name == name }
-        if (index >= 0) {
-            items[index] = items[index].copy(quantity = items[index].quantity + 1)
-        } else {
-            items.add(CartItem(emoji, name, detail, unitPrice, 1))
-        }
-        repository.saveCart(items)
+    fun addItem(emoji: String, name: String, detail: String, unitPrice: Int, menuItemId: String = "", localId: String = "") {
+        val current = _uiState.value.items.find { it.name == name }?.quantity ?: 0
+        viewModelScope.launch { addCartItemUseCase(emoji, name, detail, unitPrice, current, menuItemId, localId) }
     }
+
+    val cartLocalId: String get() = _uiState.value.items.firstOrNull()?.localId ?: ""
 
     fun removeItem(name: String) {
-        val index = items.indexOfFirst { it.name == name }
-        if (index < 0) return
-        val item = items[index]
-        if (item.quantity > 1) {
-            items[index] = item.copy(quantity = item.quantity - 1)
-        } else {
-            items.removeAt(index)
-        }
-        repository.saveCart(items)
+        val item = _uiState.value.items.find { it.name == name } ?: return
+        viewModelScope.launch { updateCartItemQuantityUseCase(item, item.quantity - 1) }
     }
 
-    fun getQuantity(name: String): Int = items.find { it.name == name }?.quantity ?: 0
+    fun getQuantity(name: String): Int = _uiState.value.items.find { it.name == name }?.quantity ?: 0
 
     fun clearCart() {
-        items.clear()
-        repository.clearCart()
+        viewModelScope.launch { clearCartUseCase() }
     }
 }

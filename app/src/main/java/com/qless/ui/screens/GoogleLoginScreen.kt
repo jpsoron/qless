@@ -29,7 +29,7 @@ fun GoogleLoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(CremaCálida)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
@@ -41,12 +41,12 @@ fun GoogleLoginScreen(
             modifier = Modifier
                 .padding(top = 12.dp)
                 .size(40.dp)
-                .background(Melocotón.copy(alpha = 0.5f), CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f), CircleShape)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Volver",
-                tint = Pimentón,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -57,7 +57,7 @@ fun GoogleLoginScreen(
         Text(
             "Conectar con Google",
             style = MaterialTheme.typography.headlineMedium,
-            color = Espresso,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.SemiBold,
             fontSize = 32.sp
         )
@@ -65,7 +65,7 @@ fun GoogleLoginScreen(
         Text(
             "Usá tu cuenta de Google para registrarte de forma segura y rápida",
             style = MaterialTheme.typography.bodyLarge,
-            color = Madera,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 22.sp
         )
 
@@ -117,7 +117,7 @@ fun GoogleLoginScreen(
             "Al conectar con Google podés:",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = Espresso,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 18.sp
         )
         Spacer(Modifier.height(20.dp))
@@ -130,14 +130,14 @@ fun GoogleLoginScreen(
         // Caja de información
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = Melocotón.copy(alpha = 0.4f),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
                 "Solo se accede a tu nombre y email. Nunca a contraseñas.",
                 modifier = Modifier.padding(16.dp),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Madera,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp
             )
         }
@@ -152,7 +152,7 @@ fun GoogleLoginScreen(
                 .height(58.dp),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Melocotón)
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Surface(
                 modifier = Modifier.size(24.dp),
@@ -171,7 +171,7 @@ fun GoogleLoginScreen(
             Spacer(Modifier.width(14.dp))
             Text(
                 "Continuar con Google",
-                color = Espresso,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 17.sp
             )
@@ -186,7 +186,7 @@ fun GoogleLoginScreen(
         ) {
             Text(
                 "Usar correo y contraseña en cambio",
-                color = Pimentón,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp
             )
@@ -202,7 +202,7 @@ fun GoogleLoginScreen(
         ) {
             Text(
                 "¿Ya tenés cuenta? ",
-                color = Madera,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 15.sp
             )
             TextButton(
@@ -211,7 +211,7 @@ fun GoogleLoginScreen(
             ) {
                 Text(
                     "Iniciar sesión",
-                    color = Pimentón,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp
                 )
@@ -242,13 +242,13 @@ private fun BenefitItem(text: String) {
         Box(
             modifier = Modifier
                 .size(7.dp)
-                .background(Pimentón, CircleShape)
+                .background(MaterialTheme.colorScheme.primary, CircleShape)
         )
         Spacer(Modifier.width(14.dp))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
-            color = Espresso,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp
         )
     }
