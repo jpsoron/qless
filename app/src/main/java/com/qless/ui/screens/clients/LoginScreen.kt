@@ -32,6 +32,7 @@ fun LoginScreen(
     onNavigateToBackOffice: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToGoogleLogin: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -172,7 +173,7 @@ fun LoginScreen(
                 )
             }
             TextButton(
-                onClick = {},
+                onClick = onNavigateToForgotPassword,
                 contentPadding = PaddingValues(0.dp)
             ) {
                 Text(

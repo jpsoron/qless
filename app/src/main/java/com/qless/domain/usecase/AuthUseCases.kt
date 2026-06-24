@@ -42,3 +42,12 @@ class UpdateProfileUseCase(private val repository: UserRepository) {
     suspend operator fun invoke(name: String, email: String): Result<Unit> =
         repository.updateProfile(name, email)
 }
+
+class SendPasswordResetUseCase(private val repository: UserRepository) {
+    suspend operator fun invoke(email: String): Result<Unit> = repository.sendPasswordReset(email)
+}
+
+class UpdatePasswordUseCase(private val repository: UserRepository) {
+    suspend operator fun invoke(newPassword: String): Result<Unit> =
+        repository.updatePassword(newPassword)
+}
