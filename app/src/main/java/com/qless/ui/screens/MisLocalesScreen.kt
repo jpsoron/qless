@@ -1,5 +1,6 @@
 package com.qless.ui.screens
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -240,22 +241,6 @@ fun MisLocalesScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                // El más cercano a vos — debajo del buscador, arriba de los filtros.
-                uiState.closestLocal?.let { closest ->
-                    if (locationPermissionState.status.isGranted && closest.distanciaMetros != null) {
-                        Text(
-                            "EL MÁS CERCANO A VOS",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Pimentón,
-                            letterSpacing = 1.sp
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        LocalCard(local = closest, onClick = { onLocalSelected(closest.id) })
-                        Spacer(Modifier.height(16.dp))
-                    }
-                }
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -322,49 +307,86 @@ fun MisLocalesScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                if (isLoading) {
-                    Box(
-                        modifier = Modifier
-                            .size(140.dp, 12.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(shimmerBrush)
-                    )
-                } else {
-                    Text(
-                        "${visibleLocales.count { it.abierto }} LOCALES DISPONIBLES",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        letterSpacing = 0.8.sp
-                    )
+                // El más cercano a vos — debajo de los filtros. Aparece con fade + expand
+                // (la ubicación se resuelve después de que la lista ya está en pantalla) y
+                // mientras el GPS resuelve mostramos un skeleton en el mismo slot.
+                // Con carrito activo se prioriza la ActiveCartCard (arriba) y se oculta
+                // el atajo "más cercano a vos".
+                val closest = uiState.closestLocal
+                val hasPermission = locationPermissionState.status.isGranted
+                val showNearest = closest != null && hasPermission && closest.distanciaMetros != null
+                var lastNearest by remember { mutableStateOf<Local?>(null) }
+                if (showNearest) lastNearest = closest
+                val locatingNearest = hasPermission && uiState.isLocating && lastNearest == null
+                AnimatedVisibility(
+                    visible = activeCart == null && (showNearest || locatingNearest),
+                    enter = fadeIn(tween(300)) + expandVertically(tween(300)),
+                    exit = fadeOut(tween(200)) + shrinkVertically(tween(200)),
+                ) {
+                    Column {
+                        Text(
+                            "EL MÁS CERCANO A VOS",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Pimentón,
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Crossfade(targetState = lastNearest, label = "nearestCard") { local ->
+                            if (local != null) {
+                                LocalCard(local = local, onClick = { onLocalSelected(local.id) })
+                            } else {
+                                SkeletonLocalCard(shimmerBrush)
+                            }
+                        }
+                        Spacer(Modifier.height(16.dp))
+                    }
                 }
 
-                Spacer(Modifier.height(8.dp))
-
-                if (isLoading) {
-                    repeat(4) {
-                        SkeletonLocalCard(shimmerBrush)
-                        Spacer(Modifier.height(10.dp))
-                    }
-                } else {
-                    visibleLocales.forEach { local ->
-                        LocalCard(local = local, onClick = { onLocalSelected(local.id) })
-                        Spacer(Modifier.height(10.dp))
-                    }
-                    if (visibleLocales.isEmpty() && uiState.error == null) {
-                        Text(
-                            "No encontramos locales con esos filtros.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(Modifier.height(10.dp))
-                    }
-                    if (uiState.error != null) {
-                        LoadLocalesError(
-                            message = uiState.error,
-                            onRetry = { misLocalesViewModel.loadLocales() }
-                        )
-                        Spacer(Modifier.height(10.dp))
+                // Swap skeleton → lista con crossfade para que no sea un corte seco.
+                Crossfade(targetState = isLoading, label = "localesList") { loading ->
+                    Column {
+                        if (loading) {
+                            Box(
+                                modifier = Modifier
+                                    .size(140.dp, 12.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(shimmerBrush)
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            repeat(4) {
+                                SkeletonLocalCard(shimmerBrush)
+                                Spacer(Modifier.height(10.dp))
+                            }
+                        } else {
+                            Text(
+                                "${visibleLocales.count { it.abierto }} LOCALES DISPONIBLES",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                letterSpacing = 0.8.sp
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            visibleLocales.forEach { local ->
+                                LocalCard(local = local, onClick = { onLocalSelected(local.id) })
+                                Spacer(Modifier.height(10.dp))
+                            }
+                            if (visibleLocales.isEmpty() && uiState.error == null) {
+                                Text(
+                                    "No encontramos locales con esos filtros.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(Modifier.height(10.dp))
+                            }
+                            if (uiState.error != null) {
+                                LoadLocalesError(
+                                    message = uiState.error,
+                                    onRetry = { misLocalesViewModel.loadLocales() }
+                                )
+                                Spacer(Modifier.height(10.dp))
+                            }
+                        }
                     }
                 }
 

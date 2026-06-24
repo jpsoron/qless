@@ -138,11 +138,11 @@ class OrderViewModel(
         }
     }
 
-    fun placeOrder(items: List<CartItem>, localId: String) {
+    fun placeOrder(items: List<CartItem>, localId: String, applyFirstOrderDiscount: Boolean = false) {
         if (items.isEmpty()) return
         viewModelScope.launch {
             _uiState.update { it.copy(isCheckingOut = true) }
-            placeOrderUseCase(items, localId)
+            placeOrderUseCase(items, localId, applyFirstOrderDiscount)
                 .onSuccess { order ->
                     _uiState.update { it.copy(isCheckingOut = false, lastCreatedOrder = order) }
                     _navEvent.emit(OrderNavEvent.CheckoutSuccess)

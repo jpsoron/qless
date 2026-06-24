@@ -94,7 +94,36 @@ fun MetodosDePagoScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Subtítulo y botón de agregar
+            // Aviso de alcance del MVP: solo efectivo en el local.
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("💵", fontSize = 20.sp)
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Por ahora, solo efectivo",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            "Pagás al retirar en el local. Los pagos digitales llegan próximamente.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // Subtítulo y botón de agregar (deshabilitado: sin pagos digitales en el MVP)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -102,13 +131,14 @@ fun MetodosDePagoScreen(
             ) {
                 Text(
                     "Administrá tarjetas y billeteras\nasociadas",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     fontSize = 15.sp,
                     lineHeight = 20.sp,
                     modifier = Modifier.weight(1f)
                 )
                 Button(
                     onClick = onNavigateToAgregarMetodo,
+                    enabled = false,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(99.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -168,6 +198,7 @@ fun MetodosDePagoScreen(
                         subtitle = subtitle,
                         description = description,
                         tag = tag,
+                        enabled = false,  // MVP: métodos digitales grisados (no disponibles)
                         onDelete = { paymentViewModel.removeMethod(method.id) }
                     )
 
@@ -199,8 +230,11 @@ fun PaymentMethodCard(
     subtitle: String,
     description: String,
     tag: String? = null,
+    enabled: Boolean = true,
     onDelete: (() -> Unit)? = null,
 ) {
+    // Cuando enabled = false la tarjeta se ve grisada (método no disponible en el MVP).
+    val contentAlpha = if (enabled) 1f else 0.4f
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -216,12 +250,12 @@ fun PaymentMethodCard(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(CircleShape)
-                    .background(iconBgColor),
+                    .background(iconBgColor.copy(alpha = contentAlpha)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = icon,
-                    color = iconTextColor,
+                    color = iconTextColor.copy(alpha = contentAlpha),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 12.sp
                 )
@@ -234,17 +268,17 @@ fun PaymentMethodCard(
                 Text(
                     text = title,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
                     fontSize = 16.sp
                 )
                 Text(
                     text = subtitle,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha),
                     fontSize = 13.sp
                 )
                 Text(
                     text = description,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f * contentAlpha),
                     fontSize = 12.sp
                 )
             }

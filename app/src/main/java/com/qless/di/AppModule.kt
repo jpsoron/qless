@@ -28,6 +28,7 @@ import com.qless.domain.usecase.AddCartItemUseCase
 import com.qless.domain.usecase.AddPaymentMethodUseCase
 import com.qless.domain.usecase.ClearCartUseCase
 import com.qless.domain.usecase.ClearSessionUseCase
+import com.qless.domain.usecase.ConsumeFirstOrderDiscountUseCase
 import com.qless.domain.usecase.DeleteAccountUseCase
 import com.qless.domain.usecase.EnsureDefaultPaymentMethodsUseCase
 import com.qless.domain.usecase.GetActiveLocalOrdersUseCase
@@ -144,6 +145,7 @@ object AppModule {
     val clearSession by lazy { ClearSessionUseCase(userRepository) }
     val toggleFavorito by lazy { ToggleFavoritoUseCase(userRepository) }
     val deleteAccount by lazy { DeleteAccountUseCase(userRepository) }
+    val consumeFirstOrderDiscount by lazy { ConsumeFirstOrderDiscountUseCase(userRepository) }
 
     // --- Tema / onboarding ---
     val observeDarkMode by lazy { ObserveDarkModeUseCase(themeRepository) }

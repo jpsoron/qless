@@ -10,13 +10,20 @@ import kotlinx.coroutines.flow.Flow
  * sobre el contrato [OrderRepository] sin conocer de dónde salen los datos.
  */
 
+/** Descuento de bienvenida (10%) que aplica una sola vez, en el primer pedido. */
+const val FIRST_ORDER_DISCOUNT_RATE = 0.10
+
 class PlaceOrderUseCase(private val repository: OrderRepository) {
     /** Regla de negocio: no se puede crear un pedido sin ítems. */
-    suspend operator fun invoke(items: List<CartItem>, localId: String): Result<Order> {
+    suspend operator fun invoke(
+        items: List<CartItem>,
+        localId: String,
+        applyFirstOrderDiscount: Boolean = false,
+    ): Result<Order> {
         if (items.isEmpty()) {
             return Result.failure(IllegalArgumentException("El carrito está vacío"))
         }
-        return repository.createOrder(items, localId)
+        return repository.createOrder(items, localId, applyFirstOrderDiscount)
     }
 }
 

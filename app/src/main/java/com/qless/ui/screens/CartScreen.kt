@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.domain.model.CartItem
+import com.qless.domain.usecase.FIRST_ORDER_DISCOUNT_RATE
 import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.theme.Pimentón
 import com.qless.ui.theme.QLessStatusColors
@@ -26,6 +27,7 @@ import com.qless.ui.theme.QLessStatusColors
 fun CartScreen(
     cartViewModel: CartViewModel,
     isDarkTheme: Boolean = false,
+    firstOrderDiscount: Boolean = false,
     onConfirm: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -35,7 +37,9 @@ fun CartScreen(
     var showClearCartDialog by remember { mutableStateOf(false) }
 
     val subtotal = items.sumOf { it.unitPrice * it.quantity }
-    val discount = (subtotal * 0.10).toInt()
+    // El 10% de bienvenida solo aplica si el perfil todavía tiene el beneficio
+    // disponible (descuento_1ra = true). Una vez usado en el primer pedido, no vuelve.
+    val discount = if (firstOrderDiscount) (subtotal * FIRST_ORDER_DISCOUNT_RATE).toInt() else 0
     val total = subtotal - discount
 
     if (showClearCartDialog) {
@@ -169,9 +173,6 @@ fun CartScreen(
                         Spacer(Modifier.width(8.dp))
                         Text("Big Pons – San Isidro", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                     }
-                    TextButton(onClick = {}, contentPadding = PaddingValues(0.dp)) {
-                        Text("Cambiar", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-                    }
                 }
             }
 
@@ -203,10 +204,12 @@ fun CartScreen(
                 Text("Subtotal", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("$${"%,d".format(subtotal)}", color = MaterialTheme.colorScheme.onSurface)
             }
-            Spacer(Modifier.height(6.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Descuento (10% primera vez)", color = QLessStatusColors.disponible)
-                Text("−$${"%,d".format(discount)}", color = QLessStatusColors.disponible)
+            if (discount > 0) {
+                Spacer(Modifier.height(6.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Descuento (10% primera vez)", color = QLessStatusColors.disponible)
+                    Text("−$${"%,d".format(discount)}", color = QLessStatusColors.disponible)
+                }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.padding(vertical = 10.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

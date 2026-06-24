@@ -26,7 +26,7 @@ class UserRepositoryImpl(
             if (rememberMe) {
                 authRemoteDataSource.getCurrentSessionJson()?.let { sessionStorage.save(it) }
             }
-            AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos)
+            AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos, firstOrderDiscount = perfil.descuento1ra)
         }
 
     override suspend fun register(name: String, email: String, password: String): Result<Unit> =
@@ -41,7 +41,7 @@ class UserRepositoryImpl(
         val json = sessionStorage.load() ?: return@runCatching null
         authRemoteDataSource.tryImportSession(json).getOrThrow()
         val perfil = profileRemoteDataSource.fetchProfile().getOrThrow()
-        AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos)
+        AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos, firstOrderDiscount = perfil.descuento1ra)
     }
 
     override suspend fun clearSession() = sessionStorage.clear()
@@ -57,4 +57,7 @@ class UserRepositoryImpl(
         authRemoteDataSource.signOut().getOrThrow()
         sessionStorage.clear()
     }
+
+    override suspend fun consumeFirstOrderDiscount(): Result<Unit> =
+        profileRemoteDataSource.consumeFirstOrderDiscount()
 }

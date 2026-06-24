@@ -17,6 +17,7 @@ data class AuthUiState(
     val currentUserEmail: String = "",
     val currentUserRole: String = "",
     val currentUserFavoritos: List<String> = emptyList(),
+    val firstOrderDiscount: Boolean = false,
     val sessionCheckDone: Boolean = false,
     val sessionRestored: Boolean = false,
     val loginError: String? = null,
@@ -40,6 +41,7 @@ class AuthViewModel : ViewModel() {
     private val clearSessionUseCase = AppModule.clearSession
     private val toggleFavoritoUseCase = AppModule.toggleFavorito
     private val deleteAccountUseCase = AppModule.deleteAccount
+    private val consumeFirstOrderDiscountUseCase = AppModule.consumeFirstOrderDiscount
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -62,6 +64,7 @@ class AuthViewModel : ViewModel() {
                                 currentUserEmail = user.email,
                                 currentUserRole = user.role,
                                 currentUserFavoritos = user.favoritos,
+                                firstOrderDiscount = user.firstOrderDiscount,
                                 sessionCheckDone = true,
                                 sessionRestored = true
                             )
@@ -92,7 +95,8 @@ class AuthViewModel : ViewModel() {
                             currentUserName = user.name,
                             currentUserEmail = user.email,
                             currentUserRole = user.role,
-                            currentUserFavoritos = user.favoritos
+                            currentUserFavoritos = user.favoritos,
+                            firstOrderDiscount = user.firstOrderDiscount
                         )
                     }
                     if (user.role == "BACK_OFFICE") {
@@ -152,6 +156,17 @@ class AuthViewModel : ViewModel() {
                     _uiState.update { it.copy(currentUserFavoritos = newFavoritos) }
                 }
         }
+    }
+
+    /**
+     * Consume el descuento de bienvenida tras el primer pedido: actualiza el estado
+     * local de forma optimista y persiste descuento_1ra = false en el perfil.
+     * No hace nada si el beneficio ya estaba usado.
+     */
+    fun consumeFirstOrderDiscount() {
+        if (!_uiState.value.firstOrderDiscount) return
+        _uiState.update { it.copy(firstOrderDiscount = false) }
+        viewModelScope.launch { consumeFirstOrderDiscountUseCase() }
     }
 
     fun clearErrors() {

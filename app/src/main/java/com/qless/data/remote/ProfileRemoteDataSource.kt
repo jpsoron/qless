@@ -17,4 +17,14 @@ class ProfileRemoteDataSource {
                 filter { eq("id", userId) }
             }
     }
+
+    /** Marca el descuento de bienvenida como consumido (descuento_1ra = false). */
+    suspend fun consumeFirstOrderDiscount(): Result<Unit> = runCatching {
+        val userId = SupabaseClient.instance.auth.currentUserOrNull()?.id
+            ?: error("No hay sesión activa")
+        SupabaseClient.instance.from("perfiles")
+            .update({ set("descuento_1ra", false) }) {
+                filter { eq("id", userId) }
+            }
+    }
 }

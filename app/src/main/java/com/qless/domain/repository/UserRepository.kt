@@ -10,4 +10,6 @@ interface UserRepository {
     suspend fun clearSession()
     suspend fun toggleFavorito(localId: String, currentFavoritos: List<String>): Result<List<String>>
     suspend fun deleteAccount(email: String): Result<Unit>
+    /** Marca el descuento de bienvenida como usado tras el primer pedido. */
+    suspend fun consumeFirstOrderDiscount(): Result<Unit>
 }

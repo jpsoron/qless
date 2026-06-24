@@ -19,6 +19,8 @@ data class MisLocalesUiState(
     val closestLocal: Local? = null,
     val error: String? = null,
     val isOffline: Boolean = false,
+    /** True mientras se resuelve el GPS para ubicar el local más cercano. */
+    val isLocating: Boolean = false,
 )
 
 class MisLocalesViewModel(
@@ -62,12 +64,18 @@ class MisLocalesViewModel(
      */
     fun refreshNearestLocal() {
         viewModelScope.launch {
-            val coords = getCurrentLocation() ?: return@launch
+            _uiState.update { it.copy(isLocating = true) }
+            val coords = getCurrentLocation()
+            if (coords == null) {
+                _uiState.update { it.copy(isLocating = false) }
+                return@launch
+            }
             val ranked = rankLocalsByDistance(coords.lat, coords.lng, _uiState.value.locales)
             _uiState.update {
                 it.copy(
                     locales = ranked,
                     closestLocal = ranked.firstOrNull { local -> local.distanciaMetros != null },
+                    isLocating = false,
                 )
             }
         }

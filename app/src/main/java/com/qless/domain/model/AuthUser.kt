@@ -9,4 +9,6 @@ data class AuthUser(
     val email: String,
     val role: String,
     val favoritos: List<String> = emptyList(),
+    /** true si todavía no usó el descuento de bienvenida (primer pedido). */
+    val firstOrderDiscount: Boolean = false,
 )

@@ -1,5 +1,6 @@
 package com.qless.ui.screens
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -281,9 +282,26 @@ fun HomeScreen(
 
                 // Estás acá: solo si el más cercano está dentro de 50 m y no hay un
                 // pedido activo en curso (con pedido activo el foco es el seguimiento).
-                homeUiState.closestLocal?.let { closest ->
-                    val isAtLocal = closest.distanciaMetros?.let { it <= NEARBY_THRESHOLD_METERS } == true
-                    if (activeOrder == null && locationPermissionState.status.isGranted && isAtLocal) {
+                // Aparece con fade + expand para no ser un salto abrupto: la ubicación
+                // se resuelve después de cargar el resto del Home.
+                // Con carrito activo el foco es retomar ese pedido, no "¿estás acá?":
+                // se prioriza la ActiveCartCard (más abajo) y se oculta este bloque.
+                val closest = homeUiState.closestLocal
+                val showAtLocal = closest != null &&
+                    activeOrder == null &&
+                    activeCart == null &&
+                    locationPermissionState.status.isGranted &&
+                    (closest.distanciaMetros?.let { it <= NEARBY_THRESHOLD_METERS } == true)
+                // Conserva el último local para que la animación de salida no se quede
+                // sin contenido si closestLocal vuelve a null mientras encoge.
+                var lastAtLocal by remember { mutableStateOf<Local?>(null) }
+                if (showAtLocal) lastAtLocal = closest
+                AnimatedVisibility(
+                    visible = showAtLocal,
+                    enter = fadeIn(tween(300)) + expandVertically(tween(300)),
+                    exit = fadeOut(tween(200)) + shrinkVertically(tween(200)),
+                ) {
+                    Column {
                         Text(
                             "¿ESTÁS ACÁ?",
                             style = MaterialTheme.typography.labelMedium,
@@ -292,7 +310,9 @@ fun HomeScreen(
                             letterSpacing = 1.sp
                         )
                         Spacer(Modifier.height(8.dp))
-                        RestaurantCard(local = closest, onClick = { onLocalSelected(closest.id) })
+                        lastAtLocal?.let { local ->
+                            RestaurantCard(local = local, onClick = { onLocalSelected(local.id) })
+                        }
                         Spacer(Modifier.height(24.dp))
                     }
                 }
@@ -421,25 +441,30 @@ fun HomeScreen(
 
                 Spacer(Modifier.height(8.dp))
 
-                when {
-                    homeUiState.isLoading -> {
-                        repeat(2) {
-                            FavoritoSkeletonCard()
-                            Spacer(Modifier.height(10.dp))
-                        }
-                    }
-                    homeUiState.favoritos.isEmpty() -> {
-                        Text(
-                            "Aún no tenés favoritos",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    }
-                    else -> {
-                        homeUiState.favoritos.forEach { local ->
-                            RestaurantCard(local = local, onClick = { onLocalSelected(local.id) })
-                            Spacer(Modifier.height(10.dp))
+                // Swap skeleton → favoritos con crossfade para evitar el corte seco.
+                Crossfade(targetState = homeUiState.isLoading, label = "favoritos") { loading ->
+                    Column {
+                        when {
+                            loading -> {
+                                repeat(2) {
+                                    FavoritoSkeletonCard()
+                                    Spacer(Modifier.height(10.dp))
+                                }
+                            }
+                            homeUiState.favoritos.isEmpty() -> {
+                                Text(
+                                    "Aún no tenés favoritos",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            else -> {
+                                homeUiState.favoritos.forEach { local ->
+                                    RestaurantCard(local = local, onClick = { onLocalSelected(local.id) })
+                                    Spacer(Modifier.height(10.dp))
+                                }
+                            }
                         }
                     }
                 }

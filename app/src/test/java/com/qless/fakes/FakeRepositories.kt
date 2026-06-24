@@ -36,7 +36,11 @@ class FakeOrderRepository(
     val statusUpdates = mutableListOf<Pair<String, String>>()
     var updateResult: Result<Unit> = Result.success(Unit)
 
-    override suspend fun createOrder(items: List<CartItem>, localId: String): Result<Order> {
+    override suspend fun createOrder(
+        items: List<CartItem>,
+        localId: String,
+        applyFirstOrderDiscount: Boolean,
+    ): Result<Order> {
         createdOrders += items to localId
         return createResult?.invoke(items, localId)
             ?: Result.success(sampleOrder(localId = localId, totalAmount = items.sumOf { it.unitPrice * it.quantity }))

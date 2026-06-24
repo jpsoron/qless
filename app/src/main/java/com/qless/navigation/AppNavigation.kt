@@ -398,13 +398,19 @@ fun AppNavigation(
                 orderViewModel.loadUserOrders()
             }
 
-            // Si el local más cercano está a ≤50 m, mostrar "¿Estás en X?" (una vez por sesión).
-            // Con un pedido activo en curso no interrumpimos: el foco es el seguimiento.
-            LaunchedEffect(homeState.closestLocal) {
+            // Si el local más cercano está a ≤50 m, mostrar "¿Estás en X?" una sola vez
+            // por sesión. Si hubo (o hay) un pedido en curso, lo damos por consumido para
+            // siempre: aunque el pedido se complete y el usuario vuelva al home, no vuelve
+            // a aparecer hasta reiniciar la app.
+            LaunchedEffect(homeState.closestLocal, orderState) {
+                if (orderState.activeOrder() != null) {
+                    locationPromptShown = true
+                    return@LaunchedEffect
+                }
                 val nearby = homeState.closestLocal?.takeIf { local ->
                     local.distanciaMetros?.let { it <= NEARBY_THRESHOLD_METERS } == true
                 }
-                if (nearby != null && !locationPromptShown && orderState.activeOrder() == null) {
+                if (nearby != null && !locationPromptShown) {
                     locationPromptShown = true
                     detectedLocal = nearby
                     navController.navigate(Screen.LocationDetected.route)
@@ -695,9 +701,11 @@ fun AppNavigation(
 
         composable(Screen.Cart.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
             CartScreen(
                 cartViewModel = cartViewModel,
                 isDarkTheme = isDarkTheme,
+                firstOrderDiscount = authState.firstOrderDiscount,
                 onConfirm = { navController.navigate(Screen.Payment.route) },
                 onBack = { navController.popBackStack() }
             )
@@ -705,11 +713,15 @@ fun AppNavigation(
 
         composable(Screen.Payment.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
 
             LaunchedEffect(Unit) {
                 orderViewModel.navEvent.collect { event ->
                     when (event) {
                         is OrderNavEvent.CheckoutSuccess -> {
+                            // El pedido se creó OK: consumir el descuento de bienvenida
+                            // (no-op si ya estaba usado) y limpiar el carrito.
+                            authViewModel.consumeFirstOrderDiscount()
                             cartViewModel.clearCart()
                             navController.navigate(Screen.OrderConfirmed.route) {
                                 popUpTo(Screen.Menu.route) { inclusive = false }
@@ -723,13 +735,14 @@ fun AppNavigation(
             PaymentScreen(
                 cartViewModel = cartViewModel,
                 isDarkTheme = isDarkTheme,
+                firstOrderDiscount = authState.firstOrderDiscount,
                 onPaymentSuccess = {
                     orderViewModel.placeOrder(
                         items = cartViewModel.uiState.value.items,
                         localId = cartViewModel.cartLocalId,
+                        applyFirstOrderDiscount = authState.firstOrderDiscount,
                     )
                 },
-                onNavigateToAgregarMetodo = { navController.navigate(Screen.AgregarMetodoDePago.route) },
                 onBack = { navController.popBackStack() }
             )
         }
