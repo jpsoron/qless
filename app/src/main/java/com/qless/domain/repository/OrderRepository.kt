@@ -5,7 +5,11 @@ import com.qless.domain.model.Order
 import kotlinx.coroutines.flow.Flow
 
 interface OrderRepository {
-    suspend fun createOrder(items: List<CartItem>, localId: String): Result<Order>
+    suspend fun createOrder(
+        items: List<CartItem>,
+        localId: String,
+        applyFirstOrderDiscount: Boolean = false,
+    ): Result<Order>
     suspend fun getOrdersByUser(): Result<List<Order>>
     suspend fun getActiveOrdersForLocal(): Result<List<Order>>
     suspend fun getCompletedOrdersForLocal(): Result<List<Order>>

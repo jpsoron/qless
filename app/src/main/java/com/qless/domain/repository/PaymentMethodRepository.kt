@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface PaymentMethodRepository {
     fun getMethods(): Flow<List<PaymentMethod>>
-    suspend fun isEmpty(): Boolean
     suspend fun add(
         nombre: String,
         numero: String,
@@ -14,5 +13,4 @@ interface PaymentMethodRepository {
         esBilletera: Boolean,
     )
     suspend fun remove(id: String)
-    suspend fun seedDefaults()
 }

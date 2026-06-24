@@ -6,6 +6,7 @@ import com.qless.data.local.dao.UserDao
 import com.qless.data.remote.AuthRemoteDataSource
 import com.qless.data.remote.ProfileRemoteDataSource
 import com.qless.domain.model.AuthUser
+import com.qless.domain.repository.AccountInactiveException
 import com.qless.domain.repository.UserRepository
 
 // El usuario BackOffice debe crearse en el dashboard de Supabase.
@@ -23,10 +24,15 @@ class UserRepositoryImpl(
     override suspend fun login(email: String, password: String, rememberMe: Boolean): Result<AuthUser> =
         authRemoteDataSource.signIn(email, password).mapCatching {
             val perfil = profileRemoteDataSource.fetchProfile().getOrThrow()
+            // Cuenta dada de baja: no se permite entrar. Cerramos la sesión recién abierta.
+            if (!perfil.activo) {
+                authRemoteDataSource.signOut()
+                throw AccountInactiveException()
+            }
             if (rememberMe) {
                 authRemoteDataSource.getCurrentSessionJson()?.let { sessionStorage.save(it) }
             }
-            AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos)
+            AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos, firstOrderDiscount = perfil.descuento1ra)
         }
 
     override suspend fun register(name: String, email: String, password: String): Result<Unit> =
@@ -41,7 +47,13 @@ class UserRepositoryImpl(
         val json = sessionStorage.load() ?: return@runCatching null
         authRemoteDataSource.tryImportSession(json).getOrThrow()
         val perfil = profileRemoteDataSource.fetchProfile().getOrThrow()
-        AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos)
+        // Si la cuenta fue dada de baja, descartamos la sesión guardada.
+        if (!perfil.activo) {
+            authRemoteDataSource.signOut()
+            sessionStorage.clear()
+            return@runCatching null
+        }
+        AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos, firstOrderDiscount = perfil.descuento1ra)
     }
 
     override suspend fun clearSession() = sessionStorage.clear()
@@ -51,10 +63,17 @@ class UserRepositoryImpl(
         return profileRemoteDataSource.updateFavoritos(newFavoritos).map { newFavoritos }
     }
 
-    // La eliminación real requiere service role key (solo backend).
-    // Por ahora cierra sesión y limpia el estado local.
+    // Baja lógica: marca el perfil como inactivo (activo = false) y después cierra
+    // sesión. El borrado físico de auth.users requiere service role key (backend).
     override suspend fun deleteAccount(email: String): Result<Unit> = runCatching {
+        profileRemoteDataSource.deactivateAccount().getOrThrow()
         authRemoteDataSource.signOut().getOrThrow()
         sessionStorage.clear()
     }
+
+    override suspend fun consumeFirstOrderDiscount(): Result<Unit> =
+        profileRemoteDataSource.consumeFirstOrderDiscount()
+
+    override suspend fun updateProfile(name: String, email: String): Result<Unit> =
+        profileRemoteDataSource.updateProfile(name, email)
 }

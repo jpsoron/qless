@@ -17,7 +17,6 @@ data class PaymentMethodUiState(
 class PaymentMethodViewModel : ViewModel() {
 
     private val observePaymentMethodsUseCase = AppModule.observePaymentMethods
-    private val ensureDefaultPaymentMethodsUseCase = AppModule.ensureDefaultPaymentMethods
     private val addPaymentMethodUseCase = AppModule.addPaymentMethod
     private val removePaymentMethodUseCase = AppModule.removePaymentMethod
 
@@ -25,8 +24,9 @@ class PaymentMethodViewModel : ViewModel() {
     val uiState: StateFlow<PaymentMethodUiState> = _uiState.asStateFlow()
 
     init {
+        // MVP cash-only: no se siembran métodos por defecto. La lista arranca vacía
+        // y refleja solo lo que el usuario haya agregado explícitamente.
         viewModelScope.launch {
-            ensureDefaultPaymentMethodsUseCase()
             observePaymentMethodsUseCase().collect { list ->
                 _uiState.update { it.copy(methods = list) }
             }

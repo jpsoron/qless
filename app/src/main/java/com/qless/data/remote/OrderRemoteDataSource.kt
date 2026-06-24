@@ -2,6 +2,7 @@ package com.qless.data.remote
 
 import com.qless.domain.model.CartItem
 import com.qless.domain.model.Order
+import com.qless.domain.usecase.FIRST_ORDER_DISCOUNT_RATE
 import com.qless.data.remote.dto.NewOrderDto
 import io.github.jan.supabase.auth.auth
 import com.qless.data.remote.dto.NewOrderItemDto
@@ -26,10 +27,18 @@ class OrderRemoteDataSource {
 
     private val client = SupabaseClient.instance
 
-    suspend fun createOrder(items: List<CartItem>, localId: String): Result<Order> = runCatching {
+    suspend fun createOrder(
+        items: List<CartItem>,
+        localId: String,
+        applyFirstOrderDiscount: Boolean = false,
+    ): Result<Order> = runCatching {
         val userId = client.auth.currentUserOrNull()?.id
             ?: error("No hay sesión activa")
-        val total = items.sumOf { it.unitPrice * it.quantity }
+        val subtotal = items.sumOf { it.unitPrice * it.quantity }
+        // El total persistido refleja el descuento de bienvenida si aplica, para que
+        // el monto a cobrar en el local coincida con lo que vio el usuario en el carrito.
+        val discount = if (applyFirstOrderDiscount) (subtotal * FIRST_ORDER_DISCOUNT_RATE).toInt() else 0
+        val total = subtotal - discount
 
         val created = client.from("orders")
             .insert(NewOrderDto(userId = userId, localId = localId, totalAmount = total)) {

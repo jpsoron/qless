@@ -3,6 +3,7 @@ package com.qless.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.qless.di.AppModule
+import com.qless.domain.repository.EmailAlreadyInUseException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -17,11 +18,14 @@ data class AuthUiState(
     val currentUserEmail: String = "",
     val currentUserRole: String = "",
     val currentUserFavoritos: List<String> = emptyList(),
+    val firstOrderDiscount: Boolean = false,
     val sessionCheckDone: Boolean = false,
     val sessionRestored: Boolean = false,
     val loginError: String? = null,
     val registerError: String? = null,
     val isLoading: Boolean = false,
+    val profileError: String? = null,
+    val isSavingProfile: Boolean = false,
 )
 
 sealed interface AuthNavEvent {
@@ -29,6 +33,7 @@ sealed interface AuthNavEvent {
     data object LoginBackOffice : AuthNavEvent
     data object RegisterSuccess : AuthNavEvent
     data object AccountDeleted : AuthNavEvent
+    data object ProfileUpdated : AuthNavEvent
 }
 
 class AuthViewModel : ViewModel() {
@@ -40,6 +45,8 @@ class AuthViewModel : ViewModel() {
     private val clearSessionUseCase = AppModule.clearSession
     private val toggleFavoritoUseCase = AppModule.toggleFavorito
     private val deleteAccountUseCase = AppModule.deleteAccount
+    private val consumeFirstOrderDiscountUseCase = AppModule.consumeFirstOrderDiscount
+    private val updateProfileUseCase = AppModule.updateProfile
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -62,6 +69,7 @@ class AuthViewModel : ViewModel() {
                                 currentUserEmail = user.email,
                                 currentUserRole = user.role,
                                 currentUserFavoritos = user.favoritos,
+                                firstOrderDiscount = user.firstOrderDiscount,
                                 sessionCheckDone = true,
                                 sessionRestored = true
                             )
@@ -92,7 +100,8 @@ class AuthViewModel : ViewModel() {
                             currentUserName = user.name,
                             currentUserEmail = user.email,
                             currentUserRole = user.role,
-                            currentUserFavoritos = user.favoritos
+                            currentUserFavoritos = user.favoritos,
+                            firstOrderDiscount = user.firstOrderDiscount
                         )
                     }
                     if (user.role == "BACK_OFFICE") {
@@ -154,6 +163,61 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Consume el descuento de bienvenida tras el primer pedido: actualiza el estado
+     * local de forma optimista y persiste descuento_1ra = false en el perfil.
+     * No hace nada si el beneficio ya estaba usado.
+     */
+    fun consumeFirstOrderDiscount() {
+        if (!_uiState.value.firstOrderDiscount) return
+        _uiState.update { it.copy(firstOrderDiscount = false) }
+        viewModelScope.launch { consumeFirstOrderDiscountUseCase() }
+    }
+
+    /**
+     * Actualiza nombre y email del perfil en la base. Valida formato y delega la
+     * unicidad del correo al repositorio. Emite [AuthNavEvent.ProfileUpdated] al éxito.
+     */
+    fun updateProfile(name: String, email: String) {
+        val trimmedName = name.trim()
+        val trimmedEmail = email.trim()
+        when {
+            trimmedName.isBlank() -> { _uiState.update { it.copy(profileError = "El nombre es obligatorio") }; return }
+            !trimmedEmail.contains("@") || !trimmedEmail.substringAfterLast("@").contains(".") -> {
+                _uiState.update { it.copy(profileError = "Ingresá un correo válido") }; return
+            }
+        }
+        _uiState.update { it.copy(isSavingProfile = true, profileError = null) }
+        viewModelScope.launch {
+            updateProfileUseCase(trimmedName, trimmedEmail)
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            isSavingProfile = false,
+                            profileError = null,
+                            currentUserName = trimmedName,
+                            currentUserEmail = trimmedEmail,
+                        )
+                    }
+                    _navEvent.emit(AuthNavEvent.ProfileUpdated)
+                }
+                .onFailure { err ->
+                    _uiState.update { it.copy(isSavingProfile = false, profileError = mapProfileError(err)) }
+                }
+        }
+    }
+
+    fun clearProfileError() {
+        _uiState.update { it.copy(profileError = null) }
+    }
+
+    private fun mapProfileError(err: Throwable): String = when {
+        err is EmailAlreadyInUseException -> "Ese correo ya está registrado"
+        err.message?.contains("network", ignoreCase = true) == true ||
+            err.message?.contains("connect", ignoreCase = true) == true -> "Sin conexión a internet"
+        else -> "No se pudo guardar. Intentá de nuevo."
+    }
+
     fun clearErrors() {
         _uiState.update { it.copy(loginError = null, registerError = null) }
     }
@@ -163,6 +227,7 @@ class AuthViewModel : ViewModel() {
         message.contains("Invalid login credentials", ignoreCase = true) -> "Correo o contraseña incorrectos"
         message.contains("User already registered", ignoreCase = true) -> "El correo ya está registrado"
         message.contains("Email not confirmed", ignoreCase = true) -> "Confirmá tu correo antes de ingresar"
+        message.contains("eliminada", ignoreCase = true) -> "Esta cuenta fue eliminada"
         message.contains("network", ignoreCase = true) || message.contains("connect", ignoreCase = true) -> "Sin conexión a internet"
         else -> "Error de autenticación"
     }

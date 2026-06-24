@@ -22,28 +22,39 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qless.domain.usecase.FIRST_ORDER_DISCOUNT_RATE
 import com.qless.ui.theme.*
 import com.qless.ui.viewmodel.CartViewModel
 
-private data class PaymentMethodOption(val icon: ImageVector, val label: String, val sublabel: String)
+private data class PaymentMethodOption(
+    val icon: ImageVector,
+    val label: String,
+    val sublabel: String,
+    val enabled: Boolean,
+)
 
+// MVP: solo pago en efectivo en el local. Los métodos digitales se muestran
+// grisados ("Próximamente") para comunicar el roadmap sin habilitarlos.
 private val methods = listOf(
-    PaymentMethodOption(Icons.Default.CreditCard, "Visa ····4521", "Vence 09/27"),
-    PaymentMethodOption(Icons.Default.AccountBalanceWallet, "MercadoPago", "Saldo disponible · $12.400"),
-    PaymentMethodOption(Icons.Default.Payments, "Efectivo en local", "Pagás al retirar tu pedido"),
+    PaymentMethodOption(Icons.Default.Payments, "Efectivo en local", "Pagás al retirar tu pedido", enabled = true),
+    PaymentMethodOption(Icons.Default.CreditCard, "Tarjeta de crédito o débito", "Próximamente", enabled = false),
+    PaymentMethodOption(Icons.Default.AccountBalanceWallet, "Billeteras digitales", "Próximamente", enabled = false),
 )
 
 @Composable
 fun PaymentScreen(
     cartViewModel: CartViewModel,
     isDarkTheme: Boolean = false,
+    firstOrderDiscount: Boolean = false,
     onPaymentSuccess: () -> Unit,
-    onNavigateToAgregarMetodo: () -> Unit,
     onBack: () -> Unit,
 ) {
     val cartUiState by cartViewModel.uiState.collectAsState()
     val cartItems = cartUiState.items
-    val cartTotal = cartItems.sumOf { it.unitPrice * it.quantity }
+    val subtotal = cartItems.sumOf { it.unitPrice * it.quantity }
+    // Mismo descuento de bienvenida que el carrito: solo si el perfil lo tiene disponible.
+    val discount = if (firstOrderDiscount) (subtotal * FIRST_ORDER_DISCOUNT_RATE).toInt() else 0
+    val cartTotal = subtotal - discount
     val cartCount = cartItems.sumOf { it.quantity }
     val totalFormatted = "%,d".format(cartTotal)
 
@@ -108,11 +119,11 @@ fun PaymentScreen(
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Pagar $$totalFormatted", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    Text("Confirmar pedido · $$totalFormatted", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "🔒 Pago seguro con encriptación SSL",
+                    "💵 Pagás en efectivo al retirar tu pedido",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     modifier = Modifier.fillMaxWidth(),
@@ -162,49 +173,69 @@ fun PaymentScreen(
             Spacer(Modifier.height(12.dp))
 
             methods.forEachIndexed { index, method ->
+                val isSelected = method.enabled && selectedMethod == index
+                // Los métodos no disponibles van grisados y no son seleccionables.
+                val contentAlpha = if (method.enabled) 1f else 0.4f
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
-                        .clickable { selectedMethod = index },
+                        .then(if (method.enabled) Modifier.clickable { selectedMethod = index } else Modifier),
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     border = androidx.compose.foundation.BorderStroke(
-                        if (selectedMethod == index) 2.dp else 1.5.dp,
-                        if (selectedMethod == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer
+                        if (isSelected) 2.dp else 1.5.dp,
+                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
                     Row(
                         modifier = Modifier.padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(method.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(24.dp))
+                        Icon(method.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha), modifier = Modifier.size(24.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(method.label, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                            Text(method.sublabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(method.label, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha))
+                            Text(method.sublabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha))
                         }
-                        RadioButton(
-                            selected = selectedMethod == index,
-                            onClick = { selectedMethod = index },
-                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                        )
+                        if (method.enabled) {
+                            RadioButton(
+                                selected = isSelected,
+                                onClick = { selectedMethod = index },
+                                colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+                            )
+                        } else {
+                            Surface(
+                                shape = RoundedCornerShape(99.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+                            ) {
+                                Text(
+                                    "Próximamente",
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
-
-            TextButton(onClick = onNavigateToAgregarMetodo, modifier = Modifier.fillMaxWidth()) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Default.CreditCard, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-                    Text("Otros métodos de pago", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Spacer(Modifier.weight(1f))
-                Text("Agregar", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-            }
-
             Spacer(Modifier.height(16.dp))
+
+            if (discount > 0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Descuento (10% primera vez)", color = QLessStatusColors.disponible, style = MaterialTheme.typography.titleSmall)
+                    Text("−$${"%,d".format(discount)}", color = QLessStatusColors.disponible, fontWeight = FontWeight.SemiBold)
+                }
+                Spacer(Modifier.height(8.dp))
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

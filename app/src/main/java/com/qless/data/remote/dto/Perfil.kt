@@ -9,5 +9,10 @@ data class Perfil(
     val nombre: String,
     val email: String,
     val rol: String,
-    @SerialName("favoritos") val favoritos: List<String> = emptyList()
+    @SerialName("favoritos") val favoritos: List<String> = emptyList(),
+    // true mientras el usuario no haya usado el 10% de bienvenida. Pasa a false
+    // tras su primer pedido. Default true por compatibilidad con perfiles viejos.
+    @SerialName("descuento_1ra") val descuento1ra: Boolean = true,
+    // Baja lógica: false = cuenta eliminada/inactiva. No se puede iniciar sesión.
+    val activo: Boolean = true,
 )

@@ -29,7 +29,7 @@ class AndroidSystemNotifier(private val context: Context) : SystemNotifier {
         createChannel()
     }
 
-    override fun notify(notification: AppNotification) {
+    override fun notify(notification: AppNotification, sound: Boolean) {
         if (!hasPermission()) return
 
         val intent = Intent(context, MainActivity::class.java).apply {
@@ -50,6 +50,8 @@ class AndroidSystemNotifier(private val context: Context) : SystemNotifier {
             .setStyle(NotificationCompat.BigTextStyle().bigText(notification.body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            // setSilent(true) suprime sonido y vibración aun en el canal IMPORTANCE_HIGH.
+            .setSilent(!sound)
             .setContentIntent(pendingIntent)
             .build()
 

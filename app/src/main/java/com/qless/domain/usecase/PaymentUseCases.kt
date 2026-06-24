@@ -8,13 +8,6 @@ class ObservePaymentMethodsUseCase(private val repository: PaymentMethodReposito
     operator fun invoke(): Flow<List<PaymentMethod>> = repository.getMethods()
 }
 
-/** Siembra los métodos por defecto la primera vez que el usuario abre la sección. */
-class EnsureDefaultPaymentMethodsUseCase(private val repository: PaymentMethodRepository) {
-    suspend operator fun invoke() {
-        if (repository.isEmpty()) repository.seedDefaults()
-    }
-}
-
 class AddPaymentMethodUseCase(private val repository: PaymentMethodRepository) {
     suspend operator fun invoke(
         nombre: String,

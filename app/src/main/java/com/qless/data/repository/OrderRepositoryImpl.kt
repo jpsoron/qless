@@ -10,8 +10,12 @@ class OrderRepositoryImpl(
     private val remoteDataSource: OrderRemoteDataSource = OrderRemoteDataSource(),
 ) : OrderRepository {
 
-    override suspend fun createOrder(items: List<CartItem>, localId: String): Result<Order> =
-        remoteDataSource.createOrder(items, localId)
+    override suspend fun createOrder(
+        items: List<CartItem>,
+        localId: String,
+        applyFirstOrderDiscount: Boolean,
+    ): Result<Order> =
+        remoteDataSource.createOrder(items, localId, applyFirstOrderDiscount)
 
     override suspend fun getOrdersByUser(): Result<List<Order>> =
         remoteDataSource.getOrdersByUser()
