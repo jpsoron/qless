@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -141,7 +142,7 @@ private fun NotificationToggleItem(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier

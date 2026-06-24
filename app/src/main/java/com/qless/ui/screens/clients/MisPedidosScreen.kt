@@ -1,4 +1,4 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke

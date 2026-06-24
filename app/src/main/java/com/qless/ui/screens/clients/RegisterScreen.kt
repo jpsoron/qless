@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,12 +17,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.viewmodel.AuthNavEvent
 import com.qless.ui.viewmodel.AuthViewModel
-import com.qless.ui.theme.*
 
 @Composable
 fun RegisterScreen(
@@ -148,7 +149,7 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Text("G", fontWeight = FontWeight.SemiBold, color = Color(0xFF4285F4), fontSize = 18.sp)
             Spacer(Modifier.width(10.dp))
@@ -171,7 +172,7 @@ fun RegisterScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.fillMaxWidth(),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
 
         Spacer(Modifier.height(24.dp))
@@ -196,7 +197,7 @@ private fun QLessTextField(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
             focusedBorderColor = MaterialTheme.colorScheme.primary,

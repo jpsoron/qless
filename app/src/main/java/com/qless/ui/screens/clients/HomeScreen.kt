@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import android.Manifest
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -31,6 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.*
 import android.annotation.SuppressLint
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import com.qless.R
 import com.qless.domain.model.Local
 import com.qless.domain.model.Order
@@ -76,7 +80,7 @@ fun HomeScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
 
     val locationPermissionState = rememberPermissionState(
-        android.Manifest.permission.ACCESS_FINE_LOCATION
+        Manifest.permission.ACCESS_FINE_LOCATION
     )
 
     // Con permiso, obtiene la ubicación y calcula el local más cercano.
@@ -217,7 +221,7 @@ fun HomeScreen(
                     Surface(
                         shape = RoundedCornerShape(999.dp),
                         color = AlbahacaClaro,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Albahaca.copy(alpha = 0.35f))
+                        border = BorderStroke(1.dp, Albahaca.copy(alpha = 0.35f))
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -244,7 +248,7 @@ fun HomeScreen(
                         .clickable { onNavigateToMisLocales() },
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -274,7 +278,7 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         color = Color(0xFFE8F5EE),
-                        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFB8DEC8))
+                        border = BorderStroke(1.5.dp, Color(0xFFB8DEC8))
                     ) {
                         Row(
                             modifier = Modifier.padding(14.dp),
@@ -390,7 +394,7 @@ fun HomeScreen(
                             .clickable { onNavigateToTracking() },
                         shape = RoundedCornerShape(16.dp),
                         color = bannerConfig.bg,
-                        border = androidx.compose.foundation.BorderStroke(1.5.dp, bannerConfig.border)
+                        border = BorderStroke(1.5.dp, bannerConfig.border)
                     ) {
                         Row(
                             modifier = Modifier.padding(14.dp),
@@ -510,7 +514,7 @@ private fun RestaurantCard(local: Local, onClick: () -> Unit) {
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -614,16 +618,16 @@ private fun FavoritoSkeletonCard() {
         animationSpec = infiniteRepeatable(animation = tween(1200, easing = LinearEasing), repeatMode = RepeatMode.Restart),
         label = "shimmerTranslate"
     )
-    val brush = androidx.compose.ui.graphics.Brush.linearGradient(
+    val brush = Brush.linearGradient(
         colors = shimmerColors,
-        start = androidx.compose.ui.geometry.Offset(translateAnim - 400f, 0f),
-        end = androidx.compose.ui.geometry.Offset(translateAnim, 0f)
+        start = Offset(translateAnim - 400f, 0f),
+        end = Offset(translateAnim, 0f)
     )
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)).background(brush))

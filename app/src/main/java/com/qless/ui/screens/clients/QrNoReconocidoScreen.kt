@@ -1,8 +1,8 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -147,7 +147,7 @@ fun QrNoReconocidoScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
         ) {
             Text("Ingresar código manualmente", fontWeight = FontWeight.Medium)
@@ -163,7 +163,7 @@ private fun TipCard(icon: String, text: String) {
         modifier = Modifier.fillMaxWidth(),
         color = Color.White.copy(alpha = 0.05f),
         shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

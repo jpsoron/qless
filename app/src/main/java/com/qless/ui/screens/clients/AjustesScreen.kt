@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -284,7 +285,7 @@ fun AjustesScreen(
                     .clickable { onLogout() },
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant, // Mismo color de fondo que las otras secciones
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),
@@ -317,7 +318,7 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
         Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), letterSpacing = 1.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp, bottom = 12.dp))
         Surface(
             modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceVariant,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(modifier = Modifier.padding(vertical = 8.dp)) { content() }
         }

@@ -39,6 +39,8 @@ data class OrdersUiState(
     val userFilter: OrderFilter = OrderFilter.ACTIVE,
     val localFilter: BackOfficeFilter = BackOfficeFilter.RECEIVED,
     val error: String? = null,
+    val localNombre: String = "",
+    val localEmoji: String = "",
 )
 
 sealed interface OrderNavEvent {
@@ -124,7 +126,16 @@ class OrderViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingLocal = true, error = null) }
             getActiveLocalOrders()
-                .onSuccess { orders -> _uiState.update { it.copy(localOrders = orders, isLoadingLocal = false) } }
+                .onSuccess { orders ->
+                    _uiState.update { state ->
+                        state.copy(
+                            localOrders = orders,
+                            isLoadingLocal = false,
+                            localNombre = orders.firstOrNull()?.localNombre?.takeIf { it.isNotEmpty() } ?: state.localNombre,
+                            localEmoji = orders.firstOrNull()?.localEmoji?.takeIf { it.isNotEmpty() } ?: state.localEmoji,
+                        )
+                    }
+                }
                 .onFailure { err -> _uiState.update { it.copy(isLoadingLocal = false, error = err.message) } }
         }
     }
@@ -231,9 +242,27 @@ class OrderViewModel(
     suspend fun observeLocalOrders() {
         observeLocalOrderChanges().collect {
             getActiveLocalOrders()
-                .onSuccess { orders -> _uiState.update { it.copy(localOrders = orders, isLoadingLocal = false) } }
+                .onSuccess { orders ->
+                    _uiState.update { state ->
+                        state.copy(
+                            localOrders = orders,
+                            isLoadingLocal = false,
+                            localNombre = orders.firstOrNull()?.localNombre?.takeIf { it.isNotEmpty() } ?: state.localNombre,
+                            localEmoji = orders.firstOrNull()?.localEmoji?.takeIf { it.isNotEmpty() } ?: state.localEmoji,
+                        )
+                    }
+                }
             getCompletedLocalOrders()
-                .onSuccess { orders -> _uiState.update { it.copy(historyOrders = orders, isLoadingHistory = false) } }
+                .onSuccess { orders ->
+                    _uiState.update { state ->
+                        state.copy(
+                            historyOrders = orders,
+                            isLoadingHistory = false,
+                            localNombre = state.localNombre.takeIf { it.isNotEmpty() } ?: orders.firstOrNull()?.localNombre.orEmpty(),
+                            localEmoji = state.localEmoji.takeIf { it.isNotEmpty() } ?: orders.firstOrNull()?.localEmoji.orEmpty(),
+                        )
+                    }
+                }
         }
     }
 

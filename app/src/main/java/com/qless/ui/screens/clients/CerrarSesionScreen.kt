@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -17,13 +18,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.components.QLessBottomNav
-import com.qless.ui.theme.*
 
 @Composable
 fun CerrarSesionScreen(
@@ -106,7 +104,7 @@ fun CerrarSesionScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 color = Color.White,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -147,7 +145,7 @@ fun CerrarSesionScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -204,7 +202,7 @@ fun CerrarSesionScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Cancelar", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)

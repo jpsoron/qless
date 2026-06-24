@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -152,7 +153,7 @@ fun GoogleLoginScreen(
                 .height(58.dp),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Surface(
                 modifier = Modifier.size(24.dp),
