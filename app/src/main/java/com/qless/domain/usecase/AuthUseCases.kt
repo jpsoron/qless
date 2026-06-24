@@ -37,3 +37,8 @@ class DeleteAccountUseCase(private val repository: UserRepository) {
 class ConsumeFirstOrderDiscountUseCase(private val repository: UserRepository) {
     suspend operator fun invoke(): Result<Unit> = repository.consumeFirstOrderDiscount()
 }
+
+class UpdateProfileUseCase(private val repository: UserRepository) {
+    suspend operator fun invoke(name: String, email: String): Result<Unit> =
+        repository.updateProfile(name, email)
+}

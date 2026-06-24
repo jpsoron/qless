@@ -30,7 +30,6 @@ import com.qless.domain.usecase.ClearCartUseCase
 import com.qless.domain.usecase.ClearSessionUseCase
 import com.qless.domain.usecase.ConsumeFirstOrderDiscountUseCase
 import com.qless.domain.usecase.DeleteAccountUseCase
-import com.qless.domain.usecase.EnsureDefaultPaymentMethodsUseCase
 import com.qless.domain.usecase.GetActiveLocalOrdersUseCase
 import com.qless.domain.usecase.GetCompletedLocalOrdersUseCase
 import com.qless.domain.usecase.GetCurrentLocationUseCase
@@ -61,6 +60,7 @@ import com.qless.domain.usecase.RestoreSessionUseCase
 import com.qless.domain.usecase.SetDarkModeUseCase
 import com.qless.domain.usecase.SetOnboardingCompletedUseCase
 import com.qless.domain.usecase.ToggleFavoritoUseCase
+import com.qless.domain.usecase.UpdateProfileUseCase
 import com.qless.domain.usecase.UpdateCartItemQuantityUseCase
 import com.qless.domain.usecase.UpdateOrderStatusUseCase
 
@@ -135,7 +135,6 @@ object AppModule {
 
     // --- Medios de pago ---
     val observePaymentMethods by lazy { ObservePaymentMethodsUseCase(paymentRepository) }
-    val ensureDefaultPaymentMethods by lazy { EnsureDefaultPaymentMethodsUseCase(paymentRepository) }
     val addPaymentMethod by lazy { AddPaymentMethodUseCase(paymentRepository) }
     val removePaymentMethod by lazy { RemovePaymentMethodUseCase(paymentRepository) }
 
@@ -148,6 +147,7 @@ object AppModule {
     val toggleFavorito by lazy { ToggleFavoritoUseCase(userRepository) }
     val deleteAccount by lazy { DeleteAccountUseCase(userRepository) }
     val consumeFirstOrderDiscount by lazy { ConsumeFirstOrderDiscountUseCase(userRepository) }
+    val updateProfile by lazy { UpdateProfileUseCase(userRepository) }
 
     // --- Tema / onboarding ---
     val observeDarkMode by lazy { ObserveDarkModeUseCase(themeRepository) }

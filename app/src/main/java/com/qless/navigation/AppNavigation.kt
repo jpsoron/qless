@@ -527,6 +527,7 @@ fun AppNavigation(
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             val authState by authViewModel.uiState.collectAsStateWithLifecycle()
             AjustesScreen(
+                authViewModel = authViewModel,
                 userName = authState.currentUserName,
                 userEmail = authState.currentUserEmail,
                 isDarkTheme = isDarkTheme,

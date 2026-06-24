@@ -13,4 +13,6 @@ data class Perfil(
     // true mientras el usuario no haya usado el 10% de bienvenida. Pasa a false
     // tras su primer pedido. Default true por compatibilidad con perfiles viejos.
     @SerialName("descuento_1ra") val descuento1ra: Boolean = true,
+    // Baja lógica: false = cuenta eliminada/inactiva. No se puede iniciar sesión.
+    val activo: Boolean = true,
 )

@@ -278,7 +278,7 @@ La aplicación implementa MVVM con patrón Repository sobre tres capas.
 
 **DTOs:**
 
-- `Perfil`: `id`, `nombre`, `email`, `rol`, `favoritos: List<String>`, `descuento1ra: Boolean` (`@SerialName("descuento_1ra")`) — mapea la tabla `perfiles` incluyendo el array de UUIDs favoritos y la elegibilidad al descuento de bienvenida.
+- `Perfil`: `id`, `nombre`, `email`, `rol`, `favoritos: List<String>`, `descuento1ra: Boolean` (`@SerialName("descuento_1ra")`), `activo: Boolean` — mapea la tabla `perfiles` incluyendo favoritos, elegibilidad al descuento de bienvenida y el flag de baja lógica. `ProfileRemoteDataSource` también expone `updateProfile(nombre, email)` (valida email único contra otros perfiles → `EmailAlreadyInUseException`; solo cambia la tabla `perfiles`, no el email de auth/login) y `deactivateAccount()` (baja lógica `activo = false`).
 - `LocalDto`: mapea la tabla `locales`. `toDomain()` convierte al modelo `Local`.
 - `MenuItemDto`: mapea la tabla `menu_items`. Campos: `id`, `local_id`, `emoji`, `nombre`, `descripcion`, `precio`, `categoria`, `es_popular`, `disponible`, `orden`. `toDomain()` convierte al modelo `MenuItem`.
 
@@ -288,7 +288,7 @@ Guarda el JSON de la sesión de Supabase en un DataStore propio (`qless_session`
 
 **Supabase (Postgres):**
 
-- Tabla `perfiles`: `id` (uuid FK → `auth.users`), `nombre`, `email`, `rol` (`USER` | `BACK_OFFICE`), `favoritos` (`uuid[]`, default `{}`), `descuento_1ra` (`boolean`, NOT NULL, default `true`). RLS habilitado: SELECT con `using(true)`, UPDATE con `auth.uid() = id`. Trigger `on_auth_user_created` inserta automáticamente al registrarse (con `descuento_1ra = true` por el default). El descuento de bienvenida (10%) se aplica una sola vez: el carrito/pago lo descuentan solo si `descuento_1ra = true`, el total persistido del pedido ya viene rebajado, y al confirmar el primer pedido se setea `descuento_1ra = false` (`ProfileRemoteDataSource.consumeFirstOrderDiscount`), por lo que nunca se vuelve a aplicar.
+- Tabla `perfiles`: `id` (uuid FK → `auth.users`), `nombre`, `email`, `rol` (`USER` | `BACK_OFFICE`), `favoritos` (`uuid[]`, default `{}`), `descuento_1ra` (`boolean`, NOT NULL, default `true`), `activo` (`boolean`, NOT NULL, default `true` — baja lógica). RLS habilitado: SELECT con `using(true)`, UPDATE con `auth.uid() = id`. Trigger `on_auth_user_created` inserta automáticamente al registrarse (con `descuento_1ra = true` y `activo = true` por el default). **Baja lógica de cuenta:** "Eliminar cuenta" setea `activo = false` (`deactivateAccount`) y cierra sesión; login y restore rechazan perfiles con `activo = false` (`AccountInactiveException`). **Edición de perfil:** nombre/email se persisten vía `updateProfile` con validación de email único. El descuento de bienvenida (10%) se aplica una sola vez: el carrito/pago lo descuentan solo si `descuento_1ra = true`, el total persistido del pedido ya viene rebajado, y al confirmar el primer pedido se setea `descuento_1ra = false` (`ProfileRemoteDataSource.consumeFirstOrderDiscount`), por lo que nunca se vuelve a aplicar.
 - Tabla `locales`: `id` (uuid PK), `nombre`, `emoji`, `categoria`, `barrio`, `direccion`, `rating`, `tiempo_entrega`, `abierto`, `tiene_promo`, `destacado`. RLS con `using(true)`.
 - Tabla `menu_items`: `id` (uuid PK), `local_id` (uuid FK → `locales(id)` ON DELETE CASCADE), `nombre`, `descripcion`, `emoji`, `precio` (integer), `categoria`, `es_popular` (boolean), `disponible` (boolean), `orden` (integer). RLS con `using(true)`. Cada local tiene su propia carta; los ítems se filtran por `local_id`.
 
@@ -429,7 +429,7 @@ Las pantallas colectan eventos en un `LaunchedEffect(Unit)`.
 | `HomeViewModel` | `HomeUiState` | Carga los locales favoritos del usuario por ID desde Supabase. `loadFavoritos(ids)` es llamado desde AppNavigation con `LaunchedEffect`. |
 | `MisLocalesViewModel` | `MisLocalesUiState` | Carga la lista completa de locales desde Supabase en `init {}`. |
 | `CartViewModel` | `CartUiState` | Colecciona el Flow del repositorio de carrito. Expone `cartLocalId: String` (id del local del carrito activo). `addItem` incluye `localId` para asociar cada ítem a su local. |
-| `PaymentMethodViewModel` | `PaymentMethodUiState` | Siembra métodos por defecto si la tabla está vacía. |
+| `PaymentMethodViewModel` | `PaymentMethodUiState` | Observa los métodos guardados. MVP cash-only: **no** siembra métodos por defecto; la lista arranca vacía. |
 | `MenuViewModel` | `MenuUiState` | Carga el menú real del local desde Supabase con `loadMenu(localId)`. Deriva categorías y `selectedCategory` inicial de los ítems recibidos. Scoped por backstack entry. |
 | `ThemeViewModel` | — | Dark mode + onboarding completado (DataStore). |
 

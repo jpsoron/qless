@@ -24,10 +24,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.QLessTheme
+import com.qless.ui.viewmodel.AuthNavEvent
+import com.qless.ui.viewmodel.AuthViewModel
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun AjustesScreen(
+    authViewModel: AuthViewModel,
     userName: String,
     userEmail: String,
     isDarkTheme: Boolean,
@@ -42,14 +45,22 @@ fun AjustesScreen(
     onLogout: () -> Unit,
 ) {
     val initial = userName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+    val authState by authViewModel.uiState.collectAsState()
     var gpsEnabled by remember { mutableStateOf(true) }
     var showProfileSheet by remember { mutableStateOf(false) }
     var profileName by remember(userName) { mutableStateOf(userName.ifBlank { "Usuario" }) }
     var profileEmail by remember(userEmail) { mutableStateOf(userEmail) }
 
+    // Cierra el bottom sheet cuando el perfil se guardó OK.
+    LaunchedEffect(Unit) {
+        authViewModel.navEvent.collect { event ->
+            if (event is AuthNavEvent.ProfileUpdated) showProfileSheet = false
+        }
+    }
+
     if (showProfileSheet) {
         ModalBottomSheet(
-            onDismissRequest = { showProfileSheet = false },
+            onDismissRequest = { showProfileSheet = false; authViewModel.clearProfileError() },
             containerColor = MaterialTheme.colorScheme.background
         ) {
             Column(
@@ -99,16 +110,29 @@ fun AjustesScreen(
                         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     )
                 )
+                if (authState.profileError != null) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        authState.profileError!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
                 Spacer(Modifier.height(18.dp))
                 Button(
-                    onClick = { showProfileSheet = false },
+                    onClick = { authViewModel.updateProfile(profileName, profileEmail) },
+                    enabled = !authState.isSavingProfile,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
                     shape = RoundedCornerShape(999.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Guardar cambios", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    if (authState.isSavingProfile) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text("Guardar cambios", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
                 }
                 Spacer(Modifier.height(12.dp))
             }
@@ -203,14 +227,9 @@ fun AjustesScreen(
                 SettingsItem(
                     icon = "💳",
                     title = "Métodos de pago",
-                    description = "Tarjetas y billeteras",
+                    description = "Pago en efectivo en el local",
                     onClick = onNavigateToMetodosDePago
-                ) {
-                    Text(
-                        "VISA •••• 4242", color = Color(0xFF4285F4), fontWeight = FontWeight.SemiBold, fontSize = 11.sp,
-                        modifier = Modifier.background(Color(0xFF4285F4).copy(alpha = 0.1f), RoundedCornerShape(99.dp)).padding(horizontal = 10.dp, vertical = 4.dp)
-                    )
-                }
+                )
                 SettingsItem(
                     icon = "🗑️",
                     title = "Eliminar cuenta",
@@ -356,9 +375,11 @@ private fun SettingsToggleItem(
 
 @Preview(showBackground = true)
 @Composable
+@Suppress("ViewModelConstructorInComposable") // Solo preview; VM construido a mano a propósito.
 private fun AjustesPreview() {
     QLessTheme {
         AjustesScreen(
+            authViewModel = AuthViewModel(),
             userName = "María González",
             userEmail = "maria@email.com",
             isDarkTheme = false,
