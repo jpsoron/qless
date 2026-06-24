@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -20,11 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.components.QLessBottomNav
-import com.qless.ui.theme.*
 
 @Composable
 fun MetodosDePagoScreen(
@@ -99,7 +100,7 @@ fun MetodosDePagoScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("💵", fontSize = 20.sp)
@@ -164,7 +165,7 @@ fun MetodosDePagoScreen(
                             "Todavía no agregaste métodos de pago",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 15.sp,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -239,7 +240,7 @@ fun PaymentMethodCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -289,7 +290,7 @@ fun PaymentMethodCard(
                     Surface(
                         shape = RoundedCornerShape(99.dp),
                         color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
                     ) {
                         Text(
                             text = tag,

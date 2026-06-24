@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,12 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.viewmodel.PaymentMethodViewModel
 import com.qless.ui.components.QLessBottomNav
-import com.qless.ui.theme.*
 
 @Composable
 fun AgregarMetodoDePagoScreen(
@@ -34,10 +34,10 @@ fun AgregarMetodoDePagoScreen(
     onNavigateToMisPedidos: () -> Unit,
     onNavigateToAjustes: () -> Unit
 ) {
-    var nombre by remember { mutableStateOf("María González") }
-    var numero by remember { mutableStateOf("4242 4242 4242 4242") }
-    var vencimiento by remember { mutableStateOf("08/29") }
-    var cvc by remember { mutableStateOf("123") }
+    var nombre by remember { mutableStateOf("") }
+    var numero by remember { mutableStateOf("") }
+    var vencimiento by remember { mutableStateOf("") }
+    var cvc by remember { mutableStateOf("") }
     var esPrincipal by remember { mutableStateOf(true) }
     var selectedTab by remember { mutableStateOf(0) } // 0: Tarjeta, 1: Billetera
 
@@ -139,7 +139,7 @@ fun AgregarMetodoDePagoScreen(
                     .clickable { esPrincipal = !esPrincipal },
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -185,7 +185,7 @@ fun AgregarMetodoDePagoScreen(
             OutlinedButton(
                 onClick = onBack,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
             ) {
@@ -225,12 +225,12 @@ fun TabButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
             .clickable { onClick() },
         shape = RoundedCornerShape(99.dp),
         color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-        border = if (!isSelected) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer) else null
+        border = if (!isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer) else null
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(vertical = 8.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            textAlign = TextAlign.Center,
             color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium,
             fontSize = 14.sp

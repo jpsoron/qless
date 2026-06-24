@@ -58,76 +58,201 @@ Hardware y funciones nativas accedidas por los casos de uso:
 
 ## Diagrama (Mermaid)
 
+> Vista de alto nivel (slide). El flujo principal es horizontal: la UI invoca
+> casos de uso de dominio, que se resuelven en datos locales/remotos. `AppModule`
+> cablea todo (composition root manual).
+
 ```mermaid
 flowchart LR
-    User["Usuario\nCliente / Local"]
+    User(["👤 Cliente / BackOffice"])
 
-    subgraph Android["Dispositivo Android"]
-        
-        subgraph App["QLess Mobile App\nKotlin + Jetpack Compose"]
-            
-            subgraph Presentation["Presentation Layer"]
-                UI["Pantallas Compose"]
-                VM["ViewModels"]
-                Nav["Navigation Compose"]
-            end
-            
-            subgraph Domain["Domain Layer"]
-                UC["Casos de uso"]
-                Contracts["Contratos de repositorio"]
-                Models["Modelos de dominio"]
-            end
-            
-            subgraph Data["Data Layer"]
-                Repo["Repositorios"]
-                SSO["Google SSO"]
-                LocalDS["Local Data Source"]
-                RemoteDS["Remote Data Source"]
-            end
-            
-            subgraph DeviceServices["Servicios del dispositivo"]
-                GPS["GPS\nUbicación"]
-                Cam["Cámara\nEscaneo QR"]
-                Sound["Sonido\nAvisos"]
-                Vib["Vibración\nAlertas"]
-            end
-            
-        end
-        Room[("Room Database\nPersistencia local")]
+    subgraph PRES["PRESENTATION · ui + navigation"]
+        UI["Pantallas Compose"]
+        VM["ViewModels<br/>StateFlow / eventos"]
+        NAV["AppNavigation"]
     end
 
-    subgraph BackendSys["Backend"]
-        API["API REST\n(Supabase PostgREST)"]
-        Realtime["Supabase Realtime\n(WebSocket)"]
-        DB[("PostgreSQL\n(Supabase)")]
+    subgraph DOM["DOMAIN · Kotlin puro"]
+        UC["Casos de uso"]
+        CON["Contratos<br/>(repos + device)"]
+        MOD["Modelos"]
     end
 
-    %% Relaciones Usuario y Presentación
-    User -- "interactúa con la app" --> UI
-    UI -- "eventos de UI" --> VM
-    UI -- "navega" --> Nav
-    UI -- "inicio de sesión" --> SSO
-    VM -- "ejecuta acciones" --> UC
+    subgraph DAT["DATA"]
+        REPO["Repositorios<br/>network-first + caché"]
+        ROOM[("QLessDatabase<br/>Room")]
+        STORE[("DataStore")]
+        SUPA["SupabaseClient<br/>Auth · Postgrest · Realtime"]
+        DEV["Providers de dispositivo<br/>GPS · QR · Notificaciones"]
+    end
 
-    %% Relaciones Dominio
-    UC -- "solicita datos" --> Contracts
-    UC -- "aplica reglas del dominio" --> Models
-    Repo -.-> Contracts
+    subgraph EXT["BACKEND / SO"]
+        SB[("Supabase<br/>PostgreSQL + RLS")]
+        OS["Sensores Android<br/>+ NotificationManager"]
+    end
 
-    %% Relaciones Datos
-    Repo -- "datos locales" --> LocalDS
-    Repo -- "datos remotos" --> RemoteDS
-    LocalDS -- "lectura / escritura" --> Room
-    RemoteDS -- "HTTP / JSON" --> API
-    RemoteDS -- "WebSocket / Postgres Changes" --> Realtime
-    SSO -- "autenticación" --> API
+    DI["AppModule · composition root"]
 
-    %% Relaciones Servicios Dispositivo
-    UC -- "detectar local cercano" --> GPS
-    UC -- "escanear QR" --> Cam
-    UC -- "avisar pedido listo" --> Sound
-    UC -- "alertar estado" --> Vib
+    User --> UI
+    UI <--> VM
+    UI --> NAV
+    VM --> UC
+    UC --> CON
+    UC -.-> MOD
+    REPO -. implementa .-> CON
+    DEV -. implementa .-> CON
+    REPO --> ROOM & STORE & SUPA
+    DEV --> OS
+    SUPA --> SB
+    DI -. cablea .-> VM & REPO & UC
 
-    %% Relaciones Backend
-    API -- "lectura / escritura" --> DB
-    Realtime -- "escucha cambios" --> DB
+    classDef pres fill:#FFEDE0,stroke:#C44B1B,stroke-width:2px,color:#2C1A0E
+    classDef dom fill:#FFF3D6,stroke:#D4870E,stroke-width:2px,color:#2C1A0E
+    classDef dat fill:#D6ECFA,stroke:#1D6FA8,stroke-width:2px,color:#2C1A0E
+    classDef ext fill:#FFF8EE,stroke:#7A5C3E,stroke-width:2px,color:#2C1A0E
+    classDef di fill:#C44B1B,stroke:#2C1A0E,stroke-width:2px,color:#FFFBF5
+    classDef actor fill:#1A7A4A,stroke:#2C1A0E,stroke-width:2px,color:#FFFBF5
+
+    class UI,VM,NAV pres
+    class UC,CON,MOD dom
+    class REPO,ROOM,STORE,SUPA,DEV dat
+    class SB,OS ext
+    class DI di
+    class User actor
+
+    style PRES fill:#FFFBF5,stroke:#C44B1B,stroke-width:1px,color:#C44B1B
+    style DOM fill:#FFFBF5,stroke:#D4870E,stroke-width:1px,color:#D4870E
+    style DAT fill:#FFFBF5,stroke:#1D6FA8,stroke-width:1px,color:#1D6FA8
+    style EXT fill:#FFFBF5,stroke:#7A5C3E,stroke-width:1px,color:#7A5C3E
+```
+
+---
+
+## Estructura y responsabilidad de capas
+
+Este diagrama no muestra el flujo de datos sino **qué carpeta hace qué, de qué
+depende y de qué tiene prohibido depender**. La regla de oro es la flecha de
+dependencia: siempre apunta hacia `domain/`, que no depende de nadie.
+
+```mermaid
+flowchart TB
+    classDef pres fill:#FFEDE0,stroke:#C44B1B,stroke-width:2px,color:#2C1A0E
+    classDef dom fill:#FFF3D6,stroke:#D4870E,stroke-width:2px,color:#2C1A0E
+    classDef dat fill:#D6ECFA,stroke:#1D6FA8,stroke-width:2px,color:#2C1A0E
+    classDef root fill:#C44B1B,stroke:#2C1A0E,stroke-width:2px,color:#FFFBF5
+
+    subgraph P["⬛ PRESENTATION · ui/ + navigation/"]
+        direction LR
+        P1["RESPONSABILIDAD\nRenderizar estado y capturar eventos.\nCero lógica de negocio, cero acceso a datos."]
+        P2["ui/screens · Composables\nui/components · reutilizables\nui/theme · Material 3 / tokens"]
+        P3["ui/viewmodel · expone StateFlow<UiState>\norquesta use cases, mapea a UI, eventos one-shot"]
+        P4["navigation/AppNavigation\nrutas, scope de VMs, gates de carrito/pedido"]
+    end
+
+    subgraph D["⬛ DOMAIN · domain/ — Kotlin PURO"]
+        direction LR
+        D1["RESPONSABILIDAD\nReglas de negocio. No conoce Android, Room,\nSupabase ni Compose. Es el centro estable."]
+        D2["model/ · entidades de negocio + CachedResult<T>"]
+        D3["repository/ · CONTRATOS (interfaces)\nlocation/ notification/ session/ · contratos device"]
+        D4["usecase/ · una acción de negocio c/u\n(PlaceOrder valida carrito, RankLocalsByDistance…)"]
+    end
+
+    subgraph DA["⬛ DATA · data/"]
+        direction LR
+        DA1["RESPONSABILIDAD\nIMPLEMENTAR los contratos de domain.\nDecidir red vs caché, mapear DTO/Entity ↔ modelo."]
+        DA2["repository/ · …Impl (network-first + fallback)\nremote/ · DataSources + dto + SupabaseClient\nlocal/ · Room (DAO+Entity) · DataStore\nproviders · Fused / SystemNotifier / Session"]
+    end
+
+    R["⬛ di/AppModule · COMPOSITION ROOT (object manual)\nÚnico lugar que conoce las 3 capas: cablea impl → contrato → use case"]
+
+    P -->|"depende de ▶"| D
+    DA -->|"implementa ▶"| D
+    R -.->|"construye y entrega"| P
+    R -.->|"construye"| DA
+
+    class P,P1,P2,P3,P4 pres
+    class D,D1,D2,D3,D4 dom
+    class DA,DA1,DA2 dat
+    class R root
+
+    NOTE["REGLA DE DEPENDENCIA: las flechas sólidas apuntan a DOMAIN.\ndomain/ NO importa Android/Room/Supabase/Compose.\nUI nunca toca data/ directo; siempre vía use case → contrato."]
+    class NOTE ext
+
+    classDef ext fill:#FFF8EE,stroke:#7A5C3E,stroke-width:2px,color:#2C1A0E
+
+    style P fill:#FFFBF5,stroke:#C44B1B,stroke-width:1px,color:#C44B1B
+    style D fill:#FFFBF5,stroke:#D4870E,stroke-width:1px,color:#D4870E
+    style DA fill:#FFFBF5,stroke:#1D6FA8,stroke-width:1px,color:#1D6FA8
+```
+
+**Una frase por capa:**
+
+- **`presentation`** depende de `domain` y de nada más hacia abajo; el ViewModel
+  es el único que orquesta use cases y traduce a `UiState`. Que la UI no importe
+  `data/` es lo que mantiene la regla.
+- **`domain`** es el núcleo puro: define *qué* se hace (use cases) y *qué
+  contrato* necesita (interfaces de repo/device), sin saber *cómo*.
+- **`data`** es la única que sabe *cómo* (Supabase, Room, DataStore, Play
+  Services) e **implementa** los contratos; la flecha invertida (data→domain) es
+  la inversión de dependencias.
+- **`di/AppModule`** es el único punto que ve las tres capas y las cose; por eso
+  vive aparte y no "pertenece" a ninguna.
+
+> Desviación honesta: hoy la flecha `AppModule → presentation` es *pull* (los VMs
+> piden a `AppModule`), no *push* por constructor. Es el punto service-locator
+> pendiente de migrar a Hilt (ver `.claude/pendientes.md` C3).
+
+---
+
+## Mapa de persistencia
+
+Qué dato vive en cada mecanismo de almacenamiento.
+
+```mermaid
+flowchart TB
+    subgraph SUPA["☁️ Supabase · PostgreSQL (remoto, fuente de verdad)"]
+        direction LR
+        S1["perfiles<br/>nombre · email · rol · favoritos<br/>descuento_1ra · activo"]
+        S2["locales · menu_items"]
+        S3["orders · order_items"]
+    end
+
+    subgraph AUTH["🔑 Supabase Auth (remoto)"]
+        A1["credenciales email/password<br/>sesión + tokens (access / refresh)"]
+    end
+
+    subgraph ROOM["💾 Room · QLessDatabase (local)"]
+        direction LR
+        R1["carrito<br/>(cart_items, localId por ítem)"]
+        R2["métodos de pago"]
+        R3["caché offline<br/>locales · menu_items"]
+        R4["notificaciones<br/>(por userId)"]
+        R5["user (caché perfil, sin uso)"]
+    end
+
+    subgraph DS["⚙️ DataStore Preferences (local)"]
+        direction LR
+        D1["qless_session<br/>JSON de sesión persistida"]
+        D2["qless_settings<br/>tema oscuro · onboarding"]
+        D3["preferencias de notificaciones<br/>estado · listo · sonido/vibración"]
+    end
+
+    classDef supa fill:#D6ECFA,stroke:#1D6FA8,stroke-width:2px,color:#2C1A0E
+    classDef auth fill:#FFEDE0,stroke:#C44B1B,stroke-width:2px,color:#2C1A0E
+    classDef room fill:#D6F5E3,stroke:#1A7A4A,stroke-width:2px,color:#2C1A0E
+    classDef ds fill:#FFF3D6,stroke:#D4870E,stroke-width:2px,color:#2C1A0E
+
+    class S1,S2,S3 supa
+    class A1 auth
+    class R1,R2,R3,R4,R5 room
+    class D1,D2,D3 ds
+
+    style SUPA fill:#FFFBF5,stroke:#1D6FA8,stroke-width:1px,color:#1D6FA8
+    style AUTH fill:#FFFBF5,stroke:#C44B1B,stroke-width:1px,color:#C44B1B
+    style ROOM fill:#FFFBF5,stroke:#1A7A4A,stroke-width:1px,color:#1A7A4A
+    style DS fill:#FFFBF5,stroke:#D4870E,stroke-width:1px,color:#D4870E
+```
+
+> Room cachea `locales`/`menu_items` para el modo offline (RF4); Supabase sigue
+> siendo la fuente de verdad. Los pedidos **no** se cachean en Room: se leen en
+> vivo por Realtime y solo viven en Supabase.

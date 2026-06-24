@@ -1,6 +1,7 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -95,7 +96,7 @@ fun OrderConfirmedScreen(
                 .padding(horizontal = 24.dp),
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surfaceVariant,
-            border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Pedido #$orderCode", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
@@ -129,7 +130,7 @@ fun OrderConfirmedScreen(
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(999.dp),
                 colors = ButtonDefaults.outlinedButtonColors(containerColor = if (isDarkTheme) Pimentón else MaterialTheme.colorScheme.primaryContainer),
-                border = androidx.compose.foundation.BorderStroke(0.dp, Color.Transparent)
+                border = BorderStroke(0.dp, Color.Transparent)
             ) {
                 Text("Volver al inicio", fontWeight = FontWeight.SemiBold, color = if (isDarkTheme) Color.White else MaterialTheme.colorScheme.primary, fontSize = 16.sp)
             }

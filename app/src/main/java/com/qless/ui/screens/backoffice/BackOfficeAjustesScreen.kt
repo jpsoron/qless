@@ -23,6 +23,7 @@ import com.qless.ui.theme.*
 fun BackOfficeAjustesScreen(
     userName: String,
     userEmail: String,
+    localNombre: String,
     onLogout: () -> Unit,
     onBack: () -> Unit,
     onNavigateToOrders: () -> Unit = {},
@@ -128,7 +129,7 @@ fun BackOfficeAjustesScreen(
                             color = Color.White.copy(alpha = 0.1f)
                         ) {
                             Text(
-                                "BackOffice · Big Pons",
+                                "BackOffice · ${localNombre.ifBlank { "Local" }}",
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                 color = Color.White,
                                 fontSize = 11.sp

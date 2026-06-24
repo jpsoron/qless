@@ -103,12 +103,13 @@ fun BackOfficeScreen(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.15f)),
+                        .background(Color.White.copy(alpha = 0.15f))
+                        .clickable { onNavigateToAjustes() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.Default.Settings,
-                        contentDescription = null,
+                        contentDescription = "Ajustes",
                         tint = Color.White,
                         modifier = Modifier.size(22.dp)
                     )
@@ -116,6 +117,18 @@ fun BackOfficeScreen(
             }
 
             Column(modifier = Modifier.padding(20.dp)) {
+                if (state.localNombre.isNotEmpty()) {
+                    Text(
+                        buildString {
+                            append(state.localNombre)
+                            if (state.localEmoji.isNotEmpty()) append("  ${state.localEmoji} ")
+                        },
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
                 Text(
                     "Pedidos en curso",
                     style = MaterialTheme.typography.headlineSmall,

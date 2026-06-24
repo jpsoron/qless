@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
 import android.Manifest
 import android.util.Log

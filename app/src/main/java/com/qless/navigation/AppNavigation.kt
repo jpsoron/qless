@@ -43,11 +43,36 @@ import com.qless.ui.viewmodel.ThemeViewModel
 import com.qless.domain.model.Local
 import com.qless.domain.usecase.NEARBY_THRESHOLD_METERS
 import com.qless.ui.components.ActiveCartUi
-import com.qless.ui.screens.*
 import com.qless.ui.screens.backoffice.BackOfficeAjustesScreen
 import com.qless.ui.screens.backoffice.BackOfficeHistoryScreen
 import com.qless.ui.screens.backoffice.BackOfficeScreen
 import com.qless.ui.screens.backoffice.BackOfficeUpdateOrderScreen
+import com.qless.ui.screens.clients.AgregarMetodoDePagoScreen
+import com.qless.ui.screens.clients.AjustesScreen
+import com.qless.ui.screens.clients.CartScreen
+import com.qless.ui.screens.clients.CerrarSesionScreen
+import com.qless.ui.screens.clients.EliminarCuentaScreen
+import com.qless.ui.screens.clients.GoogleLoginScreen
+import com.qless.ui.screens.clients.HomeScreen
+import com.qless.ui.screens.clients.LocationDetectedScreen
+import com.qless.ui.screens.clients.LoginScreen
+import com.qless.ui.screens.clients.MenuScreen
+import com.qless.ui.screens.clients.MetodosDePagoScreen
+import com.qless.ui.screens.clients.MisLocalesScreen
+import com.qless.ui.screens.clients.MisPedidosScreen
+import com.qless.ui.screens.clients.NotificacionesScreen
+import com.qless.ui.screens.clients.NotificationCenterScreen
+import com.qless.ui.screens.clients.OnboardingScreen
+import com.qless.ui.screens.clients.OrderConfirmedScreen
+import com.qless.ui.screens.clients.OrderReadyScreen
+import com.qless.ui.screens.clients.OrderSummaryScreen
+import com.qless.ui.screens.clients.PaymentScreen
+import com.qless.ui.screens.clients.PickupSuccessScreen
+import com.qless.ui.screens.clients.QrNoReconocidoScreen
+import com.qless.ui.screens.clients.RegisterScreen
+import com.qless.ui.screens.clients.ScanearQrScreen
+import com.qless.ui.screens.clients.SplashScreen
+import com.qless.ui.screens.clients.TrackingScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -331,9 +356,11 @@ fun AppNavigation(
 
         composable(Screen.BackOfficeAjustes.route) {
             val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+            val orderStateForAjustes by orderViewModel.uiState.collectAsStateWithLifecycle()
             BackOfficeAjustesScreen(
                 userName = authState.currentUserName,
                 userEmail = authState.currentUserEmail,
+                localNombre = orderStateForAjustes.localNombre,
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate(Screen.Login.route) {
@@ -400,15 +427,13 @@ fun AppNavigation(
             }
 
             // Si el local más cercano está a ≤50 m, mostrar "¿Estás en X?" una sola vez
-            // por sesión. Si hubo (o hay) un pedido en curso, lo damos por consumido para
-            // siempre: aunque el pedido se complete y el usuario vuelva al home, no vuelve
-            // a aparecer hasta reiniciar la app.
+            // por sesión. Con pedido activo o carrito activo solo bloqueamos esa iteración;
+            // cuando el pedido se completa (picked_up) la flag sigue en false y el prompt
+            // puede volver a aparecer si el usuario está cerca de un local.
             LaunchedEffect(homeState.closestLocal, orderState, activeCart) {
-                if (orderState.activeOrder() != null) {
-                    locationPromptShown = true
-                    return@LaunchedEffect
-                }
-                // Con un carrito activo no interrumpimos: el foco es retomar ese pedido.
+                // Pedido en curso: no interrumpir, pero sin marcar la flag permanente.
+                if (orderState.activeOrder() != null) return@LaunchedEffect
+                // Con un carrito activo el foco es retomar ese pedido.
                 if (activeCart != null) return@LaunchedEffect
                 val nearby = homeState.closestLocal?.takeIf { local ->
                     local.distanciaMetros?.let { it <= NEARBY_THRESHOLD_METERS } == true
@@ -613,11 +638,27 @@ fun AppNavigation(
         }
 
         composable(Screen.NotificationCenter.route) {
+            val orderStateForNotifs by orderViewModel.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) { orderViewModel.loadUserOrders() }
+
             NotificationCenterScreen(
                 notifications = notificationsState.items,
                 onBack = { navController.popBackStack() },
-                onNotificationClick = {
-                    navController.navigate(Screen.Tracking.route)
+                onNotificationClick = { notification ->
+                    val order =
+                        orderStateForNotifs.userOrders.firstOrNull { it.id == notification.orderId }
+                    val terminalStatuses = setOf("picked_up", "cancelled")
+                    when {
+                        // Pedido encontrado y ya finalizado → no navegar
+                        order != null && order.status in terminalStatuses -> Unit
+                        // Pedido no cargado aún: usar el status de la notif como fallback
+                        order == null && notification.status in terminalStatuses -> Unit
+                        // Listo para retirar → pantalla "listo"
+                        order?.status == "ready" -> navController.navigate(Screen.OrderReady.route)
+                        // En curso → seguimiento
+                        else -> navController.navigate(Screen.Tracking.route)
+                    }
                 },
                 onMarkAllRead = { notificationViewModel.markAllRead() },
                 onClearAll = { notificationViewModel.clearAll() },
@@ -712,8 +753,12 @@ fun AppNavigation(
         composable(Screen.Cart.route) {
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsStateWithLifecycle()
             val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+            val cartLocal = localesStateForCart.locales.firstOrNull { it.id == cartViewModel.cartLocalId }
             CartScreen(
                 cartViewModel = cartViewModel,
+                localNombre = cartLocal?.nombre ?: "",
+                localEmoji = cartLocal?.emoji ?: "",
+                localBarrio = cartLocal?.barrio ?: "",
                 isDarkTheme = isDarkTheme,
                 firstOrderDiscount = authState.firstOrderDiscount,
                 onConfirm = { navController.navigate(Screen.Payment.route) },
@@ -851,6 +896,7 @@ fun AppNavigation(
                     }
                 },
                 onViewSummary = {
+                    pickedUpOrder?.let { orderViewModel.selectOrder(it) }
                     navController.navigate(Screen.OrderSummary.route)
                 }
             )

@@ -1,5 +1,6 @@
 package com.qless.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.qless.di.AppModule
@@ -171,7 +172,10 @@ class AuthViewModel : ViewModel() {
     fun consumeFirstOrderDiscount() {
         if (!_uiState.value.firstOrderDiscount) return
         _uiState.update { it.copy(firstOrderDiscount = false) }
-        viewModelScope.launch { consumeFirstOrderDiscountUseCase() }
+        viewModelScope.launch {
+            consumeFirstOrderDiscountUseCase()
+                .onFailure { e -> Log.e("AuthViewModel", "consumeFirstOrderDiscount falló: ${e.message}", e) }
+        }
     }
 
     /**

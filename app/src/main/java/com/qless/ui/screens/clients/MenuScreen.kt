@@ -1,6 +1,7 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -362,7 +363,7 @@ private fun SkeletonMenuItemCard(brush: Brush) {
             .padding(horizontal = 20.dp, vertical = 5.dp),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -390,7 +391,7 @@ private fun ActiveOrderLockBanner(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         color = QLessStatusColors.enPreparacionSurface,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, QLessStatusColors.enPreparacion.copy(alpha = 0.4f))
+        border = BorderStroke(1.5.dp, QLessStatusColors.enPreparacion.copy(alpha = 0.4f))
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -471,7 +472,7 @@ private fun MenuItemCard(
             .padding(horizontal = 20.dp, vertical = 5.dp),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(

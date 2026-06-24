@@ -1,4 +1,4 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

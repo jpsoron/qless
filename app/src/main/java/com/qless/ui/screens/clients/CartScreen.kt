@@ -1,5 +1,6 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,6 +26,9 @@ import com.qless.ui.theme.QLessStatusColors
 @Composable
 fun CartScreen(
     cartViewModel: CartViewModel,
+    localNombre: String = "",
+    localEmoji: String = "",
+    localBarrio: String = "",
     isDarkTheme: Boolean = false,
     firstOrderDiscount: Boolean = false,
     onConfirm: () -> Unit,
@@ -161,7 +164,7 @@ fun CartScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
-                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(14.dp),
@@ -169,9 +172,16 @@ fun CartScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🍔", fontSize = 20.sp)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Big Pons – San Isidro", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        if (localEmoji.isNotEmpty()) Text(localEmoji, fontSize = 20.sp)
+                        if (localEmoji.isNotEmpty()) Spacer(Modifier.width(8.dp))
+                        Text(
+                            buildString {
+                                append(localNombre.ifBlank { "Tu pedido" })
+                                if (localBarrio.isNotEmpty()) append(" – $localBarrio")
+                            },
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
@@ -246,7 +256,7 @@ private fun CartItemRow(item: CartItem, onAdd: () -> Unit, onRemove: () -> Unit)
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),

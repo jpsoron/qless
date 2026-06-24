@@ -1,6 +1,7 @@
-package com.qless.ui.screens
+package com.qless.ui.screens.clients
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -173,17 +174,6 @@ fun TrackingScreen(
             }
 
             Spacer(Modifier.height(4.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
-                    Text("~15 min estimados", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
 
             Spacer(Modifier.height(24.dp))
 
@@ -218,21 +208,26 @@ fun TrackingScreen(
                     Icon(
                         imageVector = Icons.Default.RoomService,
                         contentDescription = null,
-                        tint = QLessStatusColors.enPreparacion,
+                        tint = when (status) {
+                            "ready" -> QLessStatusColors.disponible
+                            else -> QLessStatusColors.enPreparacion
+                        },
                         modifier = Modifier.size(36.dp)
                     )
+                    Spacer(Modifier.height(8.dp))
                     Text(
-                        "12",
-                        fontSize = 48.sp,
+                        when (status) {
+                            "pending" -> "CONFIRMADO"
+                            "ready" -> "¡LISTO!"
+                            else -> "EN COCINA"
+                        },
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        lineHeight = 52.sp
-                    )
-                    Text("min", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        "ESTIMADO",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        color = when (status) {
+                            "ready" -> QLessStatusColors.disponible
+                            else -> MaterialTheme.colorScheme.onSurface
+                        },
+                        textAlign = TextAlign.Center,
                         letterSpacing = 1.sp
                     )
                 }
@@ -270,7 +265,7 @@ fun TrackingScreen(
                     .padding(horizontal = 20.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.primaryContainer,
-                border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -287,22 +282,10 @@ fun TrackingScreen(
                         )
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f), modifier = Modifier.size(14.dp))
-                            Text("Retiro en Caja 1", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f))
+                            Text("Retiro en mostrador", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f))
                         }
                     }
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color.White
-                    ) {
-                        Text(
-                            "▦▦\n▦▦",
-                            modifier = Modifier.padding(12.dp),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontSize = 24.sp,
-                            lineHeight = 26.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    DecorativeQrCode()
                 }
             }
 
@@ -354,6 +337,58 @@ private fun TrackingStepRow(step: TrackingStep) {
                     fontWeight = FontWeight.SemiBold
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun DecorativeQrCode() {
+    Surface(
+        modifier = Modifier.size(76.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = Color.White
+    ) {
+        Box(
+            modifier = Modifier.padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            QrFinder(modifier = Modifier.align(Alignment.TopStart))
+            QrFinder(modifier = Modifier.align(Alignment.TopEnd))
+            QrFinder(modifier = Modifier.align(Alignment.BottomStart))
+
+            val moduleColor = Espresso
+            Box(Modifier.size(7.dp).offset(x = 27.dp, y = 3.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 3.dp, y = 27.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 27.dp, y = 27.dp).align(Alignment.TopStart).background(Pimentón, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 39.dp, y = 27.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 27.dp, y = 39.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 39.dp, y = 39.dp).align(Alignment.TopStart).background(Pimentón, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 51.dp, y = 39.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 39.dp, y = 51.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+            Box(Modifier.size(7.dp).offset(x = 51.dp, y = 51.dp).align(Alignment.TopStart).background(moduleColor, RoundedCornerShape(2.dp)))
+        }
+    }
+}
+
+@Composable
+private fun QrFinder(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(20.dp)
+            .background(Espresso, RoundedCornerShape(4.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(13.dp)
+                .background(Color.White, RoundedCornerShape(3.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .background(Pimentón, RoundedCornerShape(2.dp))
+            )
         }
     }
 }

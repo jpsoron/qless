@@ -42,11 +42,44 @@ Todas las pantallas existen y están ruteadas en `AppNavigation`. Estas necesita
 
 | Pantalla | Estado actual | Qué falta |
 |---|---|---|
-| `MisPedidosScreen` | UI hecha, datos hardcodeados | Tabs no funcionan, no hay estado vacío, las órdenes son datos fijos |
-| `AjustesScreen` | UI hecha | "Mi perfil" no navega a ningún lado (`onClick = {}`) |
+| `AjustesScreen` | ✓ "Mi perfil" abre BottomSheet con edición | — |
 | `NotificacionesScreen` | Preferencias (toggles cosméticos por ahora) | Los toggles todavía no gatean nada |
-| `NotificationCenterScreen` | ✓ Centro real de notificaciones | Avisos reales por Supabase Realtime, persistidos en Room, con badge en Home |
-| `MenuScreen` | Datos reales desde Supabase | Header aún hardcodeado a "Big Pons" (sin pasar datos del local al screen) |
+| `NotificationCenterScreen` | ✓ Centro real de notificaciones | — |
+| `MenuScreen` | ✓ Datos reales desde Supabase | — |
 | `MisLocalesScreen` | ✓ Datos reales; buscador, chips y orden funcionales | — |
+| `MisPedidosScreen` | ✓ Datos reales con tabs funcionales | — |
 | `GoogleLoginScreen` | UI hecha | Los botones no hacen nada real (Google Auth no implementado) |
-| `OrderSummaryScreen` | UI hecha | Datos hardcodeados (número de pedido, ítems, totales) |
+| `OrderSummaryScreen` | ✓ Datos reales desde `selectedOrder` | — |
+
+---
+
+## Datos hardcodeados / mockeados relevados
+
+### ~~CartScreen~~ ✓ RESUELTO
+- ~~`"Big Pons – San Isidro"` hardcodeado en el header del carrito.~~ `CartScreen` ahora recibe `localNombre`, `localEmoji` y `localBarrio`; `AppNavigation` los resuelve desde `misLocalesViewModel` usando `cartViewModel.cartLocalId`.
+
+### PaymentScreen (`PaymentScreen.kt:159`)
+- `"Big Pons · X ítems"` hardcodeado. La pantalla no recibe el nombre del local del carrito activo.
+
+### ~~TrackingScreen~~ ✓ RESUELTO
+- ~~Contador estático `"12"` + `"~15 min estimados"`.~~ Eliminados. El beeper ahora muestra una etiqueta de estado (`CONFIRMADO` / `EN COCINA` / `¡LISTO!`) derivada del campo `status` del pedido.
+- ~~`"Retiro en Caja 1"` hardcodeado.~~ Cambiado a `"Retiro en mostrador"` (no hay campo `pickupPoint` en el modelo `Order`; cuando se agregue, actualizar).
+- ~~QR placeholder `"▦▦\n▦▦"`.~~ Reemplazado por el composable `DecorativeQrCode` (el mismo que usa `OrderReadyScreen`).
+
+### OrderReadyScreen
+- `OrderReadyScreen.kt:179` — `"📍 Caja 1"` hardcodeado. Sin campo `pickupPoint` en `Order`.
+- `OrderReadyScreen.kt:183` — `"⏱ Listo 13:24"` timestamp hardcodeado.
+- `OrderReadyScreen.kt:197` — `"13:08"` (hora "Pedido recibido") hardcodeado.
+- `OrderReadyScreen.kt:199` — `"13:11 — 13:24"` (rango "En preparación") hardcodeado. Los timestamps de transición requerirían columnas en la tabla `orders` de Supabase (`received_at`, `prepared_at`, `ready_at`).
+
+### ~~AgregarMetodoDePagoScreen~~ ✓ RESUELTO
+- ~~Campo `nombre` arrancaba con `"María González"` como valor real.~~ Todos los campos del formulario ahora inicializan en vacío.
+
+### AppNavigation — lógica de negocio hardcodeada (`AppNavigation.kt:485`)
+- Al confirmar ubicación en `LocationDetectedScreen`, el `localId` se resuelve buscando `"Big Pons"` por nombre con fallback al primer local. Si el local cambia de nombre o no existe, el flujo se rompe. Hay que pasar el `Local` detectado por GPS directamente en vez de buscarlo por nombre.
+
+### LoginScreen (`LoginScreen.kt:174`)
+- Botón `"Olvidé mi contraseña"` tiene `onClick = {}`. Pendiente en la sección de arriba, pero se lista acá como dato "funcional" faltante.
+
+### Onboarding — demo decorativo (`OnboardingScreen.kt`)
+- Slide de demo muestra ítems ficticios ("Combo Big Classic $4.500", "Papas Grandes $1.200", "Gaseosa $700") y botón `"Confirmar pedido · $6.400"` con `onClick = {}`. Es contenido intencionalmente decorativo para el onboarding; no bloquea funcionalidad.
