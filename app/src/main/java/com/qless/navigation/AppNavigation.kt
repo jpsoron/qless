@@ -402,11 +402,13 @@ fun AppNavigation(
             // por sesión. Si hubo (o hay) un pedido en curso, lo damos por consumido para
             // siempre: aunque el pedido se complete y el usuario vuelva al home, no vuelve
             // a aparecer hasta reiniciar la app.
-            LaunchedEffect(homeState.closestLocal, orderState) {
+            LaunchedEffect(homeState.closestLocal, orderState, activeCart) {
                 if (orderState.activeOrder() != null) {
                     locationPromptShown = true
                     return@LaunchedEffect
                 }
+                // Con un carrito activo no interrumpimos: el foco es retomar ese pedido.
+                if (activeCart != null) return@LaunchedEffect
                 val nearby = homeState.closestLocal?.takeIf { local ->
                     local.distanciaMetros?.let { it <= NEARBY_THRESHOLD_METERS } == true
                 }
@@ -426,6 +428,7 @@ fun AppNavigation(
                 activeCart = activeCart,
                 onViewCart = onViewCart,
                 isDarkTheme = isDarkTheme,
+                firstOrderDiscount = authState.firstOrderDiscount,
                 unreadNotifications = notificationsState.unreadCount,
                 onNavigateToNotifications = { navController.navigate(Screen.NotificationCenter.route) },
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
@@ -685,6 +688,7 @@ fun AppNavigation(
                 isDarkTheme = isDarkTheme,
                 isFavorito = isFavorito,
                 blockNewCart = blockNewCart,
+                firstOrderDiscount = authState.firstOrderDiscount,
                 onToggleFavorito = { authViewModel.toggleFavorito(localId) },
                 onViewCart = { navController.navigate(Screen.Cart.route) },
                 onViewActiveOrder = { navController.navigate(Screen.Tracking.route) },

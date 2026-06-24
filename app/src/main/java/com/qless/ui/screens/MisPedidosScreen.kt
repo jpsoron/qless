@@ -163,7 +163,7 @@ private fun OrderFilterTabs(selected: OrderFilter, onSelect: (OrderFilter) -> Un
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         FilterChip("Activos", selected == OrderFilter.ACTIVE) { onSelect(OrderFilter.ACTIVE) }
         FilterChip("Finalizados", selected == OrderFilter.COMPLETED) { onSelect(OrderFilter.COMPLETED) }
-        FilterChip("Cancelados", selected == OrderFilter.CANCELLED) { onSelect(OrderFilter.CANCELLED) }
+        // "Cancelados" oculto por ahora: el flujo de cancelación no está modelado.
     }
 }
 

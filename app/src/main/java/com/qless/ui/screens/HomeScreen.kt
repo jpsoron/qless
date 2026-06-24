@@ -61,6 +61,7 @@ fun HomeScreen(
     activeCart: ActiveCartUi? = null,
     onViewCart: () -> Unit = {},
     isDarkTheme: Boolean = false,
+    firstOrderDiscount: Boolean = false,
     unreadNotifications: Int = 0,
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToMisLocales: () -> Unit,
@@ -210,11 +211,37 @@ fun HomeScreen(
                     }
                 }
 
+                // Badge de descuento de bienvenida: solo si todavía no lo canjeó.
+                if (firstOrderDiscount) {
+                    Spacer(Modifier.height(12.dp))
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = AlbahacaClaro,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Albahaca.copy(alpha = 0.35f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("🎉", fontSize = 13.sp)
+                            Text(
+                                "¡Tenés un 10% de descuento en tu primer pedido!",
+                                color = Albahaca,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+
                 Spacer(Modifier.height(16.dp))
 
-                // Buscador
+                // Buscador — abre la lista de locales (con su búsqueda funcional).
                 Surface(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToMisLocales() },
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
                     border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.primaryContainer)

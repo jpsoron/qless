@@ -42,6 +42,7 @@ fun MenuScreen(
     isDarkTheme: Boolean = false,
     isFavorito: Boolean = false,
     blockNewCart: Boolean = false,
+    firstOrderDiscount: Boolean = false,
     onToggleFavorito: () -> Unit = {},
     onViewCart: () -> Unit,
     onViewActiveOrder: () -> Unit = {},
@@ -196,7 +197,9 @@ fun MenuScreen(
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     local?.rating?.let { Chip("⭐ $it", isDarkTheme) }
                                     local?.tiempoEntrega?.let { Chip("⏱ $it", isDarkTheme) }
-                                    if (local?.tienePromo == true) {
+                                    // Solo si el usuario todavía no canjeó su descuento de
+                                    // bienvenida (aplica en todos los locales, no por `tienePromo`).
+                                    if (firstOrderDiscount) {
                                         Surface(shape = RoundedCornerShape(999.dp), color = if (isDarkTheme) Albahaca else MaterialTheme.colorScheme.primary) {
                                             Text("10% OFF 1.er pedido", modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.SemiBold)
                                         }
