@@ -827,9 +827,13 @@ fun AppNavigation(
             val orderState by orderViewModel.uiState.collectAsStateWithLifecycle()
             val lastOrder = orderState.lastCreatedOrder
 
-            // Pedido activo: preferimos el de userOrders (actualizado por polling),
-            // fallback a lastCreatedOrder (disponible incluso antes del primer poll)
-            val activeOrder = orderState.activeOrder() ?: lastOrder
+            // Resolvemos el pedido a seguir. Buscamos su versión más fresca en
+            // userOrders (incluye estados terminales como "cancelled"), así si el
+            // BackOffice lo cancela mientras el cliente mira el seguimiento, la
+            // pantalla ve el estado real en vez de quedar con data vieja.
+            val trackedId = orderState.activeOrder()?.id ?: lastOrder?.id
+            val activeOrder = orderState.userOrders.firstOrNull { it.id == trackedId }
+                ?: orderState.activeOrder() ?: lastOrder
 
             // El canal Realtime del cliente ya vive a nivel app (ver AppNavigation),
             // así que userOrders se mantiene al día solo. Disparamos una carga inmediata

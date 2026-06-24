@@ -1,0 +1,15 @@
+▶ Cold start — 10 iteraciones de com.qless/.MainActivity
+  (se hace force-stop antes de cada arranque para garantizar cold start)
+  iter 1: 1117 ms
+  iter 2: 941 ms
+  iter 3: 1020 ms
+  iter 4: 985 ms
+  iter 5: 949 ms
+  iter 6: 994 ms
+  iter 7: 1204 ms
+  iter 8: 985 ms
+  iter 9: 988 ms
+  iter 10: 1002 ms
+──────────────────────────────
+  promedio: 1018 ms · min: 941 ms · max: 1204 ms
+  objetivo: < 2500 ms

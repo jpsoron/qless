@@ -15,6 +15,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -110,23 +112,23 @@ fun AgregarMetodoDePagoScreen(
 
             // Formulario
             Text("Nombre en la tarjeta", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            CustomTextField(value = nombre, onValueChange = { nombre = it })
+            CustomTextField(value = nombre, onValueChange = { nombre = it }, label = "Nombre en la tarjeta")
 
             Spacer(Modifier.height(16.dp))
 
             Text("Número", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            CustomTextField(value = numero, onValueChange = { numero = it })
+            CustomTextField(value = numero, onValueChange = { numero = it }, label = "Número de tarjeta")
 
             Spacer(Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Vencimiento", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                    CustomTextField(value = vencimiento, onValueChange = { vencimiento = it })
+                    CustomTextField(value = vencimiento, onValueChange = { vencimiento = it }, label = "Vencimiento")
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Código de seguridad", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                    CustomTextField(value = cvc, onValueChange = { cvc = it })
+                    CustomTextField(value = cvc, onValueChange = { cvc = it }, label = "Código de seguridad")
                 }
             }
 
@@ -239,11 +241,14 @@ fun TabButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun CustomTextField(value: String, onValueChange: (String) -> Unit) {
+fun CustomTextField(value: String, onValueChange: (String) -> Unit, label: String = "") {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp)
+            .semantics { contentDescription = label },
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedContainerColor = Color.White,

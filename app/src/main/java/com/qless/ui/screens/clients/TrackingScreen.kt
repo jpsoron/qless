@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
@@ -131,6 +132,13 @@ fun TrackingScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(Modifier.height(16.dp).statusBarsPadding())
+
+            // Si el pedido fue cancelado (p. ej. por el BackOffice) mostramos un
+            // estado claro en vez del seguimiento, y no avanzamos a "Pedido listo".
+            if (status == "cancelled") {
+                TrackingCancelledContent(orderCode = orderCode, localNombre = localNombre, onGoHome = onGoHome)
+                return@Column
+            }
 
             // Header
             Row(
@@ -338,6 +346,66 @@ private fun TrackingStepRow(step: TrackingStep) {
                     fontWeight = FontWeight.SemiBold
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun TrackingCancelledContent(
+    orderCode: String,
+    localNombre: String,
+    onGoHome: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            modifier = Modifier.size(96.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.errorContainer
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.Cancel,
+                    contentDescription = "Pedido cancelado",
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(52.dp)
+                )
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            "Pedido cancelado",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            "Tu pedido #$orderCode${if (localNombre.isNotEmpty()) " en $localNombre" else ""} fue cancelado. " +
+                "Si tenés dudas, consultá en el local.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(32.dp))
+
+        Button(
+            onClick = onGoHome,
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        ) {
+            Text("Volver al inicio", fontWeight = FontWeight.SemiBold)
         }
     }
 }

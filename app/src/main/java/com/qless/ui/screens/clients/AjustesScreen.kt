@@ -216,7 +216,7 @@ fun AjustesScreen(
                         onClick = { showProfileSheet = true },
                         modifier = Modifier.border(1.dp, Color.White.copy(alpha = 0.2f), CircleShape)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.Edit, contentDescription = "Editar perfil", tint = Color.White, modifier = Modifier.size(18.dp))
                     }
                 }
             }
