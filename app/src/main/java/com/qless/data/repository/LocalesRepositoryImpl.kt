@@ -29,6 +29,20 @@ class LocalesRepositoryImpl(
                 CachedResult(cached, fromCache = true)
             }
 
+    override suspend fun getLocalById(id: String): Result<CachedResult<Local?>> {
+        if (id.isBlank()) return Result.success(CachedResult(null, fromCache = false))
+        return remoteDataSource.fetchLocalesByIds(listOf(id))
+            .map { locales ->
+                locales.firstOrNull { it.id == id }
+                    ?.also { localDao.upsertAll(listOf(it.toEntity())) }
+                    .let { CachedResult(it, fromCache = false) }
+            }
+            .recoverCatching {
+                val cached = localDao.getByIds(listOf(id)).firstOrNull { it.id == id }?.toDomain()
+                CachedResult(cached, fromCache = true)
+            }
+    }
+
     override suspend fun getFavoritos(ids: List<String>): Result<CachedResult<List<Local>>> {
         if (ids.isEmpty()) return Result.success(CachedResult(emptyList(), fromCache = false))
         return remoteDataSource.fetchLocalesByIds(ids)
