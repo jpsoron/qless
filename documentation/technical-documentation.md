@@ -397,6 +397,36 @@ navegación sino en dominio + un ViewModel dedicado:
   `QrNoReconocidoScreen`. Esto reemplazó la heurística previa (`qrData == "error"` y
   `length == 36`), que ni validaba existencia ni manejaba un QR ajeno a QLess.
 
+**Recuperación de contraseña (link por mail):**
+
+Flujo de "Olvidé mi contraseña" sobre Supabase Auth, en dos pasos conectados por un
+**deep link**:
+
+1. **Pedir el mail:** `ForgotPasswordScreen` toma el correo y dispara
+   `UserRepository.sendPasswordReset(email)` → `auth.resetPasswordForEmail(email,
+   redirectUrl = "qless://reset-password")`. La UI muestra un mensaje **neutro** ("si el
+   correo está registrado, te enviamos un enlace") para no filtrar qué correos existen.
+2. **Volver del mail:** el link rebota a la app por el deep link `qless://reset-password`
+   (esquema propio declarado en el `AndroidManifest` con `launchMode=singleTop`). En
+   `SupabaseClient` el plugin `Auth` se configura con `scheme`/`host` y
+   `flowType = IMPLICIT` (el token viaja en el fragment, sin code-verifier que deba
+   sobrevivir al cierre de la app). `MainActivity` le pasa el intent a
+   `supabase.handleDeeplinks(...)`, que abre una **sesión de recuperación** y emite la
+   señal `openResetPasswordSignal` (mismo patrón que el deep link de notificaciones).
+3. **Nueva contraseña:** `AppNavigation` navega a `ResetPasswordScreen` (gateando el
+   Splash para no pisar el destino en cold start). La pantalla llama
+   `updatePassword(newPassword)` → `auth.updateUser { password = ... }`, que **persiste el
+   hash nuevo en `auth.users`**; luego el repositorio hace `signOut` + limpia la sesión
+   guardada y la app vuelve a Login para entrar con la credencial nueva.
+
+La lógica vive en `PasswordResetViewModel` (separado de `AuthViewModel` a propósito: así
+la sesión de recuperación transitoria nunca toca el estado de auth global ni dispara
+navegación a Home). La URL de redirect es única en
+`AuthRemoteDataSource.PASSWORD_RESET_REDIRECT` y debe coincidir con el `intent-filter` del
+manifest y con la allowlist de **Redirect URLs** del proyecto Supabase
+(`Authentication → URL Configuration`). El cambio toca **solo `auth.users`**, no la tabla
+`perfiles` ni Room.
+
 ### Capa de Presentación (`ui/`)
 
 #### Patrón de estado

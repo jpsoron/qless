@@ -63,12 +63,14 @@ import com.qless.domain.usecase.RankLocalsByDistanceUseCase
 import com.qless.domain.usecase.RegisterUseCase
 import com.qless.domain.usecase.RemovePaymentMethodUseCase
 import com.qless.domain.usecase.RestoreSessionUseCase
+import com.qless.domain.usecase.SendPasswordResetUseCase
 import com.qless.domain.usecase.SetDarkModeUseCase
 import com.qless.domain.usecase.SetOnboardingCompletedUseCase
 import com.qless.domain.usecase.ToggleFavoritoUseCase
 import com.qless.domain.usecase.UpdateProfileUseCase
 import com.qless.domain.usecase.UpdateCartItemQuantityUseCase
 import com.qless.domain.usecase.UpdateOrderStatusUseCase
+import com.qless.domain.usecase.UpdatePasswordUseCase
 
 /**
  * Composition root manual (sin Hilt). Arma el grafo de dependencias:
@@ -159,6 +161,8 @@ object AppModule {
     val clearSession by lazy { ClearSessionUseCase(userRepository) }
     val toggleFavorito by lazy { ToggleFavoritoUseCase(userRepository) }
     val deleteAccount by lazy { DeleteAccountUseCase(userRepository) }
+    val sendPasswordReset by lazy { SendPasswordResetUseCase(userRepository) }
+    val updatePassword by lazy { UpdatePasswordUseCase(userRepository) }
     val consumeFirstOrderDiscount by lazy { ConsumeFirstOrderDiscountUseCase(userRepository) }
     val updateProfile by lazy { UpdateProfileUseCase(userRepository) }
 

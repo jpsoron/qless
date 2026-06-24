@@ -2,6 +2,7 @@ package com.qless.fakes
 
 import com.qless.domain.location.LocationProvider
 import com.qless.domain.model.AppNotification
+import com.qless.domain.model.AuthUser
 import com.qless.domain.model.CachedResult
 import com.qless.domain.model.CartItem
 import com.qless.domain.model.Coordinates
@@ -16,6 +17,7 @@ import com.qless.domain.repository.MenuRepository
 import com.qless.domain.repository.NotificationPreferencesRepository
 import com.qless.domain.repository.NotificationRepository
 import com.qless.domain.repository.OrderRepository
+import com.qless.domain.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -158,6 +160,37 @@ class FakeLocalesRepository(
         lastLocalByIdQuery = id
         return localByIdResult
     }
+}
+
+class FakeUserRepository(
+    var sendPasswordResetResult: Result<Unit> = Result.success(Unit),
+    var updatePasswordResult: Result<Unit> = Result.success(Unit),
+) : UserRepository {
+    var lastResetEmail: String? = null
+    var lastNewPassword: String? = null
+
+    override suspend fun sendPasswordReset(email: String): Result<Unit> {
+        lastResetEmail = email
+        return sendPasswordResetResult
+    }
+
+    override suspend fun updatePassword(newPassword: String): Result<Unit> {
+        lastNewPassword = newPassword
+        return updatePasswordResult
+    }
+
+    // El resto del contrato no se ejercita en estos tests.
+    override suspend fun login(email: String, password: String, rememberMe: Boolean): Result<AuthUser> =
+        Result.failure(NotImplementedError())
+    override suspend fun register(name: String, email: String, password: String): Result<Unit> = Result.success(Unit)
+    override suspend fun logout(): Result<Unit> = Result.success(Unit)
+    override suspend fun tryRestoreSession(): Result<AuthUser?> = Result.success(null)
+    override suspend fun clearSession() {}
+    override suspend fun toggleFavorito(localId: String, currentFavoritos: List<String>): Result<List<String>> =
+        Result.success(currentFavoritos)
+    override suspend fun deleteAccount(email: String): Result<Unit> = Result.success(Unit)
+    override suspend fun consumeFirstOrderDiscount(): Result<Unit> = Result.success(Unit)
+    override suspend fun updateProfile(name: String, email: String): Result<Unit> = Result.success(Unit)
 }
 
 class FakeMenuRepository(

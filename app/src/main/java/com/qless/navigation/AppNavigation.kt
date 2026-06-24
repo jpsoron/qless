@@ -52,6 +52,7 @@ import com.qless.ui.screens.clients.AjustesScreen
 import com.qless.ui.screens.clients.CartScreen
 import com.qless.ui.screens.clients.CerrarSesionScreen
 import com.qless.ui.screens.clients.EliminarCuentaScreen
+import com.qless.ui.screens.clients.ForgotPasswordScreen
 import com.qless.ui.screens.clients.GoogleLoginScreen
 import com.qless.ui.screens.clients.HomeScreen
 import com.qless.ui.screens.clients.LocationDetectedScreen
@@ -70,6 +71,7 @@ import com.qless.ui.screens.clients.PaymentScreen
 import com.qless.ui.screens.clients.PickupSuccessScreen
 import com.qless.ui.screens.clients.QrNoReconocidoScreen
 import com.qless.ui.screens.clients.RegisterScreen
+import com.qless.ui.screens.clients.ResetPasswordScreen
 import com.qless.ui.screens.clients.ScanearQrScreen
 import com.qless.ui.screens.clients.SplashScreen
 import com.qless.ui.screens.clients.TrackingScreen
@@ -80,6 +82,8 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object GoogleLogin : Screen("google_login")
     object Register : Screen("register")
+    object ForgotPassword : Screen("forgot_password")
+    object ResetPassword : Screen("reset_password")
     object Home : Screen("home")
     object MisLocales : Screen("mis_locales")
     object LocationDetected : Screen("location_detected")
@@ -118,6 +122,8 @@ fun AppNavigation(
     themeViewModel: ThemeViewModel,
     openTrackingSignal: Boolean = false,
     onTrackingSignalConsumed: () -> Unit = {},
+    openResetPasswordSignal: Boolean = false,
+    onResetPasswordSignalConsumed: () -> Unit = {},
 ) {
     val authViewModel: AuthViewModel = viewModel()
     val cartViewModel: CartViewModel = viewModel()
@@ -211,6 +217,20 @@ fun AppNavigation(
         }
     }
 
+    // Deep-link de recuperación (qless://reset-password) → pantalla "Nueva contraseña".
+    // popUpTo(0) limpia el back stack (incluye el Splash en cold start): venimos del
+    // mail, no de un flujo de navegación normal. El Splash respeta esta señal para no
+    // pisar este destino (ver más abajo).
+    LaunchedEffect(openResetPasswordSignal) {
+        if (openResetPasswordSignal) {
+            navController.navigate(Screen.ResetPassword.route) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+            onResetPasswordSignalConsumed()
+        }
+    }
+
     if (pendingLocalId != null) {
         AlertDialog(
             onDismissRequest = { pendingLocalId = null; pendingPopUpRoute = null },
@@ -249,7 +269,10 @@ fun AppNavigation(
             val authState by authViewModel.uiState.collectAsStateWithLifecycle()
             var splashAnimDone by remember { mutableStateOf(false) }
 
-            LaunchedEffect(splashAnimDone, authState.sessionCheckDone) {
+            LaunchedEffect(splashAnimDone, authState.sessionCheckDone, openResetPasswordSignal) {
+                // Si llegamos por el deep link de recuperación, deja que el efecto de
+                // openResetPasswordSignal haga la navegación; no enrutar por sesión.
+                if (openResetPasswordSignal) return@LaunchedEffect
                 if (!splashAnimDone || !authState.sessionCheckDone) return@LaunchedEffect
                 val destination = when {
                     authState.sessionRestored && authState.currentUserRole == "BACK_OFFICE" -> Screen.BackOffice.route
@@ -295,6 +318,25 @@ fun AppNavigation(
                 },
                 onNavigateToGoogleLogin = {
                     navController.navigate(Screen.GoogleLogin.route)
+                },
+                onNavigateToForgotPassword = {
+                    navController.navigate(Screen.ForgotPassword.route)
+                }
+            )
+        }
+
+        composable(Screen.ForgotPassword.route) {
+            ForgotPasswordScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.ResetPassword.route) {
+            ResetPasswordScreen(
+                onDone = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
