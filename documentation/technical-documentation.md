@@ -265,7 +265,7 @@ La aplicación implementa MVVM con patrón Repository sobre tres capas.
 
 - `CartRepository`: expone un `Flow` del carrito. `addItem(emoji, name, detail, unitPrice, currentQuantity, localId)` hace upsert guardando el `localId` de procedencia.
 - `PaymentMethodRepository`: expone un `Flow` de métodos de pago.
-- `LocalesRepository`: `getLocales()` trae todos los locales desde Supabase. `getFavoritos(ids)` trae solo los locales cuyas UUIDs coinciden con la lista provista.
+- `LocalesRepository`: `getLocales()` trae todos los locales desde Supabase. `getFavoritos(ids)` trae solo los locales cuyas UUIDs coinciden con la lista provista. `getLocalById(id)` resuelve un único local por id (network-first + fallback a caché Room); `data == null` significa que el id no corresponde a ningún local registrado (no es error de red). Lo usa el flujo de escaneo de QR.
 - `MenuRepository`: `getMenu(localId)` trae todos los ítems del menú del local indicado desde Supabase, ordenados por `orden`.
 - `UserRepository`: orquesta auth + perfil + persistencia de sesión. `login(email, password, rememberMe)` encadena sign-in + fetch de perfil; si `rememberMe=true`, guarda el JSON de sesión en `SessionStorage`. `logout()` hace sign-out y borra la sesión guardada. `tryRestoreSession()` carga el JSON de sesión desde `SessionStorage`, importa la sesión en supabase-kt (con auto-refresh del token) y retorna `RemoteUser?`.
 
@@ -374,6 +374,28 @@ el env `MAPS_API_KEY` — **no se commitea** (consigna). Deps:
 `com.google.maps.android:maps-compose` + `com.google.android.gms:play-services-maps`.
 
 ---
+
+**Escaneo de QR de local (RF6):**
+
+La cámara lee QR con **CameraX + ML Kit** (`ScanearQrScreen` / `CameraPreview`), que
+es un sensor "tonto": solo reporta el texto crudo del código vía `onQrDetected`. El
+contenido del QR es **el id (UUID) del local**.
+
+La regla de negocio "¿este QR corresponde a un local registrado?" no vive en la
+navegación sino en dominio + un ViewModel dedicado:
+
+- `GetLocalByIdUseCase` → `LocalesRepository.getLocalById(id)` valida la existencia
+  contra Supabase (con fallback a caché Room para que funcione offline si el local
+  ya fue visitado).
+- `QrScanViewModel` (scopeado al backstack entry de `ScanQr`) recibe el valor crudo
+  en `onQrScanned(raw)`: lo normaliza (`trim`), descarta lo que no sea un UUID **sin
+  tocar la red**, y emite un evento one-shot por `SharedFlow<QrScanEvent>`:
+  `Resolved(localId)` o `NotRecognized`. Se ignoran lecturas repetidas (ML Kit
+  dispara por frame) con un guard interno.
+- `AppNavigation` colecta el evento: `Resolved` → `navigateToMenu(localId)` (reusa el
+  mismo gate de conflicto de carrito que el resto del flujo); `NotRecognized` →
+  `QrNoReconocidoScreen`. Esto reemplazó la heurística previa (`qrData == "error"` y
+  `length == 36`), que ni validaba existencia ni manejaba un QR ajeno a QLess.
 
 ### Capa de Presentación (`ui/`)
 

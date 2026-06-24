@@ -35,6 +35,7 @@ import com.qless.domain.usecase.GetActiveLocalOrdersUseCase
 import com.qless.domain.usecase.GetCompletedLocalOrdersUseCase
 import com.qless.domain.usecase.GetCurrentLocationUseCase
 import com.qless.domain.usecase.GetFavoritosUseCase
+import com.qless.domain.usecase.GetLocalByIdUseCase
 import com.qless.domain.usecase.GetLocalesUseCase
 import com.qless.domain.usecase.GetMenuUseCase
 import com.qless.domain.usecase.GetUserOrdersUseCase
@@ -120,6 +121,7 @@ object AppModule {
     // --- Locales ---
     val getLocales by lazy { GetLocalesUseCase(localesRepository) }
     val getFavoritos by lazy { GetFavoritosUseCase(localesRepository) }
+    val getLocalById by lazy { GetLocalByIdUseCase(localesRepository) }
 
     // --- Ubicación (GPS) ---
     val getCurrentLocation by lazy { GetCurrentLocationUseCase(locationProvider) }

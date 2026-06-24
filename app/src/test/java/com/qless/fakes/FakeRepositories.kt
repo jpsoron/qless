@@ -133,12 +133,18 @@ class FakeCartRepository(
 class FakeLocalesRepository(
     var localesResult: Result<CachedResult<List<Local>>> = Result.success(CachedResult(emptyList(), false)),
     var favoritosResult: Result<CachedResult<List<Local>>> = Result.success(CachedResult(emptyList(), false)),
+    var localByIdResult: Result<CachedResult<Local?>> = Result.success(CachedResult(null, false)),
 ) : LocalesRepository {
     var lastFavoritosIds: List<String>? = null
+    var lastLocalByIdQuery: String? = null
     override suspend fun getLocales(): Result<CachedResult<List<Local>>> = localesResult
     override suspend fun getFavoritos(ids: List<String>): Result<CachedResult<List<Local>>> {
         lastFavoritosIds = ids
         return favoritosResult
+    }
+    override suspend fun getLocalById(id: String): Result<CachedResult<Local?>> {
+        lastLocalByIdQuery = id
+        return localByIdResult
     }
 }
 

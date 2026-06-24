@@ -36,6 +36,8 @@ import com.qless.ui.viewmodel.OrderNavEvent
 import com.qless.ui.viewmodel.OrderViewModel
 import com.qless.ui.viewmodel.activeOrder
 import com.qless.ui.viewmodel.PaymentMethodViewModel
+import com.qless.ui.viewmodel.QrScanEvent
+import com.qless.ui.viewmodel.QrScanViewModel
 import com.qless.ui.viewmodel.ThemeViewModel
 import com.qless.domain.model.Local
 import com.qless.domain.usecase.NEARBY_THRESHOLD_METERS
@@ -98,7 +100,6 @@ fun AppNavigation(
     val misLocalesViewModel: MisLocalesViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
     val notificationViewModel: NotificationViewModel = viewModel()
-    var currentLocalId by remember { mutableStateOf("") }
     // Local detectado por GPS a ≤50 m, para la pantalla "¿Estás en X?".
     var detectedLocal by remember { mutableStateOf<Local?>(null) }
     // Se muestra una vez por sesión (se reinicia al relanzar la app).
@@ -112,7 +113,6 @@ fun AppNavigation(
             pendingLocalId = localId
             pendingPopUpRoute = popUpRoute
         } else {
-            currentLocalId = localId
             if (popUpRoute != null) {
                 navController.navigate(Screen.Menu.route(localId)) {
                     popUpTo(popUpRoute) { inclusive = true }
@@ -196,7 +196,6 @@ fun AppNavigation(
                     val popUp = pendingPopUpRoute
                     pendingLocalId = null
                     pendingPopUpRoute = null
-                    currentLocalId = localId
                     if (popUp != null) {
                         navController.navigate(Screen.Menu.route(localId)) {
                             popUpTo(popUp) { inclusive = true }
@@ -495,16 +494,19 @@ fun AppNavigation(
         }
 
         composable(Screen.ScanQr.route) {
-            ScanearQrScreen(
-                onBack = { navController.popBackStack() },
-                onQrDetected = { qrData ->
-                    if (qrData == "error") {
-                        navController.navigate(Screen.QrNoReconocido.route)
-                    } else {
-                        if (qrData.length == 36) currentLocalId = qrData
-                        navigateToMenu(currentLocalId, Screen.ScanQr.route)
+            // Scopeado al entry: cada visita a "Escanear QR" arranca con un ViewModel limpio.
+            val qrScanViewModel: QrScanViewModel = viewModel()
+            LaunchedEffect(Unit) {
+                qrScanViewModel.events.collect { event ->
+                    when (event) {
+                        is QrScanEvent.Resolved -> navigateToMenu(event.localId, Screen.ScanQr.route)
+                        QrScanEvent.NotRecognized -> navController.navigate(Screen.QrNoReconocido.route)
                     }
                 }
+            }
+            ScanearQrScreen(
+                onBack = { navController.popBackStack() },
+                onQrDetected = qrScanViewModel::onQrScanned,
             )
         }
 
