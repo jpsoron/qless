@@ -34,6 +34,7 @@ sealed interface AuthNavEvent {
 class AuthViewModel : ViewModel() {
 
     private val loginUseCase = AppModule.login
+    private val loginWithGoogleUseCase = AppModule.loginWithGoogle
     private val registerUseCase = AppModule.register
     private val logoutUseCase = AppModule.logout
     private val restoreSessionUseCase = AppModule.restoreSession
@@ -85,6 +86,32 @@ class AuthViewModel : ViewModel() {
         _uiState.update { it.copy(isLoading = true, loginError = null) }
         viewModelScope.launch {
             loginUseCase(email.trim(), password, rememberMe)
+                .onSuccess { user ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            currentUserName = user.name,
+                            currentUserEmail = user.email,
+                            currentUserRole = user.role,
+                            currentUserFavoritos = user.favoritos
+                        )
+                    }
+                    if (user.role == "BACK_OFFICE") {
+                        _navEvent.emit(AuthNavEvent.LoginBackOffice)
+                    } else {
+                        _navEvent.emit(AuthNavEvent.LoginSuccess)
+                    }
+                }
+                .onFailure { err ->
+                    _uiState.update { it.copy(isLoading = false, loginError = mapAuthError(err.message)) }
+                }
+        }
+    }
+
+    fun loginWithGoogle(idToken: String) {
+        _uiState.update { it.copy(isLoading = true, loginError = null) }
+        viewModelScope.launch {
+            loginWithGoogleUseCase(idToken)
                 .onSuccess { user ->
                     _uiState.update {
                         it.copy(

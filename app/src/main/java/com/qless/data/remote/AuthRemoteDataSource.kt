@@ -2,15 +2,13 @@ package com.qless.data.remote
 
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.user.UserSession
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-// Cambiar a false cuando se habilite "Confirm email" en Supabase
-// (Authentication → Configuration → Email → "Confirm email" ON).
-// Ver DISENO_DATOS_Y_ARQUITECTURA.md § 7 para el procedimiento completo.
 private const val AUTO_SIGNIN_AFTER_REGISTER = true
 
 class AuthRemoteDataSource {
@@ -21,6 +19,13 @@ class AuthRemoteDataSource {
         auth.signInWith(Email) {
             this.email = email
             this.password = password
+        }
+    }
+
+    suspend fun signInWithGoogle(idToken: String): Result<Unit> = runCatching {
+        auth.signInWith(IDToken) {
+            this.idToken = idToken
+            this.provider = io.github.jan.supabase.auth.providers.Google
         }
     }
 

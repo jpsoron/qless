@@ -33,6 +33,8 @@ android {
 
         buildConfigField("String", "SUPABASE_URL", "\"${secret("SUPABASE_URL", "supabase.url")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secret("SUPABASE_ANON_KEY", "supabase.anon.key")}\"")
+        // Web Client ID para Google Auth (inyectado desde local.properties o env)
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${secret("GOOGLE_WEB_CLIENT_ID", "google.web.client.id")}\"")
 
         // API key de Google Maps. Va por local.properties / env (NO se commitea).
         // Se inyecta en el manifest como ${MAPS_API_KEY}.
@@ -80,6 +82,11 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
 
+    // Credential Manager y Google ID (Nombres corregidos para coincidir con libs.versions.toml)
+    implementation(libs.credentials.core)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.googleid)
+
     // Supabase
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.auth)
@@ -97,10 +104,10 @@ dependencies {
     implementation(libs.barcode.scanning)
 
     // Location
-    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation(libs.play.services.location)
 
-    // Mapa real (Google Maps Compose, usado en lite mode)
-    implementation("com.google.maps.android:maps-compose:6.4.1")
+    // Mapa real (Google Maps Compose)
+    implementation("com.google.maps.android:maps-compose:8.3.0")
     implementation("com.google.android.gms:play-services-maps:19.0.0")
 
     // Permissions

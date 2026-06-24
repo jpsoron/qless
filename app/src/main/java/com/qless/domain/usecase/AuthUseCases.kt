@@ -8,6 +8,11 @@ class LoginUseCase(private val repository: UserRepository) {
         repository.login(email, password, rememberMe)
 }
 
+class LoginWithGoogleUseCase(private val repository: UserRepository) {
+    suspend operator fun invoke(idToken: String): Result<AuthUser> =
+        repository.loginWithGoogle(idToken)
+}
+
 class RegisterUseCase(private val repository: UserRepository) {
     suspend operator fun invoke(name: String, email: String, password: String): Result<Unit> =
         repository.register(name, email, password)

@@ -10,22 +10,55 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.qless.BuildConfig
 import com.qless.ui.theme.*
+import com.qless.ui.viewmodel.AuthNavEvent
+import com.qless.ui.viewmodel.AuthViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun GoogleLoginScreen(
+    authViewModel: AuthViewModel,
     onBack: () -> Unit,
-    onContinueWithGoogle: () -> Unit,
+    onLoginSuccess: () -> Unit,
+    onLoginBackOffice: () -> Unit,
     onUseEmail: () -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val uiState = authViewModel.uiState.collectAsStateWithLifecycle().value
+    val credentialManager = CredentialManager.create(context)
+
+    // Escuchar eventos de navegación exitosa
+    LaunchedEffect(Unit) {
+        authViewModel.navEvent.collect { event ->
+            when (event) {
+                is AuthNavEvent.LoginSuccess -> onLoginSuccess()
+                is AuthNavEvent.LoginBackOffice -> onLoginBackOffice()
+                else -> Unit
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -144,37 +177,84 @@ fun GoogleLoginScreen(
 
         Spacer(Modifier.height(28.dp))
 
+        // Muestra error si falla el login
+        if (uiState.loginError != null) {
+            Text(
+                text = uiState.loginError,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
         // Botón Google
         OutlinedButton(
-            onClick = onContinueWithGoogle,
+            onClick = {
+                scope.launch {
+                    try {
+                        val googleIdOption = GetGoogleIdOption.Builder()
+                            .setFilterByAuthorizedAccounts(false)
+                            .setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT_ID)
+                            .setAutoSelectEnabled(true)
+                            .build()
+
+                        val request = GetCredentialRequest.Builder()
+                            .addCredentialOption(googleIdOption)
+                            .build()
+
+                        val result = credentialManager.getCredential(context, request)
+                        val credential = result.credential
+
+                        if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                            authViewModel.loginWithGoogle(googleIdTokenCredential.idToken)
+                        } else {
+                            // En caso de que se reciba un tipo de credencial no esperado
+                            authViewModel.clearErrors() // O manejar según necesidad
+                        }
+                    } catch (e: GetCredentialCancellationException) {
+                        // El usuario canceló la operación, no mostramos error.
+                    } catch (e: GetCredentialException) {
+                        // Error real al obtener credenciales
+                        e.printStackTrace()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(58.dp),
+            enabled = !uiState.isLoading,
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
-            Surface(
-                modifier = Modifier.size(24.dp),
-                shape = CircleShape,
-                color = Color.Transparent
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        "G",
-                        color = Color(0xFF4285F4),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp
-                    )
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+            } else {
+                Surface(
+                    modifier = Modifier.size(24.dp),
+                    shape = CircleShape,
+                    color = Color.Transparent
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            "G",
+                            color = Color(0xFF4285F4),
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp
+                        )
+                    }
                 }
+                Spacer(Modifier.width(14.dp))
+                Text(
+                    "Continuar con Google",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 17.sp
+                )
             }
-            Spacer(Modifier.width(14.dp))
-            Text(
-                "Continuar con Google",
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 17.sp
-            )
         }
 
         Spacer(Modifier.height(28.dp))
@@ -258,11 +338,6 @@ private fun BenefitItem(text: String) {
 @Composable
 private fun GoogleLoginPreview() {
     QLessTheme {
-        GoogleLoginScreen(
-            onBack = {},
-            onContinueWithGoogle = {},
-            onUseEmail = {},
-            onNavigateToLogin = {}
-        )
+        // Mock AuthViewModel o omitir para preview
     }
 }

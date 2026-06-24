@@ -4,6 +4,7 @@ import com.qless.domain.model.AuthUser
 
 interface UserRepository {
     suspend fun login(email: String, password: String, rememberMe: Boolean = false): Result<AuthUser>
+    suspend fun loginWithGoogle(idToken: String): Result<AuthUser>
     suspend fun register(name: String, email: String, password: String): Result<Unit>
     suspend fun logout(): Result<Unit>
     suspend fun tryRestoreSession(): Result<AuthUser?>

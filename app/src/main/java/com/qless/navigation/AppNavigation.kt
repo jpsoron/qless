@@ -355,9 +355,17 @@ fun AppNavigation(
 
         composable(Screen.GoogleLogin.route) {
             GoogleLoginScreen(
+                authViewModel = authViewModel,
                 onBack = { navController.popBackStack() },
-                onContinueWithGoogle = {
+                onLoginSuccess = {
+                    themeViewModel.setOnboardingCompleted()
                     navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onLoginBackOffice = {
+                    themeViewModel.setOnboardingCompleted()
+                    navController.navigate(Screen.BackOffice.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },

@@ -8,9 +8,6 @@ import com.qless.data.remote.ProfileRemoteDataSource
 import com.qless.domain.model.AuthUser
 import com.qless.domain.repository.UserRepository
 
-// El usuario BackOffice debe crearse en el dashboard de Supabase.
-// El trigger handle_new_user() inserta automáticamente en perfiles con rol='BACK_OFFICE'
-// si raw_user_meta_data contiene { "role": "BACK_OFFICE" }.
 class UserRepositoryImpl(
     @Suppress("unused") private val dao: UserDao,
     private val context: Context,
@@ -26,6 +23,14 @@ class UserRepositoryImpl(
             if (rememberMe) {
                 authRemoteDataSource.getCurrentSessionJson()?.let { sessionStorage.save(it) }
             }
+            AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos)
+        }
+
+    override suspend fun loginWithGoogle(idToken: String): Result<AuthUser> =
+        authRemoteDataSource.signInWithGoogle(idToken).mapCatching {
+            val perfil = profileRemoteDataSource.fetchProfile().getOrThrow()
+            // Por defecto guardamos la sesión de Google para persistencia
+            authRemoteDataSource.getCurrentSessionJson()?.let { sessionStorage.save(it) }
             AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos)
         }
 
@@ -51,8 +56,6 @@ class UserRepositoryImpl(
         return profileRemoteDataSource.updateFavoritos(newFavoritos).map { newFavoritos }
     }
 
-    // La eliminación real requiere service role key (solo backend).
-    // Por ahora cierra sesión y limpia el estado local.
     override suspend fun deleteAccount(email: String): Result<Unit> = runCatching {
         authRemoteDataSource.signOut().getOrThrow()
         sessionStorage.clear()
