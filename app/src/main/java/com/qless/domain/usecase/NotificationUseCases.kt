@@ -3,6 +3,7 @@ package com.qless.domain.usecase
 import com.qless.domain.model.AppNotification
 import com.qless.domain.model.Order
 import com.qless.domain.notification.SystemNotifier
+import com.qless.domain.repository.NotificationPreferencesRepository
 import com.qless.domain.repository.NotificationRepository
 import com.qless.domain.session.SessionProvider
 import kotlinx.coroutines.flow.Flow
@@ -12,13 +13,23 @@ import java.util.UUID
  * Traduce un cambio de estado de un pedido en un aviso: lo persiste en el centro
  * de notificaciones (Room) y lo publica en la bandeja del sistema. Android queda
  * detrás de [SystemNotifier], no dentro del ViewModel.
+ *
+ * Respeta las preferencias del usuario: si la categoría del cambio está apagada
+ * ("Estado del pedido" / "Pedido listo") no se genera el aviso; si "Sonido y
+ * vibración" está apagado, el aviso de bandeja se muestra en silencio.
  */
 class NotifyOrderUpdateUseCase(
     private val repository: NotificationRepository,
     private val notifier: SystemNotifier,
+    private val preferencesRepository: NotificationPreferencesRepository,
 ) {
     suspend operator fun invoke(order: Order) {
         val text = statusToText(order.status, order.localNombre) ?: return
+        val prefs = preferencesRepository.current()
+        // "ready" cae en la categoría "Pedido listo"; el resto en "Estado del pedido".
+        val categoryEnabled = if (order.status == "ready") prefs.orderReady else prefs.orderStatus
+        if (!categoryEnabled) return
+
         val notification = AppNotification(
             id = UUID.randomUUID().toString(),
             userId = order.userId,
@@ -31,7 +42,7 @@ class NotifyOrderUpdateUseCase(
             createdAt = System.currentTimeMillis(),
         )
         repository.add(notification)
-        notifier.notify(notification)
+        notifier.notify(notification, sound = prefs.soundVibration)
     }
 
     private data class NotificationText(val title: String, val body: String)

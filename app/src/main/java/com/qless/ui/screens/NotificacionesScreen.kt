@@ -19,9 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qless.ui.components.QLessBottomNav
 import com.qless.ui.theme.*
+import com.qless.ui.viewmodel.NotificationPreferencesViewModel
 
 @Composable
 fun NotificacionesScreen(
+    notificationPreferencesViewModel: NotificationPreferencesViewModel,
     onBack: () -> Unit,
     onNavigateToInicio: () -> Unit,
     onNavigateToMisLocales: () -> Unit,
@@ -29,6 +31,7 @@ fun NotificacionesScreen(
     onNavigateToMisPedidos: () -> Unit,
     onNavigateToAjustes: () -> Unit,
 ) {
+    val prefs by notificationPreferencesViewModel.uiState.collectAsState()
     Scaffold(
         bottomBar = {
             QLessBottomNav(
@@ -95,31 +98,22 @@ fun NotificacionesScreen(
             NotificationToggleItem(
                 title = "Estado del pedido",
                 description = "Cambios de estado y tiempo estimado",
-                initialChecked = true
+                checked = prefs.orderStatus,
+                onCheckedChange = notificationPreferencesViewModel::setOrderStatus
             )
             Spacer(Modifier.height(12.dp))
             NotificationToggleItem(
                 title = "Pedido listo",
                 description = "Aviso cuando ya podés retirarlo",
-                initialChecked = true
+                checked = prefs.orderReady,
+                onCheckedChange = notificationPreferencesViewModel::setOrderReady
             )
             Spacer(Modifier.height(12.dp))
             NotificationToggleItem(
                 title = "Sonido y vibración",
                 description = "Refuerzo para avisos importantes",
-                initialChecked = true
-            )
-            Spacer(Modifier.height(12.dp))
-            NotificationToggleItem(
-                title = "Promociones",
-                description = "Descuentos y cupones de tus locales",
-                initialChecked = false
-            )
-            Spacer(Modifier.height(12.dp))
-            NotificationToggleItem(
-                title = "Novedades",
-                description = "Cambios de menú y nuevos locales",
-                initialChecked = false
+                checked = prefs.soundVibration,
+                onCheckedChange = notificationPreferencesViewModel::setSoundVibration
             )
 
             Spacer(Modifier.height(24.dp))
@@ -140,10 +134,9 @@ fun NotificacionesScreen(
 private fun NotificationToggleItem(
     title: String,
     description: String,
-    initialChecked: Boolean
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
 ) {
-    var isChecked by remember { mutableStateOf(initialChecked) }
-
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -169,8 +162,8 @@ private fun NotificationToggleItem(
                 )
             }
             Switch(
-                checked = isChecked,
-                onCheckedChange = { isChecked = it },
+                checked = checked,
+                onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.White,
                     checkedTrackColor = MaterialTheme.colorScheme.primary,
@@ -185,8 +178,9 @@ private fun NotificationToggleItem(
 
 @Preview(showBackground = true)
 @Composable
+@Suppress("ViewModelConstructorInComposable") // Solo preview; VM construido a mano a propósito.
 private fun NotificacionesPreview() {
     QLessTheme {
-        NotificacionesScreen({}, {}, {}, {}, {}, {})
+        NotificacionesScreen(NotificationPreferencesViewModel(), {}, {}, {}, {}, {}, {})
     }
 }

@@ -31,6 +31,7 @@ import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.viewmodel.HomeViewModel
 import com.qless.ui.viewmodel.MenuViewModel
 import com.qless.ui.viewmodel.MisLocalesViewModel
+import com.qless.ui.viewmodel.NotificationPreferencesViewModel
 import com.qless.ui.viewmodel.NotificationViewModel
 import com.qless.ui.viewmodel.OrderNavEvent
 import com.qless.ui.viewmodel.OrderViewModel
@@ -100,6 +101,7 @@ fun AppNavigation(
     val misLocalesViewModel: MisLocalesViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
     val notificationViewModel: NotificationViewModel = viewModel()
+    val notificationPreferencesViewModel: NotificationPreferencesViewModel = viewModel()
     // Local detectado por GPS a ≤50 m, para la pantalla "¿Estás en X?".
     var detectedLocal by remember { mutableStateOf<Local?>(null) }
     // Se muestra una vez por sesión (se reinicia al relanzar la app).
@@ -592,6 +594,7 @@ fun AppNavigation(
 
         composable(Screen.Notificaciones.route) {
             NotificacionesScreen(
+                notificationPreferencesViewModel = notificationPreferencesViewModel,
                 onBack = { navController.popBackStack() },
                 onNavigateToInicio = {
                     navController.navigate(Screen.Home.route) {

@@ -9,6 +9,7 @@ import com.qless.domain.usecase.ObserveLocalOrderChangesUseCase
 import com.qless.domain.usecase.ObserveUserOrderChangesUseCase
 import com.qless.domain.usecase.PlaceOrderUseCase
 import com.qless.domain.usecase.UpdateOrderStatusUseCase
+import com.qless.fakes.FakeNotificationPreferencesRepository
 import com.qless.fakes.FakeNotificationRepository
 import com.qless.fakes.FakeOrderRepository
 import com.qless.fakes.FakeSystemNotifier
@@ -43,7 +44,7 @@ class OrderViewModelTest {
         updateOrderStatusUseCase = UpdateOrderStatusUseCase(repo),
         observeUserOrderChanges = ObserveUserOrderChangesUseCase(repo),
         observeLocalOrderChanges = ObserveLocalOrderChangesUseCase(repo),
-        notifyOrderUpdate = NotifyOrderUpdateUseCase(FakeNotificationRepository(), FakeSystemNotifier()),
+        notifyOrderUpdate = NotifyOrderUpdateUseCase(FakeNotificationRepository(), FakeSystemNotifier(), FakeNotificationPreferencesRepository()),
     )
 
     private fun cartItem(price: Int = 500, qty: Int = 2) =

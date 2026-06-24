@@ -201,7 +201,7 @@ com.qless
     │   ├── MetodosDePagoScreen.kt
     │   ├── MisLocalesScreen.kt           — locales reales; buscador, chips y orden funcionales
     │   ├── MisPedidosScreen.kt           — pedidos reales con tabs Activos / Finalizados / Cancelados
-    │   ├── NotificacionesScreen.kt       — preferencias (toggles cosméticos por ahora)
+    │   ├── NotificacionesScreen.kt       — preferencias funcionales (estado del pedido / pedido listo / sonido+vibración) persistidas en DataStore y respetadas por NotifyOrderUpdateUseCase
     │   ├── NotificationCenterScreen.kt   — centro de notificaciones; marca leídas al abrir; badge en Home
     │   ├── OnboardingScreen.kt
     │   ├── OrderConfirmedScreen.kt

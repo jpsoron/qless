@@ -8,6 +8,9 @@ import com.qless.domain.model.AppNotification
  * inyecta desde `AppModule` (mismo patrón que [com.qless.domain.location.LocationProvider]).
  */
 interface SystemNotifier {
-    /** Publica [notification] en la bandeja del sistema. No-op si falta el permiso. */
-    fun notify(notification: AppNotification)
+    /**
+     * Publica [notification] en la bandeja del sistema. No-op si falta el permiso.
+     * Si [sound] es false el aviso se muestra en silencio (sin sonido ni vibración).
+     */
+    fun notify(notification: AppNotification, sound: Boolean = true)
 }

@@ -8,6 +8,7 @@ import com.qless.data.notification.AndroidSystemNotifier
 import com.qless.data.repository.CartRepositoryImpl
 import com.qless.data.repository.LocalesRepositoryImpl
 import com.qless.data.repository.MenuRepositoryImpl
+import com.qless.data.repository.NotificationPreferencesRepositoryImpl
 import com.qless.data.repository.NotificationRepositoryImpl
 import com.qless.data.repository.OrderRepositoryImpl
 import com.qless.data.repository.PaymentMethodRepositoryImpl
@@ -18,6 +19,7 @@ import com.qless.domain.notification.SystemNotifier
 import com.qless.domain.repository.CartRepository
 import com.qless.domain.repository.LocalesRepository
 import com.qless.domain.repository.MenuRepository
+import com.qless.domain.repository.NotificationPreferencesRepository
 import com.qless.domain.repository.NotificationRepository
 import com.qless.domain.repository.OrderRepository
 import com.qless.domain.repository.PaymentMethodRepository
@@ -46,7 +48,11 @@ import com.qless.domain.usecase.MarkNotificationsReadUseCase
 import com.qless.domain.usecase.NotifyOrderUpdateUseCase
 import com.qless.domain.usecase.ObserveCartUseCase
 import com.qless.domain.usecase.ObserveLocalOrderChangesUseCase
+import com.qless.domain.usecase.ObserveNotificationPreferencesUseCase
 import com.qless.domain.usecase.ObserveNotificationsUseCase
+import com.qless.domain.usecase.SetOrderReadyNotificationUseCase
+import com.qless.domain.usecase.SetOrderStatusNotificationUseCase
+import com.qless.domain.usecase.SetSoundVibrationNotificationUseCase
 import com.qless.domain.usecase.ObserveUnreadCountUseCase
 import com.qless.domain.usecase.ObserveUserOrderChangesUseCase
 import com.qless.domain.usecase.ObserveDarkModeUseCase
@@ -95,6 +101,7 @@ object AppModule {
     private val themeRepository: ThemeRepository by lazy { ThemeRepositoryImpl(appContext) }
     private val locationProvider: LocationProvider by lazy { FusedLocationProvider(appContext) }
     private val notificationRepository: NotificationRepository by lazy { NotificationRepositoryImpl(database.notificationDao()) }
+    private val notificationPreferencesRepository: NotificationPreferencesRepository by lazy { NotificationPreferencesRepositoryImpl(appContext) }
     private val systemNotifier: SystemNotifier by lazy { AndroidSystemNotifier(appContext) }
     private val sessionProvider: SessionProvider by lazy { SupabaseSessionProvider() }
 
@@ -108,12 +115,18 @@ object AppModule {
     val observeLocalOrderChanges by lazy { ObserveLocalOrderChangesUseCase(orderRepository) }
 
     // --- Notificaciones ---
-    val notifyOrderUpdate by lazy { NotifyOrderUpdateUseCase(notificationRepository, systemNotifier) }
+    val notifyOrderUpdate by lazy { NotifyOrderUpdateUseCase(notificationRepository, systemNotifier, notificationPreferencesRepository) }
     val observeNotifications by lazy { ObserveNotificationsUseCase(notificationRepository) }
     val observeUnreadCount by lazy { ObserveUnreadCountUseCase(notificationRepository) }
     val markNotificationsRead by lazy { MarkNotificationsReadUseCase(notificationRepository) }
     val clearNotifications by lazy { ClearNotificationsUseCase(notificationRepository) }
     val getCurrentUserId by lazy { GetCurrentUserIdUseCase(sessionProvider) }
+
+    // --- Preferencias de notificaciones ---
+    val observeNotificationPreferences by lazy { ObserveNotificationPreferencesUseCase(notificationPreferencesRepository) }
+    val setOrderStatusNotification by lazy { SetOrderStatusNotificationUseCase(notificationPreferencesRepository) }
+    val setOrderReadyNotification by lazy { SetOrderReadyNotificationUseCase(notificationPreferencesRepository) }
+    val setSoundVibrationNotification by lazy { SetSoundVibrationNotificationUseCase(notificationPreferencesRepository) }
 
     // --- Menú ---
     val getMenu by lazy { GetMenuUseCase(menuRepository) }

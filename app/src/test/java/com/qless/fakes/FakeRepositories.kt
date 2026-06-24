@@ -7,11 +7,13 @@ import com.qless.domain.model.CartItem
 import com.qless.domain.model.Coordinates
 import com.qless.domain.model.Local
 import com.qless.domain.model.MenuItem
+import com.qless.domain.model.NotificationPreferences
 import com.qless.domain.model.Order
 import com.qless.domain.notification.SystemNotifier
 import com.qless.domain.repository.CartRepository
 import com.qless.domain.repository.LocalesRepository
 import com.qless.domain.repository.MenuRepository
+import com.qless.domain.repository.NotificationPreferencesRepository
 import com.qless.domain.repository.NotificationRepository
 import com.qless.domain.repository.OrderRepository
 import kotlinx.coroutines.flow.Flow
@@ -81,7 +83,17 @@ class FakeNotificationRepository : NotificationRepository {
 
 class FakeSystemNotifier : SystemNotifier {
     val notified = mutableListOf<AppNotification>()
-    override fun notify(notification: AppNotification) { notified += notification }
+    override fun notify(notification: AppNotification, sound: Boolean) { notified += notification }
+}
+
+class FakeNotificationPreferencesRepository(
+    private var prefs: NotificationPreferences = NotificationPreferences(),
+) : NotificationPreferencesRepository {
+    override val preferences = MutableStateFlow(prefs)
+    override suspend fun current(): NotificationPreferences = prefs
+    override suspend fun setOrderStatus(enabled: Boolean) { prefs = prefs.copy(orderStatus = enabled); preferences.value = prefs }
+    override suspend fun setOrderReady(enabled: Boolean) { prefs = prefs.copy(orderReady = enabled); preferences.value = prefs }
+    override suspend fun setSoundVibration(enabled: Boolean) { prefs = prefs.copy(soundVibration = enabled); preferences.value = prefs }
 }
 
 class FakeCartRepository(
