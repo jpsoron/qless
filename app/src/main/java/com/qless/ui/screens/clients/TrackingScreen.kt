@@ -52,6 +52,7 @@ fun TrackingScreen(
     onNavigateToMisPedidos: () -> Unit = {},
     onNavigateToAjustes: () -> Unit = {},
     onNavigateToScanQr: () -> Unit = {},
+    onReadyComplete: () -> Unit = {},
 ) {
     val steps = listOf(
         TrackingStep(
@@ -75,25 +76,26 @@ fun TrackingScreen(
         ),
     )
 
-    // Animación del indicador circular: una fracción base 0→1 que cada estado
-    // mapea a su propio tramo del borde.
+    // Indicador circular: cada estado define un objetivo discreto del borde. El
+    // anillo arranca en 0 al abrir y se desliza suavemente hasta su objetivo (p.
+    // ej. 0→33% al entrar), y cuando el pedido avanza tweenea de un tramo al otro
+    // sin saltar. Cuando llega a "ready", recién al terminar la animación
+    // (66→100%) avisamos para que la navegación a la próxima pantalla espere.
     val infiniteTransition = rememberInfiniteTransition(label = "timer_pulse")
-    val fraction by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "progress"
-    )
-    // "Pedido recibido": el borde late de 0%→50%.
-    // "En preparación": late de 50%→100%.
-    val progress = when (status) {
-        "pending" -> fraction * 0.5f
-        "preparing" -> 0.5f + fraction * 0.5f
+    val targetProgress = when (status) {
+        "pending" -> 0.33f
+        "preparing" -> 0.66f
         else -> 1f
     }
+    val progressAnim = remember { Animatable(0f) }
+    LaunchedEffect(targetProgress) {
+        progressAnim.animateTo(
+            targetValue = targetProgress,
+            animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing)
+        )
+        if (status == "ready") onReadyComplete()
+    }
+    val progress = progressAnim.value
     // "Respiro" sutil del beeper para que se sienta vivo
     val breathe by infiniteTransition.animateFloat(
         initialValue = 0.97f,
@@ -148,10 +150,10 @@ fun TrackingScreen(
                     Text("Pedido #$orderCode${if (localNombre.isNotEmpty()) " · $localNombre" else ""}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 }
                 val (badgeLabel, badgeColor, badgeBg) = when (status) {
-                    "pending"   -> Triple("Pago confirmado",  QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
-                    "preparing" -> Triple("En preparación",   QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+                    "pending"   -> Triple("Pago confirmado",    Arándano,                      ArándanoClaro)
+                    "preparing" -> Triple("En preparación",     QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
                     "ready"     -> Triple("Listo para retirar", QLessStatusColors.disponible,  QLessStatusColors.disponibleSurface)
-                    else        -> Triple("Pedido activo",    QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
+                    else        -> Triple("Pedido activo",      QLessStatusColors.enPreparacion, QLessStatusColors.enPreparacionSurface)
                 }
                 Surface(
                     shape = RoundedCornerShape(999.dp),
@@ -177,8 +179,13 @@ fun TrackingScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Beeper "vivo": el círculo central late con pulsos ámbar que
-            // emanan hacia afuera mientras el pedido está en preparación.
+            // Color unificado del beeper: azul para recibido, ámbar para cocina, verde para listo.
+            val beeperColor = when (status) {
+                "pending" -> Arándano
+                "ready"   -> QLessStatusColors.disponible
+                else      -> QLessStatusColors.enPreparacion
+            }
+
             Box(
                 modifier = Modifier
                     .size(300.dp)
@@ -186,7 +193,7 @@ fun TrackingScreen(
                 contentAlignment = Alignment.Center
             ) {
                 PulseRings(
-                    color = QLessStatusColors.enPreparacion,
+                    color = beeperColor,
                     modifier = Modifier.fillMaxSize(),
                     startRadiusFraction = 0.66f
                 )
@@ -199,7 +206,7 @@ fun TrackingScreen(
                 CircularProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxSize(),
-                    color = QLessStatusColors.enPreparacion,
+                    color = beeperColor,
                     trackColor = MaterialTheme.colorScheme.primaryContainer,
                     strokeWidth = 10.dp,
                     strokeCap = StrokeCap.Round
@@ -208,13 +215,10 @@ fun TrackingScreen(
                     Icon(
                         imageVector = Icons.Default.RoomService,
                         contentDescription = null,
-                        tint = when (status) {
-                            "ready" -> QLessStatusColors.disponible
-                            else -> QLessStatusColors.enPreparacion
-                        },
-                        modifier = Modifier.size(36.dp)
+                        tint = beeperColor,
+                        modifier = Modifier.size(52.dp)
                     )
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         when (status) {
                             "pending" -> "CONFIRMADO"
@@ -223,10 +227,7 @@ fun TrackingScreen(
                         },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = when (status) {
-                            "ready" -> QLessStatusColors.disponible
-                            else -> MaterialTheme.colorScheme.onSurface
-                        },
+                        color = beeperColor,
                         textAlign = TextAlign.Center,
                         letterSpacing = 1.sp
                     )

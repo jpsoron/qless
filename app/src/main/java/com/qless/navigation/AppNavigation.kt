@@ -836,15 +836,8 @@ fun AppNavigation(
             // por si la pantalla se abre antes del primer evento del canal.
             LaunchedEffect(Unit) { orderViewModel.loadUserOrders() }
 
-            // Navegación automática cuando el status pasa a "ready"
-            LaunchedEffect(activeOrder?.status) {
-                if (activeOrder?.status == "ready") {
-                    navController.navigate(Screen.OrderReady.route) {
-                        popUpTo(Screen.Tracking.route) { inclusive = true }
-                    }
-                }
-            }
-
+            // La navegación a "Pedido listo" la dispara TrackingScreen recién cuando
+            // termina la animación del anillo (66→100%), vía onReadyComplete.
             TrackingScreen(
                 orderCode = activeOrder?.numero?.toString() ?: "----",
                 localNombre = activeOrder?.localNombre ?: "",
@@ -857,7 +850,12 @@ fun AppNavigation(
                 onNavigateToMisLocales = { navController.navigate(Screen.MisLocales.route) },
                 onNavigateToMisPedidos = { navController.navigate(Screen.MisPedidos.route) },
                 onNavigateToAjustes = { navController.navigate(Screen.Ajustes.route) },
-                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) }
+                onNavigateToScanQr = { navController.navigate(Screen.ScanQr.route) },
+                onReadyComplete = {
+                    navController.navigate(Screen.OrderReady.route) {
+                        popUpTo(Screen.Tracking.route) { inclusive = true }
+                    }
+                }
             )
         }
 
