@@ -130,9 +130,9 @@ flowchart LR
 
 ## Estructura y responsabilidad de capas
 
-Este diagrama no muestra el flujo de datos sino **qué carpeta hace qué, de qué
-depende y de qué tiene prohibido depender**. La regla de oro es la flecha de
-dependencia: siempre apunta hacia `domain/`, que no depende de nadie.
+Este diagrama no muestra el flujo de datos sino qué carpeta cumple cada
+responsabilidad, de qué depende y de qué no debe depender. La regla de dependencia
+es que las flechas apuntan siempre hacia `domain/`, que no depende de ninguna otra capa.
 
 ```mermaid
 flowchart TB
@@ -185,22 +185,21 @@ flowchart TB
     style DA fill:#FFFBF5,stroke:#1D6FA8,stroke-width:1px,color:#1D6FA8
 ```
 
-**Una frase por capa:**
+Responsabilidad de cada capa:
 
-- **`presentation`** depende de `domain` y de nada más hacia abajo; el ViewModel
-  es el único que orquesta use cases y traduce a `UiState`. Que la UI no importe
-  `data/` es lo que mantiene la regla.
-- **`domain`** es el núcleo puro: define *qué* se hace (use cases) y *qué
-  contrato* necesita (interfaces de repo/device), sin saber *cómo*.
-- **`data`** es la única que sabe *cómo* (Supabase, Room, DataStore, Play
-  Services) e **implementa** los contratos; la flecha invertida (data→domain) es
-  la inversión de dependencias.
-- **`di/AppModule`** es el único punto que ve las tres capas y las cose; por eso
-  vive aparte y no "pertenece" a ninguna.
+- `presentation` depende de `domain` y de ninguna capa inferior. El ViewModel
+  orquesta los casos de uso y traduce el resultado a `UiState`. La UI no importa
+  `data/`, lo que mantiene la regla de dependencia.
+- `domain` es el núcleo: define qué se hace (casos de uso) y qué contratos
+  necesita (interfaces de repositorio y de dispositivo), sin conocer la implementación.
+- `data` implementa esos contratos y concentra el cómo (Supabase, Room, DataStore,
+  Play Services). La dependencia `data → domain` materializa la inversión de dependencias.
+- `di/AppModule` es el único punto que conoce las tres capas y arma el grafo, por
+  lo que se mantiene aparte de ellas.
 
-> Desviación honesta: hoy la flecha `AppModule → presentation` es *pull* (los VMs
-> piden a `AppModule`), no *push* por constructor. Es el punto service-locator
-> pendiente de migrar a Hilt (ver `.claude/pendientes.md` C3).
+> Salvedad: la relación `AppModule → presentation` es de tipo *pull* (los
+> ViewModels solicitan sus dependencias a `AppModule`), no inyección por
+> constructor. Es un patrón service-locator que queda pendiente de migrar a Hilt.
 
 ---
 

@@ -1,11 +1,9 @@
 # QLess — Justificaciones de Entrega H2
 
-> Mapeo punto por punto de la consigna (`CONSIGNA.md`) contra el estado real del
-> proyecto, con evidencia. Estados: ✅ cumplido · 🟡 parcial · ⛔ pendiente.
->
-> **Cómo leer este documento:** cada requisito de la consigna tiene su estado y un
-> puntero a la evidencia concreta. El "Índice de anexos" de abajo dice exactamente
-> dónde está cada cosa.
+> Este informe mapea punto por punto la consigna (`CONSIGNA.md`) contra el estado
+> del proyecto, con la evidencia correspondiente. Cada requisito indica su estado y
+> la ubicación de la evidencia. El índice de anexos detalla dónde se encuentra cada
+> elemento. Estados: ✅ cumplido · 🟡 parcial · ⛔ pendiente.
 
 ---
 
@@ -41,7 +39,7 @@ documentation/
         └── jank.log                           ← métrica de jank / fps (RNF1)
 ```
 
-| Buscás… | Andá a… |
+| Elemento | Ubicación |
 |---|---|
 | Diagrama de arquitectura | `H2/diagrama_arquitectura.png` (fuente Mermaid en `ARCHITECTURE.md`) |
 | Diagrama de responsabilidad de capas | `H2/diagrama_responsabilidad.png` (fuente en `ARCHITECTURE.md`) |

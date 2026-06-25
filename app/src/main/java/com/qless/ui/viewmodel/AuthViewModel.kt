@@ -56,6 +56,10 @@ class AuthViewModel : ViewModel() {
     private val _navEvent = MutableSharedFlow<AuthNavEvent>()
     val navEvent: SharedFlow<AuthNavEvent> = _navEvent.asSharedFlow()
 
+    // Credenciales del último registro, para iniciar sesión desde la pantalla de éxito.
+    private var registeredEmail: String? = null
+    private var registeredPassword: String? = null
+
     init {
         checkExistingSession()
     }
@@ -168,6 +172,10 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             registerUseCase(name.trim(), email.trim(), password)
                 .onSuccess {
+                    // Guardamos las credenciales para poder iniciar sesión desde la
+                    // pantalla de éxito (continueAfterRegister), igual que un login normal.
+                    registeredEmail = email.trim()
+                    registeredPassword = password
                     _uiState.update { it.copy(isLoading = false) }
                     _navEvent.emit(AuthNavEvent.RegisterSuccess)
                 }
@@ -175,6 +183,19 @@ class AuthViewModel : ViewModel() {
                     _uiState.update { it.copy(isLoading = false, registerError = err.message ?: "null") }
                 }
         }
+    }
+
+    /**
+     * Inicia sesión con la cuenta recién registrada (desde la pantalla de éxito).
+     * Reutiliza [login], por lo que emite LoginSuccess / LoginBackOffice igual que
+     * un inicio de sesión normal.
+     */
+    fun continueAfterRegister() {
+        val email = registeredEmail ?: return
+        val password = registeredPassword ?: return
+        registeredEmail = null
+        registeredPassword = null
+        login(email, password, rememberMe = false)
     }
 
     fun logout() {
