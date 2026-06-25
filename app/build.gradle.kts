@@ -11,6 +11,12 @@ val localProperties = Properties().also { props ->
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { props.load(it) }
 }
 
+// Credenciales de firma del release de distribución (NO se commitea).
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().also { props ->
+    keystorePropsFile.takeIf { it.exists() }?.inputStream()?.use { props.load(it) }
+}
+
 // Prefiere variable de entorno (CI) y cae a local.properties (desarrollo local).
 // Escapa el valor para que sea un string literal de Java válido en BuildConfig.
 fun secret(envKey: String, propKey: String): String =
@@ -27,7 +33,7 @@ android {
         minSdk = 24
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0-rc1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -44,12 +50,29 @@ android {
             System.getenv("MAPS_API_KEY") ?: localProperties["maps.api.key"]?.toString() ?: ""
     }
 
+    signingConfigs {
+        // Clave de release para el APK RC. Solo se activa si existe keystore.properties.
+        if (keystorePropsFile.exists()) {
+            create("release") {
+                // rootProject.file: la ruta de storeFile se resuelve desde la raíz
+                // del proyecto (donde está el .jks), no desde el módulo app/.
+                storeFile = rootProject.file(keystoreProps["storeFile"] as String)
+                storePassword = keystoreProps["storePassword"] as String
+                keyAlias = keystoreProps["keyAlias"] as String
+                keyPassword = keystoreProps["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Firma con la clave de debug solo para poder instalar una build
-            // NO-debuggable y medir métricas (cold start / fps). No es para distribución.
-            signingConfig = signingConfigs.getByName("debug")
+            // Con keystore.properties firma con la clave de release (RC de distribución);
+            // sin él cae a la clave de debug (para builds locales / métricas).
+            signingConfig = if (keystorePropsFile.exists())
+                signingConfigs.getByName("release")
+            else
+                signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

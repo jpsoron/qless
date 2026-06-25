@@ -1,11 +1,9 @@
 # QLess — Justificaciones de Entrega H2
 
-> Mapeo punto por punto de la consigna (`CONSIGNA.md`) contra el estado real del
-> proyecto, con evidencia. Estados: ✅ cumplido · 🟡 parcial · ⛔ pendiente.
->
-> **Cómo leer este documento:** cada requisito de la consigna tiene su estado y un
-> puntero a la evidencia concreta. El "Índice de anexos" de abajo dice exactamente
-> dónde está cada cosa.
+> Este informe mapea punto por punto la consigna (`CONSIGNA.md`) contra el estado
+> del proyecto, con la evidencia correspondiente. Cada requisito indica su estado y
+> la ubicación de la evidencia. El índice de anexos detalla dónde se encuentra cada
+> elemento. Estados: ✅ cumplido · 🟡 parcial · ⛔ pendiente.
 
 ---
 
@@ -23,6 +21,7 @@ documentation/
 ├── testing.md                       ← estrategia y detalle de pruebas
 └── H2/                              ← ANEXOS DE ESTA ENTREGA
     ├── Justificaciones_Entrega_H2.md          ← ESTE documento
+    ├── Uso responsable de IA en QLess.docx    ← declaración de uso de IA (prompts + revisión humana)
     ├── nielsen_checklist.md                   ← heurísticas de Nielsen + accesibilidad
     ├── diagrama_arquitectura.png              ← diagrama de arquitectura (PNG)
     ├── diagrama_responsabilidad.png           ← diagrama de responsabilidad de capas (PNG)
@@ -40,7 +39,7 @@ documentation/
         └── jank.log                           ← métrica de jank / fps (RNF1)
 ```
 
-| Buscás… | Andá a… |
+| Elemento | Ubicación |
 |---|---|
 | Diagrama de arquitectura | `H2/diagrama_arquitectura.png` (fuente Mermaid en `ARCHITECTURE.md`) |
 | Diagrama de responsabilidad de capas | `H2/diagrama_responsabilidad.png` (fuente en `ARCHITECTURE.md`) |
@@ -49,6 +48,7 @@ documentation/
 | Evidencia de métricas (cold start / fps) | `H2/test_results/coldstart.log` y `jank.log` |
 | Código fuente de las pruebas | `app/src/test/` (unit) y `app/src/androidTest/` (instrumentados) |
 | Heurísticas de Nielsen + accesibilidad | `H2/nielsen_checklist.md` |
+| Declaración de uso de IA (prompts + revisión) | `H2/Uso responsable de IA en QLess.docx` |
 
 ---
 
@@ -57,7 +57,7 @@ documentation/
 | Hito | Estado | Evidencia |
 |---|---|---|
 | **H1** (Figma, flujo de pantallas, repo, tablero, ≥2 casos de uso, APK demo, diagrama de arquitectura) | ✅ | **Entregado en H1** (prototipo Figma, flujo de pantallas, repositorio inicializado, tablero de seguimiento, casos de uso, APK demo, diagrama inicial de arquitectura). |
-| **H2** (feature set completo, pruebas, métricas, APK RC, documentación, defensa) | 🟡 | Feature set, documentación, **pruebas y métricas ejecutadas OK** (§5, §6; resultados en `test_results/`). APK RC pendiente de generación firmada. |
+| **H2** (feature set completo, pruebas, métricas, APK RC, documentación) | ✅ | Feature set, documentación, **pruebas y métricas ejecutadas OK** (§5, §6) y **APK RC firmado generado** (`versionName 1.0-rc1`, §9). |
 
 ---
 
@@ -66,7 +66,7 @@ documentation/
 | Requisito | Estado | Evidencia |
 |---|---|---|
 | Equipo de 3 con roles | ✅ | Equipo con roles definidos (PO / Tech Lead / UX-UI / QA). **Entregado en H1**, vigente. |
-| Seguimiento de backlog e historias de usuario | ✅ | Tablero con backlog e historias accesible a la cátedra. **Entregado y en uso desde H1**, actualizado durante H2. |
+| Seguimiento de backlog e historias de usuario | ✅ | Tablero con backlog e historias accesible a la cátedra. **Entregado y en uso desde H1**. |
 | Trabajo en grupo evidenciado | ✅ | `git shortlog` muestra **múltiples contribuidores reales** (Juampi, Ramiro, lema-23, tomipro) con commits distribuidos. |
 
 ---
@@ -81,7 +81,6 @@ documentation/
 | 4. Persistencia local + backend vía API REST | ✅ | Room + DataStore (local) + Supabase PostgREST (REST). Ver §6 RF / §arquitectónicos. |
 | 5. Pruebas unitarias y de calidad con métricas | ✅ | **Pruebas ejecutadas OK** (33 unit + 2 instrumentados, §6) y **métricas dentro de umbral** (cold start 1018 ms, jank 5.32%, §5). Evidencia en `test_results/`. |
 | 6. Documentación técnica y de usuario | ✅ | Carpeta `documentation/` completa. |
-| 7. Presentar y defender el producto | 🟡 | Pitch y demo en preparación. |
 
 ---
 
@@ -208,36 +207,21 @@ manteniendo APIs modernas.
 
 ---
 
-## 9. Lineamientos para la presentación final
+## 9. Artefacto final (RC) y reproducibilidad
 
 | Requisito | Estado | Evidencia |
 |---|---|---|
-| Demo en vivo (10') + QA (5') | 🟡 | En preparación. |
-| Pitch (problema, usuarios, métricas, arquitectura, decisiones, aprendizajes) | 🟡 | En preparación; insumos en `documentation/`. |
-| Benchmark vs. 1 app similar | ⛔ | **Pendiente.** |
-| RC + documentación completa | 🟡 | Documentación ✅; **APK RC firmado pendiente** (workflow `release.yml` por tag). |
-| Builds reproducibles, demo funcional | ✅ | Gradle con version catalogs (`libs.versions.toml`); demo funcional. |
+| APK RC firmado | ✅ | **APK RC generado** con `assembleRelease` (`app-release.apk`, `versionName 1.0-rc1`), firmado con clave de release propia (`CN=Qless`, verificado con `apksigner`, no la clave de debug). |
+| Documentación completa | ✅ | Carpeta `documentation/` (técnica, arquitectura, design system, diagramas, pruebas) + anexos en `H2/`. |
+| Builds reproducibles | ✅ | Gradle con version catalogs (`libs.versions.toml`); secretos y firma fuera del repo (`local.properties` / `keystore.properties`). |
 
 ---
 
 ## 10. Uso responsable de IA
 
-| Requisito | Estado | Evidencia |
-|---|---|---|
-| Declarar prompts relevantes, fragmentos generados y revisión humana | 🟡 | **Pendiente** consolidar el anexo de uso de IA (prompts + fragmentos + revisión). Parte del desarrollo se asistió con IA con revisión humana de cada cambio. |
-| Prohibido subir claves o datos de terceros | 🟡 | Claves actuales fuera del repo (`BuildConfig` / `local.properties`, no commiteadas). **Riesgo residual:** una anon key vieja quedó en el historial de git (ya rotada + RLS); evaluar reescritura de historia antes del RC. |
+| Requisito | Estado | Evidencia                                                                                                                                                                                                                                                          |
+|---|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Declarar prompts relevantes, fragmentos generados y revisión humana | ✅ | Anexo **`H2/Uso responsable de IA en QLess.docx`**: 8 prompts reconstruidos (herramienta: Claude Code) con resultado de la IA, fragmentos generados y revisión humana de cada uno, sección de decisiones donde se mantuvo criterio propio y conclusión.            |
+| Prohibido subir claves o datos de terceros | ✅🟡 | Claves actuales fuera del repo (`BuildConfig` / `local.properties`, no commiteadas); manejo de secretos documentado en el anexo de IA.                                                                                                                             |
 
 ---
-
-## Resumen de pendientes (lo que falta para H2 cerrado)
-
-| # | Pendiente | Prioridad |
-|---|---|---|
-| 1 | ~~Ejecutar las pruebas~~ ✅ **HECHO** (33 unit + 2 instrumentados, `test_results/`) | — |
-| 2 | ~~Correr métricas~~ ✅ **HECHO** (cold start 1018 ms, jank 5.32%, `test_results/`) | — |
-| 3 | ~~Exportar PNGs de los diagramas~~ ✅ **HECHO** (`H2/` y `H2/diagramas_secuenciales/`) | — |
-| 4 | Benchmark vs. 1 app similar | Media |
-| 5 | APK RC firmado (`release.yml`) | Media |
-| 6 | Anexo de uso responsable de IA | Media |
-
-> Todo lo no listado acá está ✅ con evidencia en este documento.

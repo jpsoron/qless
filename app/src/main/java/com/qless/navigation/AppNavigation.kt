@@ -77,6 +77,7 @@ import com.qless.ui.screens.clients.PaymentScreen
 import com.qless.ui.screens.clients.PickupSuccessScreen
 import com.qless.ui.screens.clients.QrNoReconocidoScreen
 import com.qless.ui.screens.clients.RegisterScreen
+import com.qless.ui.screens.clients.RegisterSuccessScreen
 import com.qless.ui.screens.clients.ResetPasswordScreen
 import com.qless.ui.screens.clients.ScanearQrScreen
 import com.qless.ui.screens.clients.SplashScreen
@@ -88,6 +89,7 @@ sealed class Screen(val route: String) {
     object Login : Screen("login")
     object GoogleLogin : Screen("google_login")
     object Register : Screen("register")
+    object RegisterSuccess : Screen("register_success")
     object ForgotPassword : Screen("forgot_password")
     object ResetPassword : Screen("reset_password")
     object Home : Screen("home")
@@ -484,7 +486,7 @@ fun AppNavigation(
             RegisterScreen(
                 authViewModel = authViewModel,
                 onRegisterSuccess = {
-                    navController.navigate(Screen.Login.route) {
+                    navController.navigate(Screen.RegisterSuccess.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },
@@ -492,6 +494,35 @@ fun AppNavigation(
                 onNavigateToGoogleLogin = {
                     navController.navigate(Screen.GoogleLogin.route)
                 }
+            )
+        }
+
+        composable(Screen.RegisterSuccess.route) {
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                authViewModel.navEvent.collect { event ->
+                    when (event) {
+                        AuthNavEvent.LoginSuccess -> {
+                            themeViewModel.setOnboardingCompleted()
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.RegisterSuccess.route) { inclusive = true }
+                            }
+                        }
+                        AuthNavEvent.LoginBackOffice -> {
+                            themeViewModel.setOnboardingCompleted()
+                            navController.navigate(Screen.BackOffice.route) {
+                                popUpTo(Screen.RegisterSuccess.route) { inclusive = true }
+                            }
+                        }
+                        else -> Unit
+                    }
+                }
+            }
+
+            RegisterSuccessScreen(
+                onContinue = { authViewModel.continueAfterRegister() },
+                isLoading = authState.isLoading,
             )
         }
 

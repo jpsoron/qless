@@ -15,6 +15,7 @@ build/
 # Key/signing
 *.jks
 *.keystore
+keystore.properties
 
 # OS
 .DS_Store

@@ -35,7 +35,7 @@ Salidas claras y reversibilidad donde tiene sentido.
 - **Vaciar carrito** con confirmación.
 - **Cancelar pedido** (BackOffice) con confirmación; del lado cliente, la pantalla
   de seguimiento muestra estado "Pedido cancelado" + **"Volver al inicio"**.
-- 🟡 Gap honesto: cancelar un pedido es **irreversible** (se avisa en el diálogo).
+- 🟡 Limitación: cancelar un pedido es **irreversible** (se avisa en el diálogo).
   No hay "deshacer" general; aceptable para el dominio.
 
 ### 4. Consistencia y estándares ✅
@@ -52,7 +52,7 @@ Salidas claras y reversibilidad donde tiene sentido.
 - **Bloqueo de carrito nuevo** mientras hay un pedido en curso (banner + CTA "Ver pedido").
 - **Validaciones de negocio**: `PlaceOrderUseCase` rechaza carrito vacío; email único
   al editar perfil (`EmailAlreadyInUseException`); QR validado contra local existente.
-- 🟡 Gap: validación de formularios de pago no aplica (pago digital deshabilitado en MVP).
+- 🟡 Limitación: validación de formularios de pago no aplica (pago digital deshabilitado en MVP).
 
 ### 6. Reconocer antes que recordar ✅
 - **Favoritos** y local más cercano (GPS) ofrecidos en Home: el usuario elige de una
@@ -65,7 +65,7 @@ Salidas claras y reversibilidad donde tiene sentido.
 - **Múltiples caminos al mismo objetivo**: detectar local por GPS, por QR o por lista.
 - **"Mantener sesión"** evita re-login.
 - **Deep-link**: tocar la notificación abre directo el seguimiento del pedido.
-- 🟡 Gap: sin atajos avanzados / personalización para usuarios expertos (no crítico
+- 🟡 Limitación: sin atajos avanzados / personalización para usuarios expertos (no crítico
   para el alcance).
 
 ### 8. Diseño estético y minimalista ✅
@@ -79,15 +79,15 @@ Salidas claras y reversibilidad donde tiene sentido.
 - **`QrNoReconocidoScreen`** cuando el QR no corresponde a un local registrado.
 - **Banner offline** explica por qué los datos pueden no estar frescos.
 - **Errores de checkout** se muestran al usuario (no fallan en silencio).
-- 🟡 Gap: algunos errores de red caen a un mensaje genérico; convendría más especificidad.
+- 🟡 Limitación: algunos errores de red caen a un mensaje genérico; se podría dar más especificidad.
 
 ### 10. Ayuda y documentación 🟡
 - **Onboarding inicial** presenta la propuesta de valor y cómo funciona el flujo.
 - Textos de apoyo contextuales ("Mostrá este código al retirar", subtítulos de pasos).
-- 🟡 Gap: no hay centro de ayuda / FAQ in-app. Para una app de este alcance, el
+- 🟡 Limitación: no hay centro de ayuda / FAQ in-app. Para una app de este alcance, el
   onboarding + microcopys cubren lo esencial; un FAQ queda como mejora futura.
 
-**Resumen Nielsen:** 4 ✅ plenas, 6 🟡 parciales con gaps menores y justificados.
+**Resumen Nielsen:** 4 ✅ plenas, 6 🟡 parciales con limitaciones menores y justificadas.
 Ninguna heurística sin abordar.
 
 ---
@@ -104,7 +104,3 @@ Ninguna heurística sin abordar.
 | **`contentDescription` en íconos** | ✅ | Íconos accionables descritos por su acción (ej. "Volver", "Notificaciones", "Editar perfil", "Pedido cancelado"); íconos decorativos en `null` (criterio correcto de Android). No quedan `IconButton` interactivos sin descripción. |
 | **Labels asociados en campos de texto** | ✅ | Login, Registro y método de pago: cada campo expone su etiqueta a lectores de pantalla vía `Modifier.semantics { contentDescription = ... }`, además del label visible. |
 | **Semántica de controles** | ✅ | `Switch`, `Checkbox`, `RadioButton` de M3 traen rol/estado para lectores de pantalla por defecto (preferencias de notificación, "Mantener sesión", método de pago). |
-
-> **Para la defensa:** mostrar dark mode en vivo y subir el tamaño de fuente del
-> sistema para evidenciar el escalado. Este checklist respalda el punto
-> "evidenciar heurísticas de Nielsen + accesibilidad" de la consigna.
