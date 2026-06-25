@@ -105,6 +105,6 @@ Ninguna heurística sin abordar.
 | **Labels asociados en campos de texto** | ✅ | Login, Registro y método de pago: cada campo expone su etiqueta a lectores de pantalla vía `Modifier.semantics { contentDescription = ... }`, además del label visible. |
 | **Semántica de controles** | ✅ | `Switch`, `Checkbox`, `RadioButton` de M3 traen rol/estado para lectores de pantalla por defecto (preferencias de notificación, "Mantener sesión", método de pago). |
 
-> **Para la defensa:** mostrar dark mode en vivo y subir el tamaño de fuente del
-> sistema para evidenciar el escalado. Este checklist respalda el punto
-> "evidenciar heurísticas de Nielsen + accesibilidad" de la consigna.
+> Este checklist respalda el punto "evidenciar heurísticas de Nielsen +
+> accesibilidad" de la consigna. El dark mode y el escalado de fuente se pueden
+> evidenciar en vivo sobre la app.
