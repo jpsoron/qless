@@ -76,4 +76,15 @@ class UserRepositoryImpl(
 
     override suspend fun updateProfile(name: String, email: String): Result<Unit> =
         profileRemoteDataSource.updateProfile(name, email)
+
+    override suspend fun sendPasswordReset(email: String): Result<Unit> =
+        authRemoteDataSource.sendPasswordReset(email)
+
+    // Cambia la contraseña con la sesión de recuperación y la cierra: el usuario
+    // debe volver a entrar con la credencial nueva (confirma el cambio de punta a punta).
+    override suspend fun updatePassword(newPassword: String): Result<Unit> = runCatching {
+        authRemoteDataSource.updatePassword(newPassword).getOrThrow()
+        authRemoteDataSource.signOut()
+        sessionStorage.clear()
+    }
 }

@@ -45,6 +45,25 @@ class AuthRemoteDataSource {
         auth.signOut()
     }
 
+    /**
+     * Pide a Supabase el mail de recuperación. El link del mail rebota a la app
+     * vía el deep link [PASSWORD_RESET_REDIRECT] (debe estar en la allowlist de
+     * Redirect URLs del proyecto y declarado en el manifest).
+     */
+    suspend fun sendPasswordReset(email: String): Result<Unit> = runCatching {
+        auth.resetPasswordForEmail(email, redirectUrl = PASSWORD_RESET_REDIRECT)
+    }
+
+    /** Cambia la contraseña del usuario de la sesión de recuperación activa. */
+    suspend fun updatePassword(newPassword: String): Result<Unit> = runCatching {
+        auth.updateUser { password = newPassword }
+    }
+
+    companion object {
+        /** Deep link al que Supabase devuelve tras validar el link de reset. */
+        const val PASSWORD_RESET_REDIRECT = "qless://reset-password"
+    }
+
     fun getCurrentSessionJson(): String? =
         auth.currentSessionOrNull()?.let { Json.encodeToString(it) }
 

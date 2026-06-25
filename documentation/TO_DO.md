@@ -20,7 +20,7 @@
 
 ### Login
 
-- [ ] **Dialog "Olvidé mi contraseña"** — el `TextButton` tiene `onClick = {}`. Mostrar un `AlertDialog` de Material 3 con campo de email y botón "Enviar" (solo UI, sin lógica real de envío).
+- [X] **"Olvidé mi contraseña"** — flujo real de recuperación por link (Supabase). El `TextButton` navega a `ForgotPasswordScreen` (pide el correo y dispara `resetPasswordForEmail`); el link del mail rebota a la app vía deep link `qless://reset-password` y abre `ResetPasswordScreen` (define la nueva contraseña con `updateUser`). Ver doc técnica § "Recuperación de contraseña".
 
 ### Ajustes
 

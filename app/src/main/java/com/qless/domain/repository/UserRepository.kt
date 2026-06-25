@@ -20,4 +20,14 @@ interface UserRepository {
     suspend fun consumeFirstOrderDiscount(): Result<Unit>
     /** Actualiza nombre y email en la tabla de perfiles (valida email único). */
     suspend fun updateProfile(name: String, email: String): Result<Unit>
+
+    /** Dispara el envío del mail de recuperación de contraseña (link de reset). */
+    suspend fun sendPasswordReset(email: String): Result<Unit>
+
+    /**
+     * Cambia la contraseña del usuario autenticado por la sesión de recuperación
+     * (abierta al volver del link del mail) y cierra esa sesión para forzar un
+     * login fresco con la credencial nueva.
+     */
+    suspend fun updatePassword(newPassword: String): Result<Unit>
 }
