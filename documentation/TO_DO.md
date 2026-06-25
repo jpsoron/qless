@@ -48,7 +48,7 @@ Todas las pantallas existen y están ruteadas en `AppNavigation`. Estas necesita
 | `MenuScreen` | ✓ Datos reales desde Supabase | — |
 | `MisLocalesScreen` | ✓ Datos reales; buscador, chips y orden funcionales | — |
 | `MisPedidosScreen` | ✓ Datos reales con tabs funcionales | — |
-| `GoogleLoginScreen` | UI hecha | Los botones no hacen nada real (Google Auth no implementado) |
+| `GoogleLoginScreen` | ✓ Login real con Google | Credential Manager + Google Identity Services → `signInWith(IDToken)` en Supabase. Ver doc técnica § "Login con Google". |
 | `OrderSummaryScreen` | ✓ Datos reales desde `selectedOrder` | — |
 
 ---

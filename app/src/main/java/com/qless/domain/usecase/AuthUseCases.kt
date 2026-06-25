@@ -13,6 +13,11 @@ class RegisterUseCase(private val repository: UserRepository) {
         repository.register(name, email, password)
 }
 
+class LoginWithGoogleUseCase(private val repository: UserRepository) {
+    suspend operator fun invoke(idToken: String, rawNonce: String): Result<AuthUser> =
+        repository.loginWithGoogle(idToken, rawNonce)
+}
+
 class LogoutUseCase(private val repository: UserRepository) {
     suspend operator fun invoke(): Result<Unit> = repository.logout()
 }

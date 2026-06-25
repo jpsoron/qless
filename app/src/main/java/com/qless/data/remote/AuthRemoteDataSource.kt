@@ -1,7 +1,9 @@
 package com.qless.data.remote
 
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.user.UserSession
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -43,6 +45,18 @@ class AuthRemoteDataSource {
 
     suspend fun signOut(): Result<Unit> = runCatching {
         auth.signOut()
+    }
+
+    /**
+     * Canjea el ID token de Google por una sesión de Supabase. El [rawNonce] debe ser
+     * el nonce sin hashear (Supabase compara su hash contra el nonce del token).
+     */
+    suspend fun signInWithGoogle(idToken: String, rawNonce: String): Result<Unit> = runCatching {
+        auth.signInWith(IDToken) {
+            this.idToken = idToken
+            this.provider = Google
+            this.nonce = rawNonce
+        }
     }
 
     /**

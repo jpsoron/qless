@@ -29,7 +29,7 @@ Dos actores principales:
 
 ### Flujos de pantallas implementados
 
-- **Flujo de autenticación:** Splash → Onboarding → Login / Registro → Google Auth (simulado)
+- **Flujo de autenticación:** Splash → Onboarding → Login / Registro → Google Auth (Credential Manager + Supabase IDToken)
 - **Flujo de pedido:** Detección GPS / Scan QR → Selección de local → Menú → Carrito → Pago → Pedido confirmado → Seguimiento → Pedido listo → Retiro exitoso
 - **Flujo de gestión:** BackOffice → Historial de pedidos → Actualización de estado → Ajustes BackOffice
 
@@ -427,6 +427,35 @@ manifest y con la allowlist de **Redirect URLs** del proyecto Supabase
 (`Authentication → URL Configuration`). El cambio toca **solo `auth.users`**, no la tabla
 `perfiles` ni Room.
 
+**Login con Google (RF3):**
+
+Inicio de sesión / registro con Google por el método nativo moderno: **Credential
+Manager + Google Identity Services** (reemplaza al `GoogleSignIn` deprecado). No usa
+deep links.
+
+1. **Obtener el ID token:** `GoogleSignInClient` (en `data/auth/`) abre el selector de
+   cuentas con `CredentialManager` y un `GetGoogleIdOption` configurado con el
+   **Web client ID** (`BuildConfig.GOOGLE_WEB_CLIENT_ID`, inyectado desde
+   `local.properties`/env, no commiteado). Genera un nonce aleatorio: lo manda
+   **hasheado (SHA-256)** a Google y devuelve el **crudo** para Supabase (anti-replay).
+   La cancelación del usuario se modela como `GoogleSignInCancelled` (no es error).
+2. **Canjear por sesión:** `UserRepository.loginWithGoogle(idToken, rawNonce)` →
+   `auth.signInWith(IDToken) { provider = Google; ... }`. Igual que `login`, luego trae
+   el perfil, valida `activo`, guarda la sesión (con Google se asume "mantener sesión")
+   y arma el `AuthUser`. El **primer** login crea el usuario en `auth.users` y su perfil
+   vía el trigger `handle_new_user`.
+3. **UI:** `GoogleLoginScreen` queda como pantalla "tonta" (recibe `isLoading`/`errorMessage`
+   y un callback de disparo). `AppNavigation` arma el `GoogleSignInClient` (necesita el
+   `Activity` context), lanza el flujo y, con el ID token, llama
+   `AuthViewModel.signInWithGoogle(...)`, que rutea por rol reusando `AuthNavEvent`.
+
+> **Config externa (no en el repo):** Google Cloud (pantalla de consentimiento +
+> **Web client ID** con secret + **Android client ID** atado a `com.qless` + SHA-1 del
+> keystore) y Supabase (provider Google activado con el Web client ID/secret en
+> *Authorized Client IDs*). Además, el trigger `handle_new_user` debe tolerar el metadata
+> de Google (nombre desde `full_name`/`name`/email y `rol` por defecto `'USER'`), porque
+> Google no manda `role`; si el trigger falla, se cae el alta del usuario.
+
 ### Capa de Presentación (`ui/`)
 
 #### Patrón de estado
@@ -744,7 +773,7 @@ ktor                                 = "3.1.3"   # ktor-client-okhttp
 - ~~Autenticación real con email/password~~ ✓ (Supabase Auth)
 - ~~Perfil de usuario desde Postgres~~ ✓ (tabla `perfiles` + RLS + trigger)
 - ~~Persistencia de sesión entre reinicios~~ ✓ (SessionStorage + DataStore + importSession)
-- Google Sign-In real (RF3): pendiente.
+- ~~Google Sign-In real (RF3)~~ ✓ (Credential Manager + `signInWith(IDToken)`; ver § "Login con Google").
 - Cachear perfil en Room para lectura offline.
 - Eliminar cuenta: requiere Supabase Edge Function con service role (actualmente solo hace sign-out).
 - Agregar / quitar favoritos desde la UI (hoy solo se leen, la modificación se hace desde SQL).
