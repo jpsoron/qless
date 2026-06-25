@@ -1,0 +1,16 @@
+▶ Jank / fps — scroll en la pantalla activa
+  1) Abrí la pantalla a medir (ej. lista de locales) en el dispositivo.
+  2) Reseteado. Hacé scroll fluido ~10 s ahora...
+  3) Cuando termines, Enter para leer las estadísticas.Total frames rendered: 1204
+Janky frames: 64 (5.32%)
+Janky frames (legacy): 159 (13.21%)
+50th percentile: 17ms
+90th percentile: 21ms
+95th percentile: 26ms
+99th percentile: 42ms
+50th gpu percentile: 13ms
+90th gpu percentile: 17ms
+95th gpu percentile: 18ms
+99th gpu percentile: 4950ms
+──────────────────────────────
+  objetivo: Janky frames < 10%  (⇔ >54 fps sostenido)

@@ -37,6 +37,29 @@ fun BackOfficeUpdateOrderScreen(
 ) {
     val state by orderViewModel.uiState.collectAsStateWithLifecycle()
     val order = state.localOrders.firstOrNull { it.id == orderId }
+    var showCancelDialog by remember { mutableStateOf(false) }
+
+    if (showCancelDialog && order != null) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text("Cancelar pedido", fontWeight = FontWeight.SemiBold) },
+            text = { Text("¿Seguro que querés cancelar el pedido #${order.numero}? El cliente será notificado y la acción no se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCancelDialog = false
+                    orderViewModel.updateOrderStatus(order.id, "cancelled")
+                    onNavigateToOrders()
+                }) {
+                    Text("Cancelar pedido", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) {
+                    Text("Volver")
+                }
+            }
+        )
+    }
 
     Scaffold(
         bottomBar = {
@@ -87,7 +110,8 @@ fun BackOfficeUpdateOrderScreen(
                     onMarkPickedUp = {
                         orderViewModel.updateOrderStatus(order.id, "picked_up")
                         onNavigateToOrders()
-                    }
+                    },
+                    onCancel = { showCancelDialog = true }
                 )
             }
 
@@ -102,6 +126,7 @@ private fun OrderDetail(
     onMarkPreparing: () -> Unit,
     onMarkReady: () -> Unit,
     onMarkPickedUp: () -> Unit,
+    onCancel: () -> Unit,
 ) {
     val (statusLabel, statusColor, statusBg) = when (order.status) {
         "pending" -> Triple("Pago confirmado", MaterialTheme.colorScheme.onSurfaceVariant, MaterialTheme.colorScheme.primaryContainer)
@@ -237,6 +262,20 @@ private fun OrderDetail(
             }
             Spacer(Modifier.height(12.dp))
         }
+    }
+
+    // Cancelar: disponible mientras el pedido sigue activo (no retirado ni cancelado).
+    if (order.status in setOf("pending", "preparing", "ready")) {
+        OutlinedButton(
+            onClick = onCancel,
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+        ) {
+            Text("Cancelar pedido", fontWeight = FontWeight.SemiBold)
+        }
+        Spacer(Modifier.height(12.dp))
     }
 }
 
