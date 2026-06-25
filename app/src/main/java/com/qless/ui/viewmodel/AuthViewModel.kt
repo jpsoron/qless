@@ -40,6 +40,7 @@ sealed interface AuthNavEvent {
 class AuthViewModel : ViewModel() {
 
     private val loginUseCase = AppModule.login
+    private val loginWithGoogleUseCase = AppModule.loginWithGoogle
     private val registerUseCase = AppModule.register
     private val logoutUseCase = AppModule.logout
     private val restoreSessionUseCase = AppModule.restoreSession
@@ -114,6 +115,44 @@ class AuthViewModel : ViewModel() {
                 .onFailure { err ->
                     _uiState.update { it.copy(isLoading = false, loginError = mapAuthError(err.message)) }
                 }
+        }
+    }
+
+    /**
+     * Canjea el ID token de Google (obtenido por la pantalla vía Credential Manager)
+     * por una sesión de Supabase y rutea según el rol. Misma semántica que [login].
+     */
+    fun signInWithGoogle(idToken: String, rawNonce: String) {
+        _uiState.update { it.copy(isLoading = true, loginError = null) }
+        viewModelScope.launch {
+            loginWithGoogleUseCase(idToken, rawNonce)
+                .onSuccess { user ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            currentUserName = user.name,
+                            currentUserEmail = user.email,
+                            currentUserRole = user.role,
+                            currentUserFavoritos = user.favoritos,
+                            firstOrderDiscount = user.firstOrderDiscount
+                        )
+                    }
+                    if (user.role == "BACK_OFFICE") {
+                        _navEvent.emit(AuthNavEvent.LoginBackOffice)
+                    } else {
+                        _navEvent.emit(AuthNavEvent.LoginSuccess)
+                    }
+                }
+                .onFailure { err ->
+                    _uiState.update { it.copy(isLoading = false, loginError = mapAuthError(err.message)) }
+                }
+        }
+    }
+
+    /** El flujo de Credential Manager falló (no por cancelación del usuario). */
+    fun onGoogleSignInError() {
+        _uiState.update {
+            it.copy(isLoading = false, loginError = "No se pudo conectar con Google. Intentá de nuevo.")
         }
     }
 

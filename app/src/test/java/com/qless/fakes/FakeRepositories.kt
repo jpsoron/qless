@@ -182,6 +182,8 @@ class FakeUserRepository(
     // El resto del contrato no se ejercita en estos tests.
     override suspend fun login(email: String, password: String, rememberMe: Boolean): Result<AuthUser> =
         Result.failure(NotImplementedError())
+    override suspend fun loginWithGoogle(idToken: String, rawNonce: String): Result<AuthUser> =
+        Result.failure(NotImplementedError())
     override suspend fun register(name: String, email: String, password: String): Result<Unit> = Result.success(Unit)
     override suspend fun logout(): Result<Unit> = Result.success(Unit)
     override suspend fun tryRestoreSession(): Result<AuthUser?> = Result.success(null)

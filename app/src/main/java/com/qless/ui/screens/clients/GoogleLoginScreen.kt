@@ -25,7 +25,9 @@ fun GoogleLoginScreen(
     onBack: () -> Unit,
     onContinueWithGoogle: () -> Unit,
     onUseEmail: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
 ) {
     Column(
         modifier = Modifier
@@ -145,9 +147,28 @@ fun GoogleLoginScreen(
 
         Spacer(Modifier.height(28.dp))
 
+        // Mensaje de error (token de Google / Supabase / red)
+        if (errorMessage != null) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+            ) {
+                Text(
+                    errorMessage,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+
         // Botón Google
         OutlinedButton(
             onClick = onContinueWithGoogle,
+            enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(58.dp),
@@ -155,27 +176,35 @@ fun GoogleLoginScreen(
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.primaryContainer)
         ) {
-            Surface(
-                modifier = Modifier.size(24.dp),
-                shape = CircleShape,
-                color = Color.Transparent
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        "G",
-                        color = Color(0xFF4285F4),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp
-                    )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(22.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Surface(
+                    modifier = Modifier.size(24.dp),
+                    shape = CircleShape,
+                    color = Color.Transparent
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            "G",
+                            color = Color(0xFF4285F4),
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp
+                        )
+                    }
                 }
+                Spacer(Modifier.width(14.dp))
+                Text(
+                    "Continuar con Google",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 17.sp
+                )
             }
-            Spacer(Modifier.width(14.dp))
-            Text(
-                "Continuar con Google",
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 17.sp
-            )
         }
 
         Spacer(Modifier.height(28.dp))

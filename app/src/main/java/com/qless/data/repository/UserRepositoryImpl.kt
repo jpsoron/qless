@@ -35,6 +35,18 @@ class UserRepositoryImpl(
             AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos, firstOrderDiscount = perfil.descuento1ra)
         }
 
+    override suspend fun loginWithGoogle(idToken: String, rawNonce: String): Result<AuthUser> =
+        authRemoteDataSource.signInWithGoogle(idToken, rawNonce).mapCatching {
+            val perfil = profileRemoteDataSource.fetchProfile().getOrThrow()
+            if (!perfil.activo) {
+                authRemoteDataSource.signOut()
+                throw AccountInactiveException()
+            }
+            // Con Google asumimos "mantener sesión": guardamos los tokens.
+            authRemoteDataSource.getCurrentSessionJson()?.let { sessionStorage.save(it) }
+            AuthUser(name = perfil.nombre, email = perfil.email, role = perfil.rol, favoritos = perfil.favoritos, firstOrderDiscount = perfil.descuento1ra)
+        }
+
     override suspend fun register(name: String, email: String, password: String): Result<Unit> =
         authRemoteDataSource.signUp(email, password, name)
 

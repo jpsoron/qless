@@ -34,6 +34,10 @@ android {
         buildConfigField("String", "SUPABASE_URL", "\"${secret("SUPABASE_URL", "supabase.url")}\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${secret("SUPABASE_ANON_KEY", "supabase.anon.key")}\"")
 
+        // Web client ID de Google OAuth (serverClientId del login con Google).
+        // No es secreto, pero va por local.properties / env para no commitearlo.
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${secret("GOOGLE_WEB_CLIENT_ID", "google.web.client.id")}\"")
+
         // API key de Google Maps. Va por local.properties / env (NO se commitea).
         // Se inyecta en el manifest como ${MAPS_API_KEY}.
         manifestPlaceholders["MAPS_API_KEY"] =
@@ -105,6 +109,11 @@ dependencies {
 
     // Permissions
     implementation(libs.accompanist.permissions)
+
+    // Google Sign-In (Credential Manager + Google Identity Services)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

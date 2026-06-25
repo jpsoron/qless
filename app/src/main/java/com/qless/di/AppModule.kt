@@ -43,6 +43,7 @@ import com.qless.domain.usecase.GetUserOrdersUseCase
 import com.qless.domain.usecase.ClearNotificationsUseCase
 import com.qless.domain.usecase.GetCurrentUserIdUseCase
 import com.qless.domain.usecase.LoginUseCase
+import com.qless.domain.usecase.LoginWithGoogleUseCase
 import com.qless.domain.usecase.LogoutUseCase
 import com.qless.domain.usecase.MarkNotificationsReadUseCase
 import com.qless.domain.usecase.NotifyOrderUpdateUseCase
@@ -155,6 +156,7 @@ object AppModule {
 
     // --- Autenticación ---
     val login by lazy { LoginUseCase(userRepository) }
+    val loginWithGoogle by lazy { LoginWithGoogleUseCase(userRepository) }
     val register by lazy { RegisterUseCase(userRepository) }
     val logout by lazy { LogoutUseCase(userRepository) }
     val restoreSession by lazy { RestoreSessionUseCase(userRepository) }

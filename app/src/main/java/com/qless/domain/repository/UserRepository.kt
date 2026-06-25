@@ -10,6 +10,14 @@ class AccountInactiveException : Exception("Esta cuenta fue eliminada")
 
 interface UserRepository {
     suspend fun login(email: String, password: String, rememberMe: Boolean = false): Result<AuthUser>
+
+    /**
+     * Inicia sesión con un ID token de Google (Credential Manager) validado por
+     * Supabase. El primer login crea el usuario y, vía trigger, su perfil. Persiste
+     * la sesión (con Google se asume "mantener sesión").
+     */
+    suspend fun loginWithGoogle(idToken: String, rawNonce: String): Result<AuthUser>
+
     suspend fun register(name: String, email: String, password: String): Result<Unit>
     suspend fun logout(): Result<Unit>
     suspend fun tryRestoreSession(): Result<AuthUser?>

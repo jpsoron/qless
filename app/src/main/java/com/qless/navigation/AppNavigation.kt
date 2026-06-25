@@ -26,6 +26,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.qless.data.auth.GoogleSignInClient
+import com.qless.data.auth.GoogleSignInCancelled
+import com.qless.ui.viewmodel.AuthNavEvent
 import com.qless.ui.viewmodel.AuthViewModel
 import com.qless.ui.viewmodel.CartViewModel
 import com.qless.ui.viewmodel.HomeViewModel
@@ -424,11 +430,43 @@ fun AppNavigation(
         }
 
         composable(Screen.GoogleLogin.route) {
+            val context = LocalContext.current
+            val scope = rememberCoroutineScope()
+            val googleClient = remember { GoogleSignInClient(context) }
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                authViewModel.navEvent.collect { event ->
+                    when (event) {
+                        AuthNavEvent.LoginSuccess -> {
+                            themeViewModel.setOnboardingCompleted()
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
+                            }
+                        }
+                        AuthNavEvent.LoginBackOffice -> {
+                            themeViewModel.setOnboardingCompleted()
+                            navController.navigate(Screen.BackOffice.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
+                            }
+                        }
+                        else -> Unit
+                    }
+                }
+            }
+
             GoogleLoginScreen(
                 onBack = { navController.popBackStack() },
                 onContinueWithGoogle = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                    scope.launch {
+                        googleClient.getIdToken()
+                            .onSuccess { cred ->
+                                authViewModel.signInWithGoogle(cred.idToken, cred.rawNonce)
+                            }
+                            .onFailure { err ->
+                                // Si el usuario cerró el selector, no mostramos error.
+                                if (err !is GoogleSignInCancelled) authViewModel.onGoogleSignInError()
+                            }
                     }
                 },
                 onUseEmail = { navController.popBackStack() },
@@ -436,7 +474,9 @@ fun AppNavigation(
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.GoogleLogin.route) { inclusive = true }
                     }
-                }
+                },
+                isLoading = authState.isLoading,
+                errorMessage = authState.loginError,
             )
         }
 
